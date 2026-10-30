@@ -1,0 +1,33 @@
+{
+  "name": "nomadly-backend",
+  "version": "1.0.0",
+  "description": "Backend API for NOMADLY Travel Reservation Platform",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "seed": "node src/utils/seed.js",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.2.0",
+    "firebase-admin": "^12.0.0",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb-memory-server": "^9.2.0",
+    "mongoose": "^8.3.1",
+    "morgan": "^1.10.0",
+    "razorpay": "^2.9.2",
+    "zod": "^3.23.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0",
+    "supertest": "^6.3.4",
+    "vitest": "^1.5.0"
+  }
+}
