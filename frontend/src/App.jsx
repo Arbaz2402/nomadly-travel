@@ -11,6 +11,9 @@ import { CheckoutPage } from './pages/checkout/CheckoutPage';
 import { BookingConfirmation } from './pages/bookings/BookingConfirmation';
 import { CustomerDashboard } from './pages/profile/CustomerDashboard';
 import { TripBuilderPage } from './pages/trip-builder/TripBuilderPage';
+import { JourneysDashboard } from './pages/journeys/JourneysDashboard';
+import { CreateTripPage } from './pages/journeys/CreateTripPage';
+import { TripWorkspacePage } from './pages/journeys/TripWorkspacePage';
 import { WishlistPage } from './pages/wishlist/WishlistPage';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { useAuthStore } from './store/authStore';
@@ -37,6 +40,10 @@ export const App = () => {
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/confirmation" element={<BookingConfirmation />} />
           <Route path="/dashboard" element={<CustomerDashboard />} />
+          <Route path="/journeys" element={<JourneysDashboard />} />
+          <Route path="/my-journeys" element={<JourneysDashboard />} />
+          <Route path="/journeys/new" element={<CreateTripPage />} />
+          <Route path="/journeys/:id" element={<TripWorkspacePage />} />
           <Route path="/trip-builder" element={<TripBuilderPage />} />
           <Route path="/wishlist" element={<WishlistPage />} />
           <Route path="/admin" element={<AdminDashboard />} />

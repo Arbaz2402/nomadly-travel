@@ -6,6 +6,7 @@ import {
   Train,
   Bus,
   Compass,
+  Map,
   User,
   ShieldCheck,
   LogOut,
@@ -51,7 +52,7 @@ export const Navbar = () => {
     { name: 'Hotels', path: '/hotels', icon: Building2 },
     { name: 'Trains', path: '/trains', icon: Train },
     { name: 'Buses', path: '/buses', icon: Bus },
-    { name: 'Trip Builder', path: '/trip-builder', icon: Compass, badge: 'Smart' },
+    { name: 'My Journeys', path: '/journeys', icon: Map, badge: 'Organizer' },
   ];
 
   return (
@@ -150,6 +151,14 @@ export const Navbar = () => {
                     </div>
 
                     <div className="py-1">
+                      <Link
+                        to="/journeys"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-coral-400 hover:bg-coral-500/10 rounded-xl transition-colors"
+                      >
+                        <Map className="w-4 h-4 text-coral-400" />
+                        My Journeys
+                      </Link>
                       {user.role === 'admin' && (
                         <Link
                           to="/admin"

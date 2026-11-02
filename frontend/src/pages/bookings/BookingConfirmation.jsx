@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import {
@@ -12,9 +12,14 @@ import {
   MapPin,
   User,
   Copy,
+  Map,
+  Plus,
+  Loader2,
+  X,
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import { useToast } from '../../context/ToastContext';
+import { ApiClient } from '../../services/api';
 
 export const BookingConfirmation = () => {
   const location = useLocation();
@@ -45,8 +50,56 @@ export const BookingConfirmation = () => {
     showToast('Booking reference copied to clipboard!', 'success');
   };
 
-  const handlePrint = () => {
-    window.print();
+  const [showAddToTripModal, setShowAddToTripModal] = useState(false);
+  const [userTrips, setUserTrips] = useState([]);
+  const [loadingTrips, setLoadingTrips] = useState(false);
+  const [attachingTripId, setAttachingTripId] = useState(null);
+
+  const fetchUserTrips = async () => {
+    try {
+      setLoadingTrips(true);
+      const res = await ApiClient.getMyTrips();
+      if (res.success) {
+        setUserTrips(res.data || []);
+      }
+    } catch (err) {
+      console.warn('Could not load user journeys:', err.message);
+    } finally {
+      setLoadingTrips(false);
+    }
+  };
+
+  const handleOpenAddToTrip = () => {
+    setShowAddToTripModal(true);
+    fetchUserTrips();
+  };
+
+  const handleAttachToSelectedTrip = async (tripId) => {
+    try {
+      setAttachingTripId(tripId);
+      const res = await ApiClient.attachBookingToTrip(tripId, {
+        bookingId: booking._id,
+      });
+      if (res.success) {
+        showToast('Reservation successfully linked to journey itinerary!', 'success');
+        navigate(`/journeys/${tripId}`);
+      }
+    } catch (err) {
+      showToast(err.message || 'Failed to attach booking', 'error');
+    } finally {
+      setAttachingTripId(null);
+    }
+  };
+
+  const handleCreateNewTripWithBooking = () => {
+    const snap = booking.itinerarySnapshot || {};
+    const dest = snap.destinationCity || snap.city || snap.destination || 'My Destination';
+    navigate('/journeys/new', {
+      state: {
+        prefillTitle: `Trip to ${dest}`,
+        prefillDestination: dest,
+      },
+    });
   };
 
   return (
@@ -189,21 +242,102 @@ export const BookingConfirmation = () => {
         </button>
 
         <div className="flex items-center gap-3">
+          <button
+            onClick={handleOpenAddToTrip}
+            className="px-6 py-3 rounded-2xl bg-gradient-to-r from-coral-500 to-coral-600 hover:from-coral-600 hover:to-coral-700 text-white text-xs font-bold shadow-glow transition-all flex items-center gap-2"
+          >
+            <Map className="w-4 h-4 stroke-[2.2]" />
+            <span>Add to My Journeys</span>
+          </button>
           <Link
             to="/dashboard"
             className="px-5 py-3 rounded-2xl bg-ink-900 hover:bg-ink-800 text-white border border-white/10 text-xs font-bold transition-all"
           >
-            View in Dashboard
-          </Link>
-          <Link
-            to="/trip-builder"
-            className="px-6 py-3 rounded-2xl bg-coral-500 hover:bg-coral-600 text-white text-xs font-bold shadow-glow transition-all flex items-center gap-2"
-          >
-            <span>Organize into Trip Builder</span>
-            <ArrowRight className="w-4 h-4" />
+            My Bookings
           </Link>
         </div>
       </div>
+
+      {/* Add To Journey Modal */}
+      {showAddToTripModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-950/80 backdrop-blur-md animate-fade-in">
+          <div className="relative w-full max-w-lg rounded-3xl bg-ink-900 border border-white/10 shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-white/5 pb-3">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-coral-400 tracking-wider">
+                  Independent Journey Hub
+                </span>
+                <h3 className="text-lg font-bold text-white font-display">Add Booking to Journey</h3>
+              </div>
+              <button
+                onClick={() => setShowAddToTripModal(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-300">
+              Link this confirmed booking (<span className="font-mono text-teal-400">{booking.bookingReference}</span>) into one of your existing trip plans, or create a brand new journey!
+            </p>
+
+            {/* List of existing journeys */}
+            <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+              {loadingTrips ? (
+                <div className="py-8 flex flex-col items-center justify-center gap-2 text-slate-400">
+                  <Loader2 className="w-6 h-6 animate-spin text-coral-500" />
+                  <span className="text-xs">Loading your journeys...</span>
+                </div>
+              ) : userTrips.length === 0 ? (
+                <div className="p-4 rounded-2xl bg-ink-950 border border-white/5 text-center text-xs text-slate-400">
+                  No active journeys found yet.
+                </div>
+              ) : (
+                userTrips.map((t) => (
+                  <div
+                    key={t._id}
+                    className="p-3 rounded-2xl bg-ink-950/80 hover:bg-ink-850 border border-white/5 hover:border-coral-500/30 flex items-center justify-between gap-3 transition-colors"
+                  >
+                    <div>
+                      <h4 className="text-xs font-bold text-white">{t.title}</h4>
+                      <p className="text-[11px] text-slate-400">
+                        {t.destination} • {formatDate(t.startDate)}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => handleAttachToSelectedTrip(t._id)}
+                      disabled={attachingTripId === t._id}
+                      className="px-3.5 py-1.5 rounded-xl bg-coral-500 hover:bg-coral-600 text-white text-xs font-bold shadow-glow disabled:opacity-50 flex items-center gap-1 shrink-0"
+                    >
+                      {attachingTripId === t._id ? (
+                        <>
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                          Linking...
+                        </>
+                      ) : (
+                        'Add to Trip'
+                      )}
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Option to create a new trip */}
+            <div className="pt-3 border-t border-white/5 flex items-center justify-between">
+              <span className="text-xs text-slate-400">Want to start a fresh itinerary?</span>
+              <button
+                onClick={handleCreateNewTripWithBooking}
+                className="px-4 py-2 rounded-xl bg-teal-500 hover:bg-teal-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-glow"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Create New Journey
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

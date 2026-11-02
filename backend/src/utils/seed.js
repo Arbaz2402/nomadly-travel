@@ -8,6 +8,10 @@ import { Bus } from '../models/Bus.js';
 import { Coupon } from '../models/Coupon.js';
 import { Booking } from '../models/Booking.js';
 import { Payment } from '../models/Payment.js';
+import { Trip } from '../models/Trip.js';
+import { ItineraryItem } from '../models/ItineraryItem.js';
+import { TripExpense } from '../models/TripExpense.js';
+import { TripDocument } from '../models/TripDocument.js';
 
 dotenv.config();
 
@@ -606,6 +610,198 @@ export const seedDatabase = async () => {
       currency: 'INR',
       status: 'captured',
       gateway: 'mock_sandbox',
+    });
+
+    // 8. Seed "My Journeys" Sample Trip & Itinerary
+    await Trip.deleteMany({});
+    await ItineraryItem.deleteMany({});
+    await TripExpense.deleteMany({});
+    await TripDocument.deleteMany({});
+
+    const sampleTrip = await Trip.create({
+      user: demoTraveler._id,
+      title: 'Golden Triangle & Heritage Rajasthan Tour',
+      destination: 'Udaipur',
+      additionalDestinations: ['Delhi', 'Mumbai', 'Jaipur'],
+      startDate: new Date('2026-11-15'),
+      endDate: new Date('2026-11-22'),
+      travelersCount: 2,
+      currency: 'INR',
+      budget: {
+        totalBudget: 85000,
+        currency: 'INR',
+        allocatedTransport: 25000,
+        allocatedStay: 45000,
+        allocatedActivities: 15000,
+      },
+      coverImage: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=1200&q=80',
+      description: 'Scenic multi-city journey across cultural heritage forts, express trains, boutique stays, and local culinary experiences.',
+      status: 'upcoming',
+      bookings: [sampleBooking._id],
+      participants: [
+        {
+          user: demoTraveler._id,
+          name: 'Aarav Sharma',
+          email: 'traveler@nomadly.travel',
+          role: 'owner',
+          status: 'accepted',
+          acceptedAt: new Date(),
+        },
+        {
+          name: 'Priya Sharma',
+          email: 'priya.sharma@example.com',
+          role: 'editor',
+          status: 'accepted',
+          acceptedAt: new Date(),
+        },
+      ],
+    });
+
+    // Itinerary Item 1: Attached NOMADLY Flight
+    await ItineraryItem.create({
+      trip: sampleTrip._id,
+      title: 'IndiGo 6E-205 (BOM → DEL)',
+      description: 'Confirmed NOMADLY flight leg to Delhi Airport T3',
+      category: 'flight',
+      sourceType: 'nomadly_booking',
+      bookingId: sampleBooking._id,
+      bookingReference: sampleBooking.bookingReference,
+      externalProvider: 'NOMADLY',
+      location: { name: 'Mumbai T2 → Delhi T3', city: 'Delhi' },
+      date: new Date('2026-11-15'),
+      startTime: '06:45',
+      endTime: '08:55',
+      estimatedCost: 5473,
+      actualCost: 5473,
+      currency: 'INR',
+      status: 'confirmed',
+      notes: 'Seat 12A selected. Terminal 2 check-in by 05:15 AM.',
+    });
+
+    // Itinerary Item 2: External Reservation (Booking.com Luxury Stay)
+    await ItineraryItem.create({
+      trip: sampleTrip._id,
+      title: 'The Oberoi Udaivilas, Lake Pichola',
+      description: 'Premier lake-view heritage room booked via Booking.com',
+      category: 'hotel',
+      sourceType: 'external_booking',
+      externalProvider: 'Booking.com',
+      bookingReference: 'BK-UB-849201',
+      externalBookingUrl: 'https://booking.com/hotel/oberoi-udaivilas',
+      location: { name: 'Haridas Ji Ki Magri, Udaipur', city: 'Udaipur' },
+      date: new Date('2026-11-16'),
+      startTime: '14:00',
+      endTime: '11:00',
+      estimatedCost: 32000,
+      actualCost: 32000,
+      currency: 'INR',
+      status: 'confirmed',
+      notes: 'Complimentary traditional Rajasthani breakfast & boat shuttle included.',
+    });
+
+    // Itinerary Item 3: External IRCTC Train
+    await ItineraryItem.create({
+      trip: sampleTrip._id,
+      title: 'Vande Bharat Express (Train #20901)',
+      description: 'Executive Chair Car transfer reserved on IRCTC',
+      category: 'train',
+      sourceType: 'external_booking',
+      externalProvider: 'IRCTC',
+      bookingReference: 'PNR-2948192049',
+      location: { name: 'New Delhi Railway Station', city: 'Delhi' },
+      date: new Date('2026-11-18'),
+      startTime: '06:00',
+      endTime: '11:45',
+      estimatedCost: 2615,
+      actualCost: 2615,
+      currency: 'INR',
+      status: 'confirmed',
+      notes: 'Coach E1, Seats 41 & 42',
+    });
+
+    // Itinerary Item 4: Manual Sightseeing Tour
+    await ItineraryItem.create({
+      trip: sampleTrip._id,
+      title: 'City Palace Museum & Private Lake Sunset Cruise',
+      description: 'Guided tour of Udaipur royal palace followed by Lake Pichola solar boat ride',
+      category: 'sightseeing',
+      sourceType: 'manual_entry',
+      location: { name: 'City Palace Complex', city: 'Udaipur' },
+      date: new Date('2026-11-19'),
+      startTime: '15:30',
+      endTime: '18:30',
+      estimatedCost: 3500,
+      actualCost: 3200,
+      currency: 'INR',
+      status: 'planned',
+      notes: 'Sunset photography at Jag Mandir Island.',
+    });
+
+    // Sample Expenses & Split
+    await TripExpense.create([
+      {
+        trip: sampleTrip._id,
+        title: 'IndiGo Flight BOM → DEL',
+        category: 'flights',
+        amount: 5473,
+        currency: 'INR',
+        exchangeRate: 1,
+        convertedAmount: 5473,
+        date: new Date('2026-11-15'),
+        paidBy: { name: 'Aarav Sharma', email: 'traveler@nomadly.travel' },
+        splitType: 'equal',
+        splits: [
+          { name: 'Aarav Sharma', email: 'traveler@nomadly.travel', shareAmount: 2736.5, sharePercentage: 50, isSettled: true },
+          { name: 'Priya Sharma', email: 'priya.sharma@example.com', shareAmount: 2736.5, sharePercentage: 50, isSettled: false },
+        ],
+      },
+      {
+        trip: sampleTrip._id,
+        title: 'The Oberoi Udaivilas (Booking.com)',
+        category: 'hotels',
+        amount: 32000,
+        currency: 'INR',
+        exchangeRate: 1,
+        convertedAmount: 32000,
+        date: new Date('2026-11-16'),
+        paidBy: { name: 'Aarav Sharma', email: 'traveler@nomadly.travel' },
+        splitType: 'equal',
+        splits: [
+          { name: 'Aarav Sharma', email: 'traveler@nomadly.travel', shareAmount: 16000, sharePercentage: 50, isSettled: true },
+          { name: 'Priya Sharma', email: 'priya.sharma@example.com', shareAmount: 16000, sharePercentage: 50, isSettled: false },
+        ],
+      },
+      {
+        trip: sampleTrip._id,
+        title: 'Action Camera & Waterproof Lens (USD)',
+        category: 'shopping',
+        amount: 150,
+        currency: 'USD',
+        exchangeRate: 83.5,
+        convertedAmount: 12525,
+        date: new Date('2026-11-17'),
+        description: 'GoPro accessories for lake and palace exploration',
+        paidBy: { name: 'Priya Sharma', email: 'priya.sharma@example.com' },
+        splitType: 'equal',
+        splits: [
+          { name: 'Aarav Sharma', email: 'traveler@nomadly.travel', shareAmount: 6262.5, sharePercentage: 50, isSettled: false },
+          { name: 'Priya Sharma', email: 'priya.sharma@example.com', shareAmount: 6262.5, sharePercentage: 50, isSettled: true },
+        ],
+      },
+    ]);
+
+    // Sample Document
+    await TripDocument.create({
+      trip: sampleTrip._id,
+      title: 'The Oberoi Udaivilas Confirmation Voucher',
+      category: 'hotel_confirmation',
+      fileName: 'oberoi_udaivilas_voucher.pdf',
+      fileType: 'application/pdf',
+      fileSize: 2048,
+      fileData: 'data:application/pdf;base64,JVBERi0xLjQKJcTl8uXrCg==',
+      uploadedBy: demoTraveler._id,
+      uploadedByName: 'Aarav Sharma',
+      notes: 'Booking.com reference BK-UB-849201',
     });
 
     console.log('✅ NOMADLY Database seeded successfully with Flights, Hotels, Trains, Buses, and Demo Users!');
