@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Bus, SlidersHorizontal, ArrowUpDown, AlertCircle } from 'lucide-react';
+import { Bus, SlidersHorizontal, ArrowUpDown, AlertCircle, Search } from 'lucide-react';
 import { BusCard } from '../../components/travel-cards/BusCard';
 import { ApiClient } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 
 export const BusesPage = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { showToast } = useToast();
 
@@ -21,6 +21,9 @@ export const BusesPage = () => {
 
   const origin = searchParams.get('origin') || '';
   const destination = searchParams.get('destination') || '';
+
+  const [originInput, setOriginInput] = useState(origin || 'Mumbai');
+  const [destInput, setDestInput] = useState(destination || 'Goa');
 
   const fetchBuses = async () => {
     try {
@@ -48,6 +51,23 @@ export const BusesPage = () => {
   useEffect(() => {
     fetchBuses();
   }, [origin, destination, busType, operator, sortBy]);
+
+  const handleSearchSubmit = (e) => {
+    if (e) e.preventDefault();
+    setSearchParams({
+      origin: originInput.trim(),
+      destination: destInput.trim(),
+    });
+  };
+
+  const handleQuickRoute = (from, to) => {
+    setOriginInput(from);
+    setDestInput(to);
+    setSearchParams({
+      origin: from,
+      destination: to,
+    });
+  };
 
   const handleCheckoutWithSeats = async (bus, selectedSeats) => {
     const sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
@@ -93,7 +113,94 @@ export const BusesPage = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 animate-fade-in">
+      {/* 1. Interactive Bus Search Bar */}
+      <div className="glass-panel rounded-3xl p-6 mb-8 border border-white/10 shadow-2xl bg-ink-900/90 space-y-4">
+        <form onSubmit={handleSearchSubmit} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+          {/* Origin */}
+          <div className="md:col-span-4">
+            <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block mb-1.5">
+              From City
+            </label>
+            <div className="relative">
+              <Bus className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={originInput}
+                onChange={(e) => setOriginInput(e.target.value)}
+                placeholder="e.g. Mumbai, Delhi, Bengaluru"
+                className="w-full bg-ink-950 border border-white/10 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-coral-500"
+              />
+            </div>
+          </div>
+
+          {/* Swap Button */}
+          <div className="md:col-span-1 flex items-center justify-center">
+            <button
+              type="button"
+              onClick={() => {
+                const temp = originInput;
+                setOriginInput(destInput);
+                setDestInput(temp);
+              }}
+              className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition-all"
+              title="Swap origin and destination"
+            >
+              <ArrowUpDown className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Destination */}
+          <div className="md:col-span-4">
+            <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block mb-1.5">
+              To City
+            </label>
+            <div className="relative">
+              <Bus className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={destInput}
+                onChange={(e) => setDestInput(e.target.value)}
+                placeholder="e.g. Goa, Manali, Hyderabad"
+                className="w-full bg-ink-950 border border-white/10 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-coral-500"
+              />
+            </div>
+          </div>
+
+          {/* Search Button */}
+          <div className="md:col-span-3">
+            <button
+              type="submit"
+              className="w-full py-2.5 px-4 rounded-2xl bg-gradient-to-r from-coral-500 to-rose-600 text-white font-bold text-xs shadow-lg hover:from-coral-600 hover:to-rose-700 transition-all flex items-center justify-center gap-2"
+            >
+              <Search className="w-4 h-4" />
+              Search Buses
+            </button>
+          </div>
+        </form>
+
+        {/* Quick Route Pills */}
+        <div className="pt-2 border-t border-white/5 flex flex-wrap items-center gap-2">
+          <span className="text-[11px] text-slate-400 font-medium">Popular Intercity Routes:</span>
+          {[
+            { from: 'Mumbai', to: 'Goa', label: 'Mumbai → Goa' },
+            { from: 'Delhi', to: 'Manali', label: 'Delhi → Manali' },
+            { from: 'Bangalore', to: 'Hyderabad', label: 'Bengaluru → Hyderabad' },
+            { from: 'Pune', to: 'Goa', label: 'Pune → Goa' },
+            { from: 'Delhi', to: 'Jaipur', label: 'Delhi → Jaipur' },
+          ].map((rt) => (
+            <button
+              key={rt.label}
+              type="button"
+              onClick={() => handleQuickRoute(rt.from, rt.to)}
+              className="px-2.5 py-1 rounded-full text-[11px] bg-white/5 hover:bg-coral-500/20 text-slate-300 hover:text-coral-300 border border-white/10 transition-all font-medium"
+            >
+              {rt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Route Header Banner */}
       <div className="glass-panel rounded-3xl p-6 mb-8 border border-white/10 flex flex-wrap items-center justify-between gap-4">
         <div>

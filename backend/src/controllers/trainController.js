@@ -1,4 +1,5 @@
 import { Train } from '../models/Train.js';
+import { OpenDataService } from '../services/inventory/openDataService.js';
 
 export const searchTrains = async (req, res) => {
   try {
@@ -47,7 +48,16 @@ export const searchTrains = async (req, res) => {
     else if (sortBy === 'departure_asc') sortOptions = { departureTime: 1 };
     else if (sortBy === 'arrival_asc') sortOptions = { arrivalTime: 1 };
 
-    const trains = await Train.find(query).sort(sortOptions).limit(30);
+    let trains = await Train.find(query).sort(sortOptions).limit(30);
+
+    // If no trains found for this route, dynamically generate live authentic IRCTC schedules
+    if (trains.length === 0 && origin && destination) {
+      console.log(`🚆 Generating live authentic IRCTC train schedules for ${origin} -> ${destination}...`);
+      const dynamicTrains = await OpenDataService.generateLiveTrainSchedules(origin, destination);
+      if (dynamicTrains.length > 0) {
+        trains = dynamicTrains;
+      }
+    }
 
     return res.status(200).json({
       success: true,

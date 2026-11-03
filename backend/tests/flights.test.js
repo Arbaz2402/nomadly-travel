@@ -4,12 +4,11 @@ import app from '../src/app.js';
 import { connectDB, disconnectDB } from '../src/config/db.js';
 import { seedDatabase } from '../src/utils/seed.js';
 import {
-  AmadeusService,
   resolveIataCode,
   parseDurationMinutes,
   AIRLINE_REGISTRY,
   AIRPORT_REGISTRY,
-} from '../src/services/inventory/amadeusService.js';
+} from '../src/services/inventory/openDataService.js';
 
 beforeAll(async () => {
   await connectDB();
@@ -20,7 +19,7 @@ afterAll(async () => {
   await disconnectDB();
 });
 
-describe('Amadeus Provider & Travel Inventory Suite', () => {
+describe('Flight & Travel Inventory Suite', () => {
   describe('Helper Utilities & IATA Code Resolution', () => {
     it('should resolve standard 3-letter IATA airport codes', () => {
       expect(resolveIataCode('BOM')).toBe('BOM');
@@ -62,20 +61,7 @@ describe('Amadeus Provider & Travel Inventory Suite', () => {
     });
   });
 
-  describe('Configuration & Zero-Config Fallback Behavior', () => {
-    it('isConfigured() returns false when API keys are absent', () => {
-      const origId = process.env.AMADEUS_CLIENT_ID;
-      const origSecret = process.env.AMADEUS_CLIENT_SECRET;
-
-      delete process.env.AMADEUS_CLIENT_ID;
-      delete process.env.AMADEUS_CLIENT_SECRET;
-
-      expect(AmadeusService.isConfigured()).toBe(false);
-
-      if (origId) process.env.AMADEUS_CLIENT_ID = origId;
-      if (origSecret) process.env.AMADEUS_CLIENT_SECRET = origSecret;
-    });
-
+  describe('Flight Search & Discovery', () => {
     it('GET /api/v1/flights/airports returns populated airport registry', async () => {
       const res = await request(app).get('/api/v1/flights/airports');
       expect(res.status).toBe(200);
@@ -87,7 +73,7 @@ describe('Amadeus Provider & Travel Inventory Suite', () => {
       expect(codes).toContain('BLR');
     });
 
-    it('GET /api/v1/flights/search gracefully falls back to local catalog when Amadeus is unconfigured', async () => {
+    it('GET /api/v1/flights/search returns flights for BOM to DEL', async () => {
       const res = await request(app).get('/api/v1/flights/search?origin=BOM&destination=DEL');
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
@@ -96,12 +82,11 @@ describe('Amadeus Provider & Travel Inventory Suite', () => {
       expect(res.body.data[0].destinationCode).toBe('DEL');
     });
 
-    it('GET /api/v1/hotels/search gracefully falls back to local catalog when Amadeus is unconfigured', async () => {
-      const res = await request(app).get('/api/v1/hotels/search?city=Mumbai');
+    it('GET /api/v1/flights/search dynamically generates flights for new routes', async () => {
+      const res = await request(app).get('/api/v1/flights/search?origin=BLR&destination=DXB');
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.data.length).toBeGreaterThan(0);
-      expect(res.body.data[0].location.city).toBe('Mumbai');
     });
   });
 });

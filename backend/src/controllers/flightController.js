@@ -1,6 +1,5 @@
 import { FlightOffer } from '../models/FlightOffer.js';
-import { AmadeusService, AIRPORT_REGISTRY } from '../services/inventory/amadeusService.js';
-import { OpenDataService } from '../services/inventory/openDataService.js';
+import { OpenDataService, AIRPORT_REGISTRY } from '../services/inventory/openDataService.js';
 
 export const searchFlights = async (req, res) => {
   try {
@@ -14,32 +13,6 @@ export const searchFlights = async (req, res) => {
       maxPrice,
       sortBy = 'price_asc',
     } = req.query;
-
-    // 1. Try Amadeus Live API if credentials are configured
-    if (AmadeusService.isConfigured() && origin && destination) {
-      try {
-        console.log(`📡 Querying Amadeus Live API for flights ${origin} -> ${destination}...`);
-        const liveFlights = await AmadeusService.searchFlightOffers({
-          origin,
-          destination,
-          departureDate,
-          cabinClass,
-          directOnly,
-        });
-
-        if (liveFlights && liveFlights.length > 0) {
-          console.log(`✅ Amadeus returned ${liveFlights.length} live flight offers.`);
-          return res.status(200).json({
-            success: true,
-            provider: 'AMADEUS_LIVE',
-            count: liveFlights.length,
-            data: liveFlights,
-          });
-        }
-      } catch (amadeusErr) {
-        console.warn('⚠️ Amadeus Live API failed, falling back to local catalog:', amadeusErr.message);
-      }
-    }
 
     const query = { isActive: true };
 

@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useToast } from '../../context/ToastContext';
+import { AuthModal } from '../common/AuthModal';
 
 export const Navbar = () => {
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ export const Navbar = () => {
   const { showToast } = useToast();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   const handleDemoLogin = async (role) => {
     try {
@@ -108,18 +110,28 @@ export const Navbar = () => {
             {!user ? (
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => handleDemoLogin('customer')}
-                  className="px-3.5 py-2 text-xs font-semibold rounded-xl bg-ink-900 text-slate-200 hover:text-white border border-white/10 hover:border-coral-500/40 transition-all flex items-center gap-1.5"
+                  onClick={() => setAuthModalOpen(true)}
+                  className="px-4 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-coral-500 to-rose-600 hover:from-coral-600 hover:to-rose-700 text-white shadow-glow transition-all flex items-center gap-1.5"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-coral-400" />
-                  Traveler Demo
+                  <User className="w-3.5 h-3.5" />
+                  Sign In / Register
+                </button>
+                <div className="h-4 w-px bg-white/10 mx-1"></div>
+                <button
+                  onClick={() => handleDemoLogin('customer')}
+                  className="px-3 py-1.5 text-xs font-medium rounded-xl bg-ink-900 text-slate-300 hover:text-white border border-white/10 hover:border-coral-500/40 transition-all flex items-center gap-1"
+                  title="Quick Demo Traveler Login"
+                >
+                  <Sparkles className="w-3 h-3 text-coral-400" />
+                  Traveler
                 </button>
                 <button
                   onClick={() => handleDemoLogin('admin')}
-                  className="px-3.5 py-2 text-xs font-semibold rounded-xl bg-gradient-to-r from-coral-500 to-coral-600 hover:from-coral-600 hover:to-coral-700 text-white shadow-glow transition-all flex items-center gap-1.5"
+                  className="px-3 py-1.5 text-xs font-medium rounded-xl bg-ink-900 text-slate-300 hover:text-white border border-white/10 hover:border-teal-500/40 transition-all flex items-center gap-1"
+                  title="Quick Demo Admin Console Login"
                 >
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  Admin Demo
+                  <ShieldCheck className="w-3 h-3 text-teal-400" />
+                  Admin
                 </button>
               </div>
             ) : (
@@ -239,22 +251,34 @@ export const Navbar = () => {
               <>
                 <button
                   onClick={() => {
-                    handleDemoLogin('customer');
+                    setAuthModalOpen(true);
                     setMobileMenuOpen(false);
                   }}
-                  className="w-full py-2.5 text-xs font-semibold rounded-xl bg-ink-900 border border-white/10 text-slate-200"
+                  className="w-full py-2.5 text-xs font-bold rounded-xl bg-gradient-to-r from-coral-500 to-rose-600 text-white shadow-md flex items-center justify-center gap-2"
                 >
-                  Traveler Demo
+                  <User className="w-3.5 h-3.5" />
+                  Sign In / Register
                 </button>
-                <button
-                  onClick={() => {
-                    handleDemoLogin('admin');
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full py-2.5 text-xs font-semibold rounded-xl bg-coral-500 text-white"
-                >
-                  Admin Demo
-                </button>
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                  <button
+                    onClick={() => {
+                      handleDemoLogin('customer');
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full py-2 text-xs font-medium rounded-xl bg-ink-900 border border-white/10 text-slate-300"
+                  >
+                    Traveler Demo
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleDemoLogin('admin');
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full py-2 text-xs font-medium rounded-xl bg-ink-900 border border-white/10 text-teal-400"
+                  >
+                    Admin Demo
+                  </button>
+                </div>
               </>
             ) : (
               <>
@@ -288,6 +312,9 @@ export const Navbar = () => {
           </div>
         </div>
       )}
+
+      {/* Cloud Firebase Authentication Modal */}
+      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
     </header>
   );
 };

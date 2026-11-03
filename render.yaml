@@ -1,0 +1,30 @@
+# Render Production Blueprint for NOMADLY Backend
+services:
+  - type: web
+    name: nomadly-api
+    runtime: node
+    plan: free
+    region: singapore
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node src/server.js
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false
+      - key: CLIENT_URL
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        value: nomadly-app-fe5b9
+      - key: FIREBASE_CLIENT_EMAIL
+        value: firebase-adminsdk-fbsvc@nomadly-app-fe5b9.iam.gserviceaccount.com
+      - key: RAPIDAPI_KEY
+        value: 90892622famshe5b6efc68aebcf4p1eaa28jsn369d2ce96e82
+      - key: FIREBASE_SERVICE_ACCOUNT
+        sync: false
+

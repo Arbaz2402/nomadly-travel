@@ -23,20 +23,33 @@ const app = express();
 app.use(helmet());
 
 // CORS Setup
+const clientUrl = process.env.CLIENT_URL ? process.env.CLIENT_URL.replace(/\/$/, '') : null;
 const allowedOrigins = [
-  process.env.CLIENT_URL || 'http://localhost:5173',
+  clientUrl,
+  'http://localhost:5173',
   'http://localhost:3000',
   'http://127.0.0.1:5173',
-];
+].filter(Boolean);
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // allow requests with no origin (like mobile apps, curl, or server-to-server)
-      if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+      // Allow requests with no origin (e.g. mobile apps, server-to-server, curl)
+      if (!origin) return callback(null, true);
+
+      // In non-production, allow all
+      if (process.env.NODE_ENV !== 'production') return callback(null, true);
+
+      // Check allowed list or wildcard subdomains for Netlify and Vercel
+      if (
+        allowedOrigins.includes(origin) ||
+        origin.endsWith('.netlify.app') ||
+        origin.endsWith('.vercel.app')
+      ) {
         return callback(null, true);
       }
-      return callback(new Error('CORS origin blocked by policy.'));
+
+      return callback(new Error(`CORS blocked for origin: ${origin}`));
     },
     credentials: true,
   })

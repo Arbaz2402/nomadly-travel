@@ -10,12 +10,14 @@ coverage/
 build/
 dist/
 
-# Environment variables
+# Environment variables and secrets
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+*serviceAccountKey*.json
+serviceAccountKey.json
 
 # Logs
 npm-debug.log*

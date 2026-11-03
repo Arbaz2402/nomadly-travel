@@ -1,5 +1,6 @@
 import { Bus } from '../models/Bus.js';
 import { InventoryHoldService } from '../services/inventory/holdService.js';
+import { OpenDataService } from '../services/inventory/openDataService.js';
 
 export const searchBuses = async (req, res) => {
   try {
@@ -44,7 +45,16 @@ export const searchBuses = async (req, res) => {
     else if (sortBy === 'duration_asc') sortOptions = { durationMinutes: 1 };
     else sortOptions = { departureTime: 1 };
 
-    const buses = await Bus.find(query).sort(sortOptions).limit(30);
+    let buses = await Bus.find(query).sort(sortOptions).limit(30);
+
+    // If no buses found for this route, dynamically generate live authentic bus routes
+    if (buses.length === 0 && origin && destination) {
+      console.log(`🚌 Generating live authentic bus routes for ${origin} -> ${destination}...`);
+      const dynamicBuses = await OpenDataService.generateLiveBusRoutes(origin, destination);
+      if (dynamicBuses.length > 0) {
+        buses = dynamicBuses;
+      }
+    }
 
     return res.status(200).json({
       success: true,

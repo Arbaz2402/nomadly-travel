@@ -1,5 +1,11 @@
 import { create } from 'zustand';
 import { ApiClient } from '../services/api';
+import {
+  signInWithGoogle,
+  signInWithEmail,
+  signUpWithEmail,
+  logOutFirebase,
+} from '../services/firebase';
 
 export const useAuthStore = create((set, get) => ({
   user: null,
@@ -19,7 +25,12 @@ export const useAuthStore = create((set, get) => ({
     set({ user, token });
   },
 
-  logout: () => {
+  logout: async () => {
+    try {
+      await logOutFirebase();
+    } catch (e) {
+      // ignore
+    }
     localStorage.removeItem('nomadly_token');
     set({ user: null, token: null });
   },
@@ -39,6 +50,64 @@ export const useAuthStore = create((set, get) => ({
     } catch (err) {
       console.warn('Session check failed:', err.message);
       get().logout();
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  loginWithGoogle: async () => {
+    try {
+      set({ isLoading: true });
+      const { user: fbUser, idToken } = await signInWithGoogle();
+      localStorage.setItem('nomadly_token', idToken);
+      
+      // Sync with backend MongoDB Atlas
+      const meRes = await ApiClient.getMe();
+      const finalUser = meRes.success ? meRes.data : fbUser;
+      
+      get().setAuth(finalUser, idToken);
+      return finalUser;
+    } catch (err) {
+      console.error('Google login error:', err);
+      throw err;
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  loginWithEmail: async (email, password) => {
+    try {
+      set({ isLoading: true });
+      const { user: fbUser, idToken } = await signInWithEmail(email, password);
+      localStorage.setItem('nomadly_token', idToken);
+
+      const meRes = await ApiClient.getMe();
+      const finalUser = meRes.success ? meRes.data : fbUser;
+
+      get().setAuth(finalUser, idToken);
+      return finalUser;
+    } catch (err) {
+      console.error('Email login error:', err);
+      throw err;
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  registerWithEmail: async (email, password) => {
+    try {
+      set({ isLoading: true });
+      const { user: fbUser, idToken } = await signUpWithEmail(email, password);
+      localStorage.setItem('nomadly_token', idToken);
+
+      const meRes = await ApiClient.getMe();
+      const finalUser = meRes.success ? meRes.data : fbUser;
+
+      get().setAuth(finalUser, idToken);
+      return finalUser;
+    } catch (err) {
+      console.error('Email register error:', err);
+      throw err;
     } finally {
       set({ isLoading: false });
     }
