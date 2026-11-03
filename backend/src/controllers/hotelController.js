@@ -1,4 +1,5 @@
 import { Hotel } from '../models/Hotel.js';
+import { AmadeusService } from '../services/inventory/amadeusService.js';
 
 export const searchHotels = async (req, res) => {
   try {
@@ -13,6 +14,25 @@ export const searchHotels = async (req, res) => {
       breakfastIncluded,
       sortBy = 'recommended',
     } = req.query;
+
+    // 1. Try Amadeus Live API if credentials are configured
+    if (AmadeusService.isConfigured() && city && city.trim() !== '') {
+      try {
+        console.log(`📡 Querying Amadeus Live API for hotels in ${city}...`);
+        const liveHotels = await AmadeusService.searchHotelOffers({ city, starRating });
+        if (liveHotels && liveHotels.length > 0) {
+          console.log(`✅ Amadeus returned ${liveHotels.length} live hotel properties.`);
+          return res.status(200).json({
+            success: true,
+            provider: 'AMADEUS_LIVE',
+            count: liveHotels.length,
+            data: liveHotels,
+          });
+        }
+      } catch (amadeusErr) {
+        console.warn('⚠️ Amadeus Live API failed, falling back to local catalog:', amadeusErr.message);
+      }
+    }
 
     const query = { isActive: true };
 

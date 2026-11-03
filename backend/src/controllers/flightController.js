@@ -1,4 +1,5 @@
 import { FlightOffer } from '../models/FlightOffer.js';
+import { AmadeusService, AIRPORT_REGISTRY } from '../services/inventory/amadeusService.js';
 
 export const searchFlights = async (req, res) => {
   try {
@@ -12,6 +13,32 @@ export const searchFlights = async (req, res) => {
       maxPrice,
       sortBy = 'price_asc',
     } = req.query;
+
+    // 1. Try Amadeus Live API if credentials are configured
+    if (AmadeusService.isConfigured() && origin && destination) {
+      try {
+        console.log(`📡 Querying Amadeus Live API for flights ${origin} -> ${destination}...`);
+        const liveFlights = await AmadeusService.searchFlightOffers({
+          origin,
+          destination,
+          departureDate,
+          cabinClass,
+          directOnly,
+        });
+
+        if (liveFlights && liveFlights.length > 0) {
+          console.log(`✅ Amadeus returned ${liveFlights.length} live flight offers.`);
+          return res.status(200).json({
+            success: true,
+            provider: 'AMADEUS_LIVE',
+            count: liveFlights.length,
+            data: liveFlights,
+          });
+        }
+      } catch (amadeusErr) {
+        console.warn('⚠️ Amadeus Live API failed, falling back to local catalog:', amadeusErr.message);
+      }
+    }
 
     const query = { isActive: true };
 
@@ -83,19 +110,8 @@ export const getFlightById = async (req, res) => {
 
 export const getFlightAirports = async (req, res) => {
   try {
-    const airports = [
-      { code: 'BOM', city: 'Mumbai', name: 'Chhatrapati Shivaji Maharaj International Airport', country: 'India' },
-      { code: 'DEL', city: 'Delhi', name: 'Indira Gandhi International Airport', country: 'India' },
-      { code: 'BLR', city: 'Bengaluru', name: 'Kempegowda International Airport', country: 'India' },
-      { code: 'GOI', city: 'Goa', name: 'Dabolim Airport / Mopa', country: 'India' },
-      { code: 'MAA', city: 'Chennai', name: 'Chennai International Airport', country: 'India' },
-      { code: 'HYD', city: 'Hyderabad', name: 'Rajiv Gandhi International Airport', country: 'India' },
-      { code: 'CCU', city: 'Kolkata', name: 'Netaji Subhash Chandra Bose Airport', country: 'India' },
-      { code: 'DXB', city: 'Dubai', name: 'Dubai International Airport', country: 'United Arab Emirates' },
-      { code: 'SIN', city: 'Singapore', name: 'Singapore Changi Airport', country: 'Singapore' },
-      { code: 'LHR', city: 'London', name: 'Heathrow Airport', country: 'United Kingdom' },
-    ];
-    return res.status(200).json({ success: true, data: airports });
+    const airports = Object.values(AIRPORT_REGISTRY);
+    return res.status(200).json({ success: true, count: airports.length, data: airports });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
