@@ -98,6 +98,7 @@ export const getAdminUsers = async (req, res) => {
 
     return res.status(200).json({
       success: true,
+      count: users.length,
       total,
       data: users,
     });

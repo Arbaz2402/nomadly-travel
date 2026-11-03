@@ -73,18 +73,20 @@ export const holdSeats = async (req, res) => {
     const { seatNumbers, sessionId } = req.body;
     const busId = req.params.id;
 
-    if (!seatNumbers || !seatNumbers.length || !sessionId) {
+    if (!seatNumbers || !seatNumbers.length) {
       return res.status(400).json({
         success: false,
-        message: 'Seat numbers and session ID are required.',
+        message: 'Seat numbers are required.',
       });
     }
+
+    const effectiveSessionId = sessionId || `session_${req.user?._id || Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
 
     const hold = await InventoryHoldService.holdBusSeats({
       busId,
       seatNumbers,
       userId: req.user?._id,
-      sessionId,
+      sessionId: effectiveSessionId,
       durationMinutes: 10,
     });
 

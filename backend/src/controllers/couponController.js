@@ -2,7 +2,9 @@ import { Coupon } from '../models/Coupon.js';
 
 export const validateCoupon = async (req, res) => {
   try {
-    const { code, category, amount = 0 } = req.body;
+    const { code, category } = req.body;
+    const amount = Number(req.body.amount || req.body.orderAmount || 0);
+
     if (!code) {
       return res.status(400).json({ success: false, message: 'Coupon code required.' });
     }

@@ -8,20 +8,30 @@ export class InventoryHoldService {
   static async holdBusSeats({ busId, seatNumbers, userId, sessionId, durationMinutes = 10 }) {
     const expiresAt = new Date(Date.now() + durationMinutes * 60 * 1000);
 
-    // 1. Check if any seat is already booked or currently held by another active session
+    // 1. Check if any seat is already booked or currently held by another active session/user
     const bus = await Bus.findById(busId);
     if (!bus) {
       throw new Error('Bus route not found');
     }
 
-    const conflictingHold = await InventoryHold.findOne({
+    const holdConflictQuery = {
       category: 'bus',
       inventoryId: busId,
       seatNumbers: { $in: seatNumbers },
       status: 'active',
-      sessionId: { $ne: sessionId },
       expiresAt: { $gt: new Date() },
-    });
+    };
+
+    if (sessionId && userId) {
+      holdConflictQuery.$and = [
+        { sessionId: { $ne: sessionId } },
+        { userId: { $ne: userId } },
+      ];
+    } else if (sessionId) {
+      holdConflictQuery.sessionId = { $ne: sessionId };
+    }
+
+    const conflictingHold = await InventoryHold.findOne(holdConflictQuery);
 
     if (conflictingHold) {
       throw new Error(`One or more selected seats (${conflictingHold.seatNumbers.join(', ')}) are currently being booked by another customer. Please select different seats.`);
@@ -35,11 +45,14 @@ export class InventoryHoldService {
       }
     }
 
-    // 2. Release previous active hold for this session if changing selection
-    await InventoryHold.updateMany(
-      { sessionId, status: 'active' },
-      { $set: { status: 'released' } }
-    );
+    // 2. Release previous active hold for this session or user if changing selection
+    const releaseFilter = { status: 'active' };
+    if (userId) {
+      releaseFilter.$or = [{ sessionId }, { userId }];
+    } else {
+      releaseFilter.sessionId = sessionId;
+    }
+    await InventoryHold.updateMany(releaseFilter, { $set: { status: 'released' } });
 
     // 3. Create fresh hold
     const hold = await InventoryHold.create({

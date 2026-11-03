@@ -28,7 +28,10 @@ export const createPaymentOrder = async (req, res) => {
 
 export const verifyPayment = async (req, res) => {
   try {
-    const { bookingId, orderId, paymentId, signature } = req.body;
+    const bookingId = req.body.bookingId;
+    const orderId = req.body.orderId || req.body.razorpay_order_id;
+    const paymentId = req.body.paymentId || req.body.razorpay_payment_id;
+    const signature = req.body.signature || req.body.razorpay_signature;
 
     if (!bookingId || !orderId) {
       return res.status(400).json({
