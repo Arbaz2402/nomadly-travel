@@ -16,6 +16,7 @@ import { CreateTripPage } from './pages/journeys/CreateTripPage';
 import { TripWorkspacePage } from './pages/journeys/TripWorkspacePage';
 import { WishlistPage } from './pages/wishlist/WishlistPage';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { useAuthStore } from './store/authStore';
 
 export const App = () => {
@@ -43,7 +44,14 @@ export const App = () => {
           <Route path="/journeys" element={<JourneysDashboard />} />
           <Route path="/my-journeys" element={<JourneysDashboard />} />
           <Route path="/journeys/new" element={<CreateTripPage />} />
-          <Route path="/journeys/:id" element={<TripWorkspacePage />} />
+          <Route
+            path="/journeys/:id"
+            element={
+              <ErrorBoundary>
+                <TripWorkspacePage />
+              </ErrorBoundary>
+            }
+          />
           <Route path="/trip-builder" element={<TripBuilderPage />} />
           <Route path="/wishlist" element={<WishlistPage />} />
           <Route path="/admin" element={<AdminDashboard />} />

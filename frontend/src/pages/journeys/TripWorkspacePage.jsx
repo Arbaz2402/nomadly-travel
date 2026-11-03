@@ -40,6 +40,7 @@ import {
   UserPlus,
   X,
   Check,
+  Compass,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -95,6 +96,7 @@ export const TripWorkspacePage = () => {
 
   const [trip, setTrip] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [activeTab, setActiveTab] = useState('itinerary');
 
   // Modal states
@@ -117,13 +119,16 @@ export const TripWorkspacePage = () => {
   const fetchTripData = async () => {
     try {
       setLoading(true);
+      setLoadError(null);
       const res = await ApiClient.getTripById(id);
-      if (res.success && res.data) {
+      if (res && res.success && res.data) {
         setTrip(res.data);
+      } else {
+        setLoadError(res?.message || 'Journey record could not be loaded.');
       }
     } catch (err) {
-      showToast('Could not load journey: ' + err.message, 'error');
-      navigate('/journeys');
+      console.error('Trip fetch error:', err);
+      setLoadError(err.message || 'Could not load journey.');
     } finally {
       setLoading(false);
     }
@@ -189,11 +194,46 @@ export const TripWorkspacePage = () => {
     }
   };
 
-  if (loading || !trip) {
+  if (loading) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center gap-3 text-slate-400">
         <Loader2 className="w-10 h-10 text-coral-500 animate-spin" />
         <p className="text-sm font-semibold">Loading Journey Workspace...</p>
+      </div>
+    );
+  }
+
+  if (loadError || !trip) {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center p-6 animate-fade-in">
+        <div className="glass-panel p-8 max-w-md w-full text-center rounded-3xl border border-white/10 space-y-4 shadow-2xl bg-ink-900/90">
+          <div className="w-14 h-14 rounded-2xl bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center justify-center mx-auto">
+            <AlertTriangle className="w-7 h-7" />
+          </div>
+          <h3 className="text-lg font-bold text-white font-display">Journey Not Accessible</h3>
+          <p className="text-xs text-slate-400 leading-relaxed">
+            {loadError || 'This journey does not exist or you do not have permission to view it.'}
+          </p>
+          {user && (
+            <p className="text-[11px] text-slate-500">
+              Signed in as: <span className="text-slate-300 font-semibold">{user.email}</span>
+            </p>
+          )}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-3">
+            <Link
+              to="/journeys"
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-coral-500 hover:bg-coral-600 text-white font-bold text-xs shadow-glow transition-all"
+            >
+              Back to My Journeys
+            </Link>
+            <button
+              onClick={fetchTripData}
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 font-semibold text-xs border border-white/10 transition-all"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -328,7 +368,7 @@ export const TripWorkspacePage = () => {
             { id: 'documents', label: 'Documents', icon: FileText, count: trip.documentsCount },
             { id: 'members', label: 'Collaboration', icon: Users, count: trip.participants?.length },
           ].map((tab) => {
-            const Icon = tab.icon;
+            const Icon = tab.icon || Layers;
             const isActive = activeTab === tab.id;
             return (
               <button

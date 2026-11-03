@@ -30,14 +30,17 @@ export const requireTripAccess = (allowedRoles = ['owner', 'editor', 'viewer']) 
         const participant = trip.participants.find(
           (p) =>
             (p.user && p.user.toString() === currentUserId) ||
-            (p.email && p.email.toLowerCase() === currentUserEmail)
+            (p.email && currentUserEmail && p.email.toLowerCase() === currentUserEmail)
         );
         if (participant) {
           participantRole = participant.role;
         }
       }
 
-      const effectiveRole = isOwner ? 'owner' : participantRole;
+      // 3. Admin & Support override: Administrators can view and assist with any journey
+      const isAdmin = req.user?.role === 'admin';
+
+      const effectiveRole = isOwner ? 'owner' : (isAdmin ? 'owner' : participantRole);
 
       if (!effectiveRole) {
         // If trip is marked public and viewer is allowed, permit read-only

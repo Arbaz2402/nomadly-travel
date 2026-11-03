@@ -229,6 +229,34 @@ export const createTrip = async (req, res) => {
       ],
     });
 
+    // In local dev/testing with demo accounts, auto-grant editor companion access for smooth persona switching
+    if (process.env.NODE_ENV !== 'production') {
+      try {
+        const otherEmail =
+          req.user.email === 'admin@nomadly.travel'
+            ? 'traveler@nomadly.travel'
+            : req.user.email === 'traveler@nomadly.travel'
+            ? 'admin@nomadly.travel'
+            : null;
+        if (otherEmail) {
+          const otherUser = await User.findOne({ email: otherEmail });
+          if (otherUser) {
+            trip.participants.push({
+              user: otherUser._id,
+              name: otherUser.displayName || 'Travel Companion',
+              email: otherUser.email,
+              role: 'editor',
+              status: 'accepted',
+              acceptedAt: new Date(),
+            });
+            await trip.save();
+          }
+        }
+      } catch (e) {
+        // Non-blocking
+      }
+    }
+
     await logActivity(trip._id, req.user, 'CREATED_TRIP', `Created journey "${trip.title}" to ${trip.destination}`);
 
     return res.status(201).json({ success: true, data: trip });
