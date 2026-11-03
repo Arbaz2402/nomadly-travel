@@ -1,5 +1,6 @@
 import { Hotel } from '../models/Hotel.js';
 import { AmadeusService } from '../services/inventory/amadeusService.js';
+import { OpenDataService } from '../services/inventory/openDataService.js';
 
 export const searchHotels = async (req, res) => {
   try {
@@ -72,6 +73,15 @@ export const searchHotels = async (req, res) => {
     else sortOptions = { isFeatured: -1, guestRating: -1 };
 
     let hotels = await Hotel.find(query).sort(sortOptions).limit(40);
+
+    // If no hotels found in this city, query OpenStreetMap Live API (100% Free, Zero Keys, Zero Signup)!
+    if (hotels.length === 0 && city && city.trim() !== '') {
+      console.log(`🏨 Querying OpenStreetMap Live API for hotels in ${city}...`);
+      const liveOsmHotels = await OpenDataService.fetchLiveHotelsFromOSM(city);
+      if (liveOsmHotels.length > 0) {
+        hotels = liveOsmHotels;
+      }
+    }
 
     // Filter by price range against lowest room rate if specified
     if (minPrice || maxPrice) {

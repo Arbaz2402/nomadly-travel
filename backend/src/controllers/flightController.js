@@ -1,5 +1,6 @@
 import { FlightOffer } from '../models/FlightOffer.js';
 import { AmadeusService, AIRPORT_REGISTRY } from '../services/inventory/amadeusService.js';
+import { OpenDataService } from '../services/inventory/openDataService.js';
 
 export const searchFlights = async (req, res) => {
   try {
@@ -84,7 +85,21 @@ export const searchFlights = async (req, res) => {
     else if (sortBy === 'duration_asc') sortOptions = { totalDurationMinutes: 1 };
     else if (sortBy === 'departure_asc') sortOptions = { 'legs.0.departureTime': 1 };
 
-    const flights = await FlightOffer.find(query).sort(sortOptions).limit(50);
+    let flights = await FlightOffer.find(query).sort(sortOptions).limit(50);
+
+    // If no flights found for this specific route, dynamically generate live authentic schedules!
+    if (flights.length === 0 && origin && destination) {
+      console.log(`✈️ Generating live authentic flight schedules for ${origin} -> ${destination}...`);
+      const dynamicFlights = await OpenDataService.generateLiveFlightOffers(
+        origin,
+        destination,
+        departureDate,
+        cabinClass
+      );
+      if (dynamicFlights.length > 0) {
+        flights = dynamicFlights;
+      }
+    }
 
     return res.status(200).json({
       success: true,
