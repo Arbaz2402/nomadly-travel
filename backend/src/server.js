@@ -1,5 +1,15 @@
+import fs from 'fs';
+import path from 'path';
 import dotenv from 'dotenv';
-dotenv.config();
+
+// Automatically locate .env from either backend or root directory
+const envPath = fs.existsSync('.env')
+  ? '.env'
+  : fs.existsSync('backend/.env')
+  ? 'backend/.env'
+  : path.resolve(process.cwd(), '../.env');
+
+dotenv.config({ path: envPath });
 
 import app from './app.js';
 import { connectDB } from './config/db.js';

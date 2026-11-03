@@ -1,6 +1,7 @@
 import { Hotel } from '../models/Hotel.js';
 import { AmadeusService } from '../services/inventory/amadeusService.js';
 import { OpenDataService } from '../services/inventory/openDataService.js';
+import { RapidApiService } from '../services/inventory/rapidApiService.js';
 
 export const searchHotels = async (req, res) => {
   try {
@@ -16,7 +17,26 @@ export const searchHotels = async (req, res) => {
       sortBy = 'recommended',
     } = req.query;
 
-    // 1. Try Amadeus Live API if credentials are configured
+    // 1. Try RapidAPI Booking.com Live API if credentials are configured
+    if (RapidApiService.isConfigured() && city && city.trim() !== '') {
+      try {
+        console.log(`📡 Querying RapidAPI Booking.com Live API for hotels in ${city}...`);
+        const bookingHotels = await RapidApiService.searchHotelsByCity(city);
+        if (bookingHotels && bookingHotels.length > 0) {
+          console.log(`✅ RapidAPI Booking.com returned ${bookingHotels.length} live verified properties.`);
+          return res.status(200).json({
+            success: true,
+            provider: 'RAPIDAPI_BOOKING_LIVE',
+            count: bookingHotels.length,
+            data: bookingHotels,
+          });
+        }
+      } catch (rapidErr) {
+        console.warn('⚠️ RapidAPI Booking.com query failed, falling back:', rapidErr.message);
+      }
+    }
+
+    // 2. Try Amadeus Live API if credentials are configured
     if (AmadeusService.isConfigured() && city && city.trim() !== '') {
       try {
         console.log(`📡 Querying Amadeus Live API for hotels in ${city}...`);
