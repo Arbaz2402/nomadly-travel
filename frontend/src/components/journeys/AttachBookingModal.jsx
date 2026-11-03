@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   X,
   Plane,
@@ -20,6 +21,29 @@ export const AttachBookingModal = ({ trip, isOpen, onClose, onAttached }) => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [attachingId, setAttachingId] = useState(null);
+
+  // Close modal on Escape key press
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) {
@@ -79,18 +103,26 @@ export const AttachBookingModal = ({ trip, isOpen, onClose, onAttached }) => {
 
   const alreadyAttachedIds = (trip.bookings || []).map((b) => (typeof b === 'object' ? b._id : b));
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-950/80 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-2xl rounded-3xl bg-ink-900 border border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+  const content = (
+    <div
+      className="fixed inset-0 z-[9999] overflow-y-auto bg-ink-950/85 backdrop-blur-md p-4 sm:p-6 flex min-h-screen items-center justify-center animate-fade-in"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="relative w-full max-w-2xl rounded-3xl bg-ink-900 border border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[88vh] my-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
-        <div className="p-6 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-ink-900 to-ink-850">
+        <div className="p-5 sm:p-6 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-ink-900 to-ink-850">
           <div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] uppercase font-bold tracking-widest text-teal-400 bg-teal-500/10 px-2 py-0.5 rounded-full border border-teal-500/20">
                 Seamless Integration
               </span>
             </div>
-            <h3 className="text-xl font-bold text-white font-display mt-1">
+            <h3 className="text-lg sm:text-xl font-bold text-white font-display mt-1">
               Attach NOMADLY Reservation to Journey
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
@@ -100,6 +132,8 @@ export const AttachBookingModal = ({ trip, isOpen, onClose, onAttached }) => {
           </div>
           <button
             onClick={onClose}
+            type="button"
+            aria-label="Close dialog"
             className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -107,7 +141,7 @@ export const AttachBookingModal = ({ trip, isOpen, onClose, onAttached }) => {
         </div>
 
         {/* Bookings List */}
-        <div className="p-6 overflow-y-auto space-y-3 flex-1">
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-3 flex-1">
           {loading ? (
             <div className="py-12 flex flex-col items-center justify-center gap-3 text-slate-400">
               <Loader2 className="w-8 h-8 text-coral-500 animate-spin" />
@@ -206,4 +240,6 @@ export const AttachBookingModal = ({ trip, isOpen, onClose, onAttached }) => {
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(content, document.body) : content;
 };

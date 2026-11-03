@@ -1,16 +1,27 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { X, Check, Bed, Maximize2, ShieldCheck, ArrowRight } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatters';
 
 export const HotelRoomModal = ({ hotel, isOpen, onClose, onSelectRoom }) => {
   if (!isOpen || !hotel) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-950/80 backdrop-blur-md animate-fadeIn">
-      <div className="glass-panel max-w-3xl w-full max-h-[90vh] overflow-y-auto rounded-3xl border border-white/10 shadow-2xl p-6 relative">
+  const content = (
+    <div
+      className="fixed inset-0 z-[9999] overflow-y-auto bg-ink-950/85 backdrop-blur-md p-4 sm:p-6 flex min-h-screen items-center justify-center animate-fadeIn"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="glass-panel max-w-3xl w-full max-h-[90vh] overflow-y-auto rounded-3xl border border-white/10 shadow-2xl p-6 sm:p-8 relative my-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Close Button */}
         <button
           onClick={onClose}
+          type="button"
+          aria-label="Close modal"
           className="absolute top-5 right-5 p-2 rounded-xl bg-ink-900 border border-white/10 text-slate-400 hover:text-white transition-colors"
         >
           <X className="w-5 h-5" />
@@ -84,4 +95,6 @@ export const HotelRoomModal = ({ hotel, isOpen, onClose, onSelectRoom }) => {
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(content, document.body) : content;
 };
