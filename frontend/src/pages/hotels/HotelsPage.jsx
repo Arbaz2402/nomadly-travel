@@ -1,13 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Building2, Star, SlidersHorizontal, ArrowUpDown, AlertCircle } from 'lucide-react';
+import {
+  Building2,
+  Star,
+  SlidersHorizontal,
+  ArrowUpDown,
+  AlertCircle,
+  Search,
+  MapPin,
+  Calendar,
+  X,
+  Sparkles,
+  RefreshCw,
+} from 'lucide-react';
 import { HotelCard } from '../../components/travel-cards/HotelCard';
 import { HotelRoomModal } from '../../components/booking/HotelRoomModal';
 import { ApiClient } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 
 export const HotelsPage = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { showToast } = useToast();
 
@@ -18,16 +30,27 @@ export const HotelsPage = () => {
   // Selected hotel for room modal
   const [activeModalHotel, setActiveModalHotel] = useState(null);
 
+  // Search Inputs
+  const city = searchParams.get('city') || '';
+  const checkIn = searchParams.get('checkIn') || '2026-11-15';
+  const checkOut = searchParams.get('checkOut') || '2026-11-18';
+
+  const [searchCityInput, setSearchCityInput] = useState(city);
+  const [hotelNameFilter, setHotelNameFilter] = useState('');
+  const [checkInInput, setCheckInInput] = useState(checkIn);
+  const [checkOutInput, setCheckOutInput] = useState(checkOut);
+
+  // Keep search city input in sync when URL changes
+  useEffect(() => {
+    setSearchCityInput(city);
+  }, [city]);
+
   // Filters
   const [starRating, setStarRating] = useState('all');
   const [propertyType, setPropertyType] = useState('all');
   const [freeCancellation, setFreeCancellation] = useState(false);
   const [breakfastIncluded, setBreakfastIncluded] = useState(false);
   const [sortBy, setSortBy] = useState('recommended');
-
-  const city = searchParams.get('city') || '';
-  const checkIn = searchParams.get('checkIn') || '2026-11-15';
-  const checkOut = searchParams.get('checkOut') || '2026-11-18';
 
   const fetchHotels = async () => {
     try {
@@ -56,6 +79,26 @@ export const HotelsPage = () => {
   useEffect(() => {
     fetchHotels();
   }, [city, starRating, propertyType, freeCancellation, breakfastIncluded, sortBy]);
+
+  const handleSearchSubmit = (e) => {
+    if (e) e.preventDefault();
+    const params = {};
+    if (searchCityInput.trim()) params.city = searchCityInput.trim();
+    if (checkInInput) params.checkIn = checkInInput;
+    if (checkOutInput) params.checkOut = checkOutInput;
+    setSearchParams(params);
+  };
+
+  const handleQuickCity = (targetCity) => {
+    setSearchCityInput(targetCity);
+    setSearchParams({ city: targetCity, checkIn: checkInInput, checkOut: checkOutInput });
+  };
+
+  const handleClearCity = () => {
+    setSearchCityInput('');
+    setHotelNameFilter('');
+    setSearchParams({});
+  };
 
   const handleOpenRoomModal = (hotel) => {
     setActiveModalHotel(hotel);
@@ -99,19 +142,164 @@ export const HotelsPage = () => {
     }
   };
 
+  // Instant hotel name filter
+  const displayedHotels = hotels.filter((hotel) => {
+    if (!hotelNameFilter.trim()) return true;
+    const q = hotelNameFilter.toLowerCase();
+    return (
+      hotel.name?.toLowerCase().includes(q) ||
+      hotel.brand?.toLowerCase().includes(q) ||
+      hotel.location?.address?.toLowerCase().includes(q) ||
+      hotel.location?.neighborhood?.toLowerCase().includes(q)
+    );
+  });
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      {/* Route Header Banner */}
-      <div className="glass-panel rounded-3xl p-6 mb-8 border border-white/10 flex flex-wrap items-center justify-between gap-4">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 animate-fade-in">
+      {/* 1. Interactive Hotel Search Bar */}
+      <div className="glass-panel rounded-3xl p-6 mb-8 border border-white/10 shadow-2xl bg-ink-900/90 space-y-4">
+        <form onSubmit={handleSearchSubmit} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+          {/* Location / City Input */}
+          <div className="md:col-span-4 space-y-1.5">
+            <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-coral-400" />
+              City or Location
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="e.g. Goa, Manali, Mumbai, Dubai..."
+                value={searchCityInput}
+                onChange={(e) => setSearchCityInput(e.target.value)}
+                className="w-full bg-ink-950 border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-coral-500 transition-all pr-8"
+              />
+              {searchCityInput && (
+                <button
+                  type="button"
+                  onClick={() => setSearchCityInput('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
+                  title="Clear City"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Hotel Name / Keyword Filter */}
+          <div className="md:col-span-3 space-y-1.5">
+            <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+              <Search className="w-3.5 h-3.5 text-teal-400" />
+              Hotel Name / Keyword
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="e.g. Hyatt, Taj, Zostel, Carnival..."
+                value={hotelNameFilter}
+                onChange={(e) => setHotelNameFilter(e.target.value)}
+                className="w-full bg-ink-950 border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-teal-400 transition-all pr-8"
+              />
+              {hotelNameFilter && (
+                <button
+                  type="button"
+                  onClick={() => setHotelNameFilter('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
+                  title="Clear Hotel Name"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Check-In & Check-Out Dates */}
+          <div className="md:col-span-3 grid grid-cols-2 gap-2">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                <Calendar className="w-3 h-3 text-coral-400" /> Check-in
+              </label>
+              <input
+                type="date"
+                value={checkInInput}
+                onChange={(e) => setCheckInInput(e.target.value)}
+                className="w-full bg-ink-950 border border-white/10 rounded-2xl px-3 py-3 text-xs text-white focus:outline-none focus:border-coral-500 font-mono"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                <Calendar className="w-3 h-3 text-coral-400" /> Check-out
+              </label>
+              <input
+                type="date"
+                value={checkOutInput}
+                onChange={(e) => setCheckOutInput(e.target.value)}
+                className="w-full bg-ink-950 border border-white/10 rounded-2xl px-3 py-3 text-xs text-white focus:outline-none focus:border-coral-500 font-mono"
+              />
+            </div>
+          </div>
+
+          {/* Search Action Button */}
+          <div className="md:col-span-2">
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-coral-500 to-coral-600 hover:from-coral-600 text-white font-bold text-xs shadow-glow transition-all flex items-center justify-center gap-2"
+            >
+              <Search className="w-4 h-4" />
+              <span>Search Hotels</span>
+            </button>
+          </div>
+        </form>
+
+        {/* Quick Location Pills */}
+        <div className="flex items-center gap-2 pt-2 border-t border-white/5 flex-wrap">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+            <Sparkles className="w-3 h-3 text-teal-400" />
+            Quick Cities:
+          </span>
+          {['Goa', 'Manali', 'Mumbai', 'Jaipur', 'Bengaluru', 'Delhi', 'Dubai'].map((popCity) => (
+            <button
+              key={popCity}
+              type="button"
+              onClick={() => handleQuickCity(popCity)}
+              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all border ${
+                city.toLowerCase() === popCity.toLowerCase()
+                  ? 'bg-coral-500/20 text-coral-400 border-coral-500/40 shadow-sm'
+                  : 'bg-white/5 hover:bg-white/10 text-slate-300 border-white/10'
+              }`}
+            >
+              {popCity}
+            </button>
+          ))}
+          {city && (
+            <button
+              type="button"
+              onClick={handleClearCity}
+              className="ml-auto text-xs text-coral-400 hover:underline font-semibold"
+            >
+              Reset to All Cities
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Header Info & Sort Banner */}
+      <div className="glass-panel rounded-3xl p-5 mb-8 border border-white/10 flex flex-wrap items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-coral-400 uppercase tracking-wider mb-1">
             <Building2 className="w-4 h-4" />
-            <span>Hotels & Luxury Stays</span>
+            <span>Verified Travel Stays</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight font-display">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight font-display">
             {city ? `Stays in ${city}` : 'All Verified Stays & Resorts'}
+            {hotelNameFilter && (
+              <span className="text-teal-400 font-normal text-base ml-2">
+                matching "{hotelNameFilter}"
+              </span>
+            )}
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-400 mt-0.5">
             Dates: <span className="text-slate-200 font-medium">{checkIn} to {checkOut}</span>
           </p>
         </div>
@@ -125,7 +313,7 @@ export const HotelsPage = () => {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="bg-ink-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-coral-500"
+            className="bg-ink-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-coral-500 font-medium"
           >
             <option value="recommended">Featured & Recommended</option>
             <option value="rating_desc">Highest Guest Rating</option>
@@ -150,10 +338,11 @@ export const HotelsPage = () => {
                   setPropertyType('all');
                   setFreeCancellation(false);
                   setBreakfastIncluded(false);
+                  setHotelNameFilter('');
                 }}
                 className="text-[11px] text-coral-400 hover:underline font-semibold"
               >
-                Reset
+                Reset All
               </button>
             </div>
 
@@ -167,6 +356,7 @@ export const HotelsPage = () => {
                   { id: 'all', label: 'All Ratings' },
                   { id: '5', label: '5 Star Luxury' },
                   { id: '4', label: '4 Star Premium' },
+                  { id: '3', label: '3 Star Comfort' },
                 ].map((s) => (
                   <button
                     key={s.id}
@@ -220,7 +410,7 @@ export const HotelsPage = () => {
                   type="checkbox"
                   checked={freeCancellation}
                   onChange={(e) => setFreeCancellation(e.target.checked)}
-                  className="rounded bg-ink-900 border-white/20 text-coral-500 focus:ring-0 w-4 h-4"
+                  className="rounded bg-ink-900 border-white/20 text-coral-500 focus:ring-0 w-4 h-4 cursor-pointer"
                 />
               </label>
 
@@ -230,7 +420,7 @@ export const HotelsPage = () => {
                   type="checkbox"
                   checked={breakfastIncluded}
                   onChange={(e) => setBreakfastIncluded(e.target.checked)}
-                  className="rounded bg-ink-900 border-white/20 text-coral-500 focus:ring-0 w-4 h-4"
+                  className="rounded bg-ink-900 border-white/20 text-coral-500 focus:ring-0 w-4 h-4 cursor-pointer"
                 />
               </label>
             </div>
@@ -256,34 +446,50 @@ export const HotelsPage = () => {
                 Retry Search
               </button>
             </div>
-          ) : hotels.length === 0 ? (
+          ) : displayedHotels.length === 0 ? (
             <div className="glass-panel rounded-3xl p-12 text-center border border-white/10">
               <Building2 className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-              <h3 className="text-base font-bold text-white mb-1">No hotels matching your criteria</h3>
+              <h3 className="text-base font-bold text-white mb-1">
+                {hotelNameFilter
+                  ? `No hotels matching "${hotelNameFilter}"`
+                  : 'No hotels matching your criteria'}
+              </h3>
               <p className="text-xs text-slate-400 max-w-sm mx-auto mb-5">
-                Try removing filter criteria or searching without destination restriction.
+                {hotelNameFilter
+                  ? 'Try searching with a broader keyword or clear the hotel name filter.'
+                  : 'Try searching for another destination city or removing filter criteria.'}
               </p>
-              <button
-                onClick={() => {
-                  setStarRating('all');
-                  setPropertyType('all');
-                }}
-                className="px-5 py-2.5 rounded-xl bg-coral-500 text-white text-xs font-bold"
-              >
-                Show All Available Stays
-              </button>
+              <div className="flex items-center justify-center gap-3">
+                {hotelNameFilter && (
+                  <button
+                    onClick={() => setHotelNameFilter('')}
+                    className="px-4 py-2 rounded-xl bg-ink-900 border border-white/10 text-white text-xs font-bold"
+                  >
+                    Clear Name Filter
+                  </button>
+                )}
+                <button
+                  onClick={handleClearCity}
+                  className="px-5 py-2.5 rounded-xl bg-coral-500 text-white text-xs font-bold shadow-glow"
+                >
+                  Show All Available Stays
+                </button>
+              </div>
             </div>
           ) : (
             <div className="space-y-4">
               <div className="flex items-center justify-between text-xs text-slate-400 px-1 mb-2">
-                <span>Showing {hotels.length} verified boutique hotels & resorts</span>
+                <span>
+                  Showing {displayedHotels.length} verified stays & resorts
+                  {hotelNameFilter && ` (filtered from ${hotels.length})`}
+                </span>
                 <span className="text-teal-400 font-semibold flex items-center gap-1">
                   • Instant Confirmation Available
                 </span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {hotels.map((hotel) => (
+                {displayedHotels.map((hotel) => (
                   <HotelCard
                     key={hotel._id}
                     hotel={hotel}
@@ -307,3 +513,4 @@ export const HotelsPage = () => {
     </div>
   );
 };
+

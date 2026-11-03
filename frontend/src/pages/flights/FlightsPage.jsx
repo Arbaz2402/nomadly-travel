@@ -1,12 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Plane, Filter, SlidersHorizontal, ArrowUpDown, RefreshCw, AlertCircle } from 'lucide-react';
+import {
+  Plane,
+  Filter,
+  SlidersHorizontal,
+  ArrowUpDown,
+  RefreshCw,
+  AlertCircle,
+  Search,
+  Calendar,
+  Sparkles,
+  ArrowRight,
+} from 'lucide-react';
 import { FlightCard } from '../../components/travel-cards/FlightCard';
 import { ApiClient } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 
 export const FlightsPage = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { showToast } = useToast();
 
@@ -14,15 +25,26 @@ export const FlightsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Search parameters
+  const origin = searchParams.get('origin') || 'BOM';
+  const destination = searchParams.get('destination') || 'DEL';
+  const departureDate = searchParams.get('departureDate') || '2026-11-15';
+
+  const [originInput, setOriginInput] = useState(origin);
+  const [destInput, setDestInput] = useState(destination);
+  const [dateInput, setDateInput] = useState(departureDate);
+
+  useEffect(() => {
+    setOriginInput(origin);
+    setDestInput(destination);
+    setDateInput(departureDate);
+  }, [origin, destination, departureDate]);
+
   // Filters
   const [directOnly, setDirectOnly] = useState(false);
   const [selectedCabin, setSelectedCabin] = useState(searchParams.get('cabinClass') || 'all');
   const [maxPrice, setMaxPrice] = useState(30000);
   const [sortBy, setSortBy] = useState('price_asc');
-
-  const origin = searchParams.get('origin') || 'BOM';
-  const destination = searchParams.get('destination') || 'DEL';
-  const departureDate = searchParams.get('departureDate') || '2026-11-15';
 
   const fetchFlights = async () => {
     try {
@@ -51,6 +73,27 @@ export const FlightsPage = () => {
   useEffect(() => {
     fetchFlights();
   }, [origin, destination, selectedCabin, directOnly, maxPrice, sortBy]);
+
+  const handleSearchSubmit = (e) => {
+    if (e) e.preventDefault();
+    setSearchParams({
+      origin: originInput.trim().toUpperCase() || 'BOM',
+      destination: destInput.trim().toUpperCase() || 'DEL',
+      departureDate: dateInput,
+      cabinClass: selectedCabin,
+    });
+  };
+
+  const handleQuickRoute = (from, to) => {
+    setOriginInput(from);
+    setDestInput(to);
+    setSearchParams({
+      origin: from,
+      destination: to,
+      departureDate: dateInput,
+      cabinClass: selectedCabin,
+    });
+  };
 
   const handleBookFlight = (flight) => {
     navigate('/checkout', {
@@ -91,18 +134,103 @@ export const FlightsPage = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 animate-fade-in">
+      {/* 1. Interactive Flight Search Bar */}
+      <div className="glass-panel rounded-3xl p-6 mb-8 border border-white/10 shadow-2xl bg-ink-900/90 space-y-4">
+        <form onSubmit={handleSearchSubmit} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+          <div className="md:col-span-3 space-y-1.5">
+            <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+              <Plane className="w-3.5 h-3.5 text-coral-400 rotate-45" />
+              From (City / IATA)
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. BOM, Mumbai, Delhi"
+              value={originInput}
+              onChange={(e) => setOriginInput(e.target.value)}
+              className="w-full bg-ink-950 border border-white/10 rounded-2xl px-4 py-3 text-xs text-white uppercase placeholder-slate-500 focus:outline-none focus:border-coral-500 font-bold"
+            />
+          </div>
+
+          <div className="md:col-span-3 space-y-1.5">
+            <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+              <Plane className="w-3.5 h-3.5 text-teal-400 rotate-90" />
+              To (City / IATA)
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. DEL, Goa, Dubai"
+              value={destInput}
+              onChange={(e) => setDestInput(e.target.value)}
+              className="w-full bg-ink-950 border border-white/10 rounded-2xl px-4 py-3 text-xs text-white uppercase placeholder-slate-500 focus:outline-none focus:border-teal-400 font-bold"
+            />
+          </div>
+
+          <div className="md:col-span-3 space-y-1.5">
+            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+              <Calendar className="w-3.5 h-3.5 text-coral-400" />
+              Departure Date
+            </label>
+            <input
+              type="date"
+              value={dateInput}
+              onChange={(e) => setDateInput(e.target.value)}
+              className="w-full bg-ink-950 border border-white/10 rounded-2xl px-4 py-3 text-xs text-white focus:outline-none focus:border-coral-500 font-mono"
+            />
+          </div>
+
+          <div className="md:col-span-3">
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-coral-500 to-coral-600 hover:from-coral-600 text-white font-bold text-xs shadow-glow transition-all flex items-center justify-center gap-2"
+            >
+              <Search className="w-4 h-4" />
+              <span>Search Flights</span>
+            </button>
+          </div>
+        </form>
+
+        {/* Popular Route Quick Pills */}
+        <div className="flex items-center gap-2 pt-2 border-t border-white/5 flex-wrap">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+            <Sparkles className="w-3 h-3 text-teal-400" />
+            Popular Routes:
+          </span>
+          {[
+            { from: 'BOM', to: 'DEL', label: 'Mumbai → Delhi' },
+            { from: 'BLR', to: 'DEL', label: 'Bengaluru → Delhi' },
+            { from: 'BOM', to: 'GOI', label: 'Mumbai → Goa' },
+            { from: 'BLR', to: 'GOI', label: 'Bengaluru → Goa' },
+            { from: 'DEL', to: 'DXB', label: 'Delhi → Dubai' },
+          ].map((r) => (
+            <button
+              key={`${r.from}-${r.to}`}
+              type="button"
+              onClick={() => handleQuickRoute(r.from, r.to)}
+              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all border ${
+                origin === r.from && destination === r.to
+                  ? 'bg-coral-500/20 text-coral-400 border-coral-500/40 shadow-sm'
+                  : 'bg-white/5 hover:bg-white/10 text-slate-300 border-white/10'
+              }`}
+            >
+              {r.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Route Header Banner */}
-      <div className="glass-panel rounded-3xl p-6 mb-8 border border-white/10 flex flex-wrap items-center justify-between gap-4">
+      <div className="glass-panel rounded-3xl p-5 mb-8 border border-white/10 flex flex-wrap items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-coral-400 uppercase tracking-wider mb-1">
             <Plane className="w-4 h-4" />
             <span>Flight Search Results</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight font-display">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight font-display">
             {origin} <span className="text-coral-500 font-sans">→</span> {destination}
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-400 mt-0.5">
             Departure: <span className="text-slate-200 font-medium">{departureDate}</span> • One Way
           </p>
         </div>
@@ -116,7 +244,7 @@ export const FlightsPage = () => {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="bg-ink-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-coral-500"
+            className="bg-ink-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-coral-500 font-medium"
           >
             <option value="price_asc">Price: Lowest First</option>
             <option value="price_desc">Price: Highest First</option>

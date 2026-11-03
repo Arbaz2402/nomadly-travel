@@ -105,3 +105,4 @@ describe('Amadeus Provider & Travel Inventory Suite', () => {
     });
   });
 });
+
