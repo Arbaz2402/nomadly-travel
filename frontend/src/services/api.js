@@ -1,4 +1,6 @@
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+const rawBase = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+// Automatically correct legacy or misspelled service domain if present
+const API_BASE = rawBase.replace('nomadly-api.onrender.com', 'nomadly-travel.onrender.com');
 
 export class ApiClient {
   static getHeaders() {
