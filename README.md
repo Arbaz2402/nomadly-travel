@@ -3,6 +3,10 @@
 > **"Your entire journey, intelligently organized."**  
 > A production-ready full-stack travel booking and itinerary platform built with **React 18, Vite, Node.js Express, MongoDB Atlas, Firebase Cloud Auth, RapidAPI Booking.com, and Tailwind CSS**. Search, compare, hold, book, and orchestrate flights, luxury hotels, express railways, and intercity buses under a unified booking engine.
 
+📚 **Deep-Dive Guides**:
+- [🏛️ Full System Architecture & Tech Stack Reference](TECH_STACK_AND_ARCHITECTURE.md)
+- [🧪 Testing Tutorial & Automated Test Guide](temp.md)
+
 ---
 
 ## 🌟 System Architecture & Cloud Integrations
