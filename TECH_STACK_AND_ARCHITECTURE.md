@@ -53,7 +53,7 @@ flowchart TD
         ExpressApp["Express 4.19 REST API (/api/v1)"]
         AuthMid["Firebase Admin SDK 12.0 + JWT Middleware"]
         HoldEngine["Atomic 10-Minute Hold Engine"]
-        PaymentEngine["Razorpay / Sandbox Payment Engine"]
+        PaymentEngine["NOMADLY Secure Payment Engine\n(Card, UPI QR, NetBanking)"]
         ExpressApp --> AuthMid
         ExpressApp --> HoldEngine
         ExpressApp --> PaymentEngine
@@ -90,7 +90,7 @@ flowchart TD
 | 1 | **`users`** (`User`) | `backend/src/models/User.js` | User account records: email, password hash (bcrypt), displayName, avatar URL, role (`customer` or `admin`), loyalty points balance, and embedded subdocuments for saved travelers. |
 | 2 | **`bookings`** (`Booking`) | `backend/src/models/Booking.js` | Confirmed travel reservations: unique PNR/reference (`NOM-FL-XXXXXX`), category (`flight`, `hotel`, `train`, `bus`), traveler passenger lists, payment status (`confirmed`, `cancelled`), seat/room assignments, and price breakdowns. |
 | 3 | **`inventoryholds`** (`InventoryHold`) | `backend/src/models/InventoryHold.js` | Concurrency lock documents: temporarily holds a specific flight seat, hotel room, or train berth for **10 minutes** during checkout. Has a MongoDB TTL index on `expiresAt` to automatically release seats if abandoned. |
-| 4 | **`payments`** (`Payment`) | `backend/src/models/Payment.js` | Payment transaction records: Razorpay / Sandbox order IDs, transaction reference, amount paid, currency (`INR`), payment method (Card, UPI, NetBanking, Pay at Property), and audit timestamps. |
+| 4 | **`payments`** (`Payment`) | `backend/src/models/Payment.js` | Payment transaction records: transaction reference, amount paid, currency (`INR`), payment method (Card, UPI QR, NetBanking, Pay at Property), and audit timestamps. |
 | 5 | **`refunds`** (`Refund`) | `backend/src/models/Refund.js` | Cancellation records: refund reference, amount refunded, cancellation penalty fee, reason, and status (`processing`, `completed`). |
 | 6 | **`trips`** (`Trip`) | `backend/src/models/Trip.js` | "My Journeys" collaborative trip planner workspace: trip title, destination, start/end dates, total budget, privacy mode (`private`, `shared`), linked bookings, and collaborator email list. |
 | 7 | **`itineraryitems`** (`ItineraryItem`) | `backend/src/models/ItineraryItem.js` | Granular day-by-day journey schedule: activities, flight times, check-ins, custom notes, times, locations, and status flags. |
@@ -253,7 +253,7 @@ frontend/src/
 │   ├── admin/              # AdminDashboard (Inventory management, audit logs)
 │   ├── booking/            # BookingDetailsPage
 │   ├── buses/              # BusesPage (Search, filters, sleeper berth picker)
-│   ├── checkout/           # CheckoutPage (Traveler forms, coupon engine, Razorpay)
+│   ├── checkout/           # CheckoutPage (Traveler forms, coupon engine, payment)
 │   ├── confirmation/       # ConfirmationPage (E-ticket voucher, QR code, Confetti)
 │   ├── dashboard/          # UserDashboardPage (My bookings, profile, saved travelers)
 │   ├── flights/            # FlightsPage (Search bar, quick routes, cabin filter)

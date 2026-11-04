@@ -204,7 +204,7 @@ export const CheckoutPage = () => {
 
       const { orderId } = orderRes.data;
 
-      // Step C: Verify payment securely on server (Sandbox/Razorpay verification)
+      // Step C: Verify payment securely on server
       const verifyRes = await ApiClient.verifyPayment({
         bookingId: booking._id,
         orderId,
@@ -213,6 +213,15 @@ export const CheckoutPage = () => {
       });
 
       showToast('Payment verified successfully! Booking confirmed.', 'success');
+
+      // Persist to sessionStorage so /confirmation never renders blank on refresh
+      if (verifyRes.data?.booking) {
+        try {
+          sessionStorage.setItem('nomadly_latest_booking', JSON.stringify(verifyRes.data.booking));
+        } catch (e) {
+          console.warn('Could not cache booking to sessionStorage:', e);
+        }
+      }
 
       // Navigate to Confirmation Page
       navigate('/confirmation', {
@@ -587,7 +596,7 @@ export const CheckoutPage = () => {
 
             <div className="text-center text-[10px] text-slate-500 flex items-center justify-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
-              <span>Razorpay 256-bit Sandbox / Live SSL Encryption</span>
+              <span>NOMADLY Secure Pay • 256-Bit Bank-Grade SSL Encryption</span>
             </div>
           </div>
         </div>

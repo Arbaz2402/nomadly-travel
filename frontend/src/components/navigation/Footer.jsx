@@ -24,7 +24,7 @@ export const Footer = () => {
             </div>
             <div>
               <p className="font-semibold text-slate-200 text-sm">Secure Checkout</p>
-              <p className="text-slate-400 text-[11px]">Razorpay & 256-bit encryption</p>
+              <p className="text-slate-400 text-[11px]">PCI-DSS & 256-bit SSL encryption</p>
             </div>
           </div>
 
