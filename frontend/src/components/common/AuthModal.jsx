@@ -89,13 +89,13 @@ export const AuthModal = ({ isOpen, onClose }) => {
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[9999] overflow-y-auto bg-ink-950/85 backdrop-blur-md p-4 sm:p-6 flex min-h-screen items-center justify-center animate-fade-in"
+      className="fixed inset-0 z-[9999] overflow-y-auto bg-ink-950/85 backdrop-blur-md p-4 sm:p-6 flex justify-center py-6 sm:py-12 animate-fade-in"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
-        className="relative w-full max-w-md bg-ink-900 border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl my-auto space-y-4 sm:space-y-5 max-h-[92vh] overflow-y-auto"
+        className="relative w-full max-w-md bg-ink-900 border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl m-auto space-y-4 sm:space-y-5"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}

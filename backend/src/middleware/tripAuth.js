@@ -26,6 +26,7 @@ export const requireTripAccess = (allowedRoles = ['owner', 'editor', 'viewer']) 
 
       // 2. Check if user is a participant
       let participantRole = null;
+      let participantStatus = 'accepted';
       if (trip.participants && trip.participants.length > 0) {
         const participant = trip.participants.find(
           (p) =>
@@ -34,6 +35,7 @@ export const requireTripAccess = (allowedRoles = ['owner', 'editor', 'viewer']) 
         );
         if (participant) {
           participantRole = participant.role;
+          participantStatus = participant.status || 'pending';
         }
       }
 
@@ -47,6 +49,7 @@ export const requireTripAccess = (allowedRoles = ['owner', 'editor', 'viewer']) 
         if (trip.isPublic && allowedRoles.includes('viewer')) {
           req.trip = trip;
           req.tripRole = 'viewer';
+          req.participantStatus = 'accepted';
           return next();
         }
 
@@ -54,6 +57,17 @@ export const requireTripAccess = (allowedRoles = ['owner', 'editor', 'viewer']) 
           success: false,
           message: 'Access denied. You do not have permission to view or manage this journey.',
         });
+      }
+
+      // If user is a pending invitee trying to perform mutating actions (editor/owner)
+      if (!isOwner && !isAdmin && participantStatus === 'pending') {
+        if (!allowedRoles.includes('viewer')) {
+          return res.status(403).json({
+            success: false,
+            message: 'Access denied. Please accept the collaboration invitation first to start editing this journey.',
+            pendingInvite: true,
+          });
+        }
       }
 
       if (!allowedRoles.includes(effectiveRole)) {
@@ -65,6 +79,7 @@ export const requireTripAccess = (allowedRoles = ['owner', 'editor', 'viewer']) 
 
       req.trip = trip;
       req.tripRole = effectiveRole;
+      req.participantStatus = participantStatus;
       next();
     } catch (error) {
       return res.status(500).json({ success: false, message: error.message });

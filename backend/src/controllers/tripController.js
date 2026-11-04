@@ -148,6 +148,7 @@ export const getTripById = async (req, res) => {
         ...trip.toObject(),
         dynamicStatus,
         userRole: req.tripRole || 'owner',
+        participantStatus: req.participantStatus || 'accepted',
         actualSpend: Number(actualSpend.toFixed(2)),
         budgetUtilization:
           trip.budget?.totalBudget > 0
@@ -1068,20 +1069,21 @@ export const addTripParticipant = async (req, res) => {
     );
 
     if (alreadyParticipant) {
-      return res.status(400).json({ success: false, message: 'User is already a participant of this journey.' });
+      return res.status(400).json({ success: false, message: 'An invite or membership already exists for this email.' });
     }
 
     // Try to find matching registered user
     const matchedUser = await User.findOne({ email: normalizedEmail });
 
+    // Always create as a 'pending' invitation request
     const newParticipant = {
       user: matchedUser ? matchedUser._id : null,
       name: name.trim(),
       email: normalizedEmail,
       role: role && ['editor', 'viewer'].includes(role) ? role : 'editor',
-      status: matchedUser ? 'accepted' : 'pending',
+      status: 'pending', // Requires invite acceptance by recipient
       invitedAt: new Date(),
-      acceptedAt: matchedUser ? new Date() : null,
+      acceptedAt: null,
     };
 
     trip.participants.push(newParticipant);
@@ -1091,14 +1093,103 @@ export const addTripParticipant = async (req, res) => {
       trip._id,
       req.user,
       'INVITED_MEMBER',
-      `Invited ${newParticipant.name} (${newParticipant.email}) as ${newParticipant.role.toUpperCase()}`
+      `Sent collaboration request to ${newParticipant.name} (${newParticipant.email}) as ${newParticipant.role.toUpperCase()}`
     );
 
     return res.status(201).json({
       success: true,
-      message: 'Participant added to journey successfully.',
+      message: `Collaboration invitation request sent to ${newParticipant.email}.`,
       data: trip.participants,
     });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const resendTripInvitation = async (req, res) => {
+  try {
+    const trip = req.trip;
+    const { participantId } = req.params;
+
+    const participant = trip.participants.id(participantId);
+    if (!participant) {
+      return res.status(404).json({ success: false, message: 'Invitation record not found.' });
+    }
+
+    participant.invitedAt = new Date();
+    await trip.save();
+
+    await logActivity(
+      trip._id,
+      req.user,
+      'RESENT_INVITE',
+      `Resent invitation request to ${participant.name} (${participant.email})`
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: `Invitation request re-sent to ${participant.email}!`,
+      data: trip.participants,
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const respondToTripInvitation = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { action } = req.body; // 'accept' or 'decline'
+
+    if (!['accept', 'decline'].includes(action)) {
+      return res.status(400).json({ success: false, message: 'Action must be accept or decline.' });
+    }
+
+    const trip = await Trip.findById(id);
+    if (!trip) {
+      return res.status(404).json({ success: false, message: 'Journey not found.' });
+    }
+
+    const currentUserId = req.user._id.toString();
+    const currentUserEmail = req.user.email?.toLowerCase();
+
+    const participant = trip.participants.find(
+      (p) =>
+        (p.user && p.user.toString() === currentUserId) ||
+        (p.email && p.email.toLowerCase() === currentUserEmail)
+    );
+
+    if (!participant) {
+      return res.status(404).json({ success: false, message: 'No invitation request found for your account.' });
+    }
+
+    if (action === 'accept') {
+      participant.status = 'accepted';
+      participant.acceptedAt = new Date();
+      participant.user = req.user._id;
+      await trip.save();
+
+      await logActivity(
+        trip._id,
+        req.user,
+        'ACCEPTED_INVITE',
+        `${req.user.displayName || req.user.email} accepted the collaboration invitation`
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: `You accepted the invitation and joined "${trip.title}"!`,
+        data: trip,
+      });
+    } else {
+      trip.participants.pull(participant._id);
+      await trip.save();
+
+      return res.status(200).json({
+        success: true,
+        message: `You declined the invitation to join "${trip.title}".`,
+      });
+    }
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }

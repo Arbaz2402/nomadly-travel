@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   Map,
@@ -41,6 +42,8 @@ import {
   X,
   Check,
   Compass,
+  Send,
+  Mail,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -116,6 +119,8 @@ export const TripWorkspacePage = () => {
   const [activityLogs, setActivityLogs] = useState([]);
 
   // Fetch Full Trip Info
+  const [respondingInvite, setRespondingInvite] = useState(false);
+
   const fetchTripData = async () => {
     try {
       setLoading(true);
@@ -131,6 +136,26 @@ export const TripWorkspacePage = () => {
       setLoadError(err.message || 'Could not load journey.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRespondInvitation = async (action) => {
+    try {
+      setRespondingInvite(true);
+      const res = await ApiClient.respondToTripInvitation(id, action);
+      if (res.success) {
+        showToast(res.message, 'success');
+        if (action === 'accept') {
+          fetchTripData();
+          loadTabData('members');
+        } else {
+          navigate('/journeys');
+        }
+      }
+    } catch (err) {
+      showToast(err.message || 'Failed to respond to invitation', 'error');
+    } finally {
+      setRespondingInvite(false);
     }
   };
 
@@ -268,6 +293,46 @@ export const TripWorkspacePage = () => {
           )}
         </div>
       </div>
+
+      {/* Pending Invitation Alert Banner for the viewing user */}
+      {trip.participantStatus === 'pending' && (
+        <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-coral-500/20 via-teal-500/15 to-ink-900 border border-coral-500/40 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-coral-500/20 border border-coral-500/30 flex items-center justify-center text-coral-400">
+              <Mail className="w-5 h-5 animate-bounce" />
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                Collaboration Invitation Request
+                <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-coral-500/20 text-coral-300 border border-coral-500/30">
+                  {trip.userRole?.toUpperCase()}
+                </span>
+              </h4>
+              <p className="text-xs text-slate-300">
+                You've been invited by the journey owner to collaborate as an{' '}
+                <strong className="text-teal-400 capitalize">{trip.userRole}</strong>. Accept this request to participate in planning and editing.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+            <button
+              onClick={() => handleRespondInvitation('decline')}
+              disabled={respondingInvite}
+              className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white text-xs font-semibold border border-white/10 transition-colors"
+            >
+              Decline
+            </button>
+            <button
+              onClick={() => handleRespondInvitation('accept')}
+              disabled={respondingInvite}
+              className="px-5 py-2 rounded-xl bg-gradient-to-r from-coral-500 to-rose-600 hover:from-coral-600 text-white text-xs font-bold shadow-glow flex items-center gap-1.5 transition-all"
+            >
+              <Check className="w-4 h-4" />
+              {respondingInvite ? 'Joining...' : 'Accept Invitation'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Master Trip Hero Banner */}
       <div className="relative rounded-3xl overflow-hidden border border-white/10 bg-ink-900 shadow-2xl">
@@ -1434,6 +1499,7 @@ const DocumentsView = ({ trip, documents, canEdit, onRefresh, onOpenUpload }) =>
 // =========================================================
 const MembersView = ({ trip, participants, isOwner, onRefresh, onOpenAddMember }) => {
   const { showToast } = useToast();
+  const [resendingId, setResendingId] = useState(null);
 
   const handleRoleChange = async (participantId, newRole) => {
     try {
@@ -1447,12 +1513,13 @@ const MembersView = ({ trip, participants, isOwner, onRefresh, onOpenAddMember }
     }
   };
 
-  const handleRemoveMember = async (participantId, name) => {
-    if (!window.confirm(`Remove ${name} from this journey?`)) return;
+  const handleRemoveMember = async (participantId, name, isPending = false) => {
+    const actionLabel = isPending ? 'revoke invitation request for' : 'remove';
+    if (!window.confirm(`Are you sure you want to ${actionLabel} ${name}?`)) return;
     try {
       const res = await ApiClient.removeTripParticipant(trip._id, participantId);
       if (res.success) {
-        showToast('Member removed', 'info');
+        showToast(isPending ? 'Invitation request revoked' : 'Member removed', 'info');
         onRefresh();
       }
     } catch (err) {
@@ -1460,67 +1527,165 @@ const MembersView = ({ trip, participants, isOwner, onRefresh, onOpenAddMember }
     }
   };
 
+  const handleResendInvite = async (participantId, name) => {
+    try {
+      setResendingId(participantId);
+      const res = await ApiClient.resendTripInvitation(trip._id, participantId);
+      if (res.success) {
+        showToast(`Invitation re-sent to ${name}!`, 'success');
+        onRefresh();
+      }
+    } catch (err) {
+      showToast(err.message || 'Failed to resend invitation', 'error');
+    } finally {
+      setResendingId(null);
+    }
+  };
+
+  const activeMembers = participants.filter((p) => p.status === 'accepted' || p.role === 'owner');
+  const pendingRequests = participants.filter((p) => p.status === 'pending');
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between bg-ink-900/60 p-4 rounded-2xl border border-white/5">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-ink-900/60 p-4 sm:p-5 rounded-2xl border border-white/5">
         <div>
           <h3 className="text-base font-bold text-white font-display">Travel Companions & Collaboration</h3>
           <p className="text-xs text-slate-400">
-            Invite travel partners with Editor (modify itinerary & expenses) or Viewer (read-only) roles.
+            Invite travel partners with Editor (modify itinerary & expenses) or Viewer (read-only) roles. Members receive an invitation request before joining.
           </p>
         </div>
 
         {isOwner && (
           <button
             onClick={onOpenAddMember}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-coral-500 to-coral-600 hover:from-coral-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-glow"
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-coral-500 to-coral-600 hover:from-coral-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-glow whitespace-nowrap"
           >
-            <UserPlus className="w-4 h-4" /> Invite Member
+            <UserPlus className="w-4 h-4" /> Send Invitation Request
           </button>
         )}
       </div>
 
-      <div className="glass-panel rounded-3xl border border-white/10 overflow-hidden divide-y divide-white/5">
-        {participants.map((p) => (
-          <div key={p._id} className="p-4 sm:p-5 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-coral-500 text-white font-bold text-sm flex items-center justify-center">
-                {p.name.charAt(0)}
-              </div>
-              <div>
-                <p className="text-sm font-bold text-white">{p.name}</p>
-                <p className="text-xs text-slate-400">{p.email}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              {isOwner && p.role !== 'owner' ? (
-                <select
-                  value={p.role}
-                  onChange={(e) => handleRoleChange(p._id, e.target.value)}
-                  className="px-3 py-1.5 rounded-xl bg-ink-950 border border-white/10 text-xs text-slate-200 font-semibold focus:outline-none focus:border-coral-500"
-                >
-                  <option value="editor">Editor (Can edit)</option>
-                  <option value="viewer">Viewer (Read only)</option>
-                </select>
-              ) : (
-                <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-slate-300">
-                  {p.role}
-                </span>
-              )}
-
-              {isOwner && p.role !== 'owner' && (
-                <button
-                  onClick={() => handleRemoveMember(p._id, p.name)}
-                  className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400"
-                  title="Remove from trip"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              )}
-            </div>
+      {/* Pending Invitations Section */}
+      {pendingRequests.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 px-1">
+            <Clock className="w-4 h-4 text-amber-400 animate-pulse" />
+            <h4 className="text-xs font-bold uppercase tracking-wider text-amber-400">
+              Pending Collaboration Requests ({pendingRequests.length})
+            </h4>
           </div>
-        ))}
+
+          <div className="glass-panel rounded-3xl border border-amber-500/20 bg-amber-500/[0.02] overflow-hidden divide-y divide-white/5">
+            {pendingRequests.map((p) => (
+              <div key={p._id} className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 font-bold text-sm flex items-center justify-center">
+                    {p.name?.charAt(0)?.toUpperCase() || '?'}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-bold text-white">{p.name}</p>
+                      <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                        Request Sent
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400">{p.email}</p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Invited as <span className="text-slate-300 font-semibold capitalize">{p.role}</span> • Awaiting acceptance
+                    </p>
+                  </div>
+                </div>
+
+                {isOwner && (
+                  <div className="flex items-center gap-2 self-end sm:self-center">
+                    <button
+                      onClick={() => handleResendInvite(p._id, p.name)}
+                      disabled={resendingId === p._id}
+                      className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-xs font-semibold border border-white/10 flex items-center gap-1.5 transition-colors disabled:opacity-50"
+                      title="Resend invitation email and notification"
+                    >
+                      <Send className="w-3.5 h-3.5 text-teal-400" />
+                      <span>{resendingId === p._id ? 'Sending...' : 'Resend Invite'}</span>
+                    </button>
+                    <button
+                      onClick={() => handleRemoveMember(p._id, p.name, true)}
+                      className="px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-semibold border border-rose-500/20 flex items-center gap-1.5 transition-colors"
+                      title="Revoke invitation request"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Revoke</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Active Collaborators Section */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 px-1">
+          <Users className="w-4 h-4 text-teal-400" />
+          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+            Active Collaborators ({activeMembers.length})
+          </h4>
+        </div>
+
+        <div className="glass-panel rounded-3xl border border-white/10 overflow-hidden divide-y divide-white/5">
+          {activeMembers.map((p) => (
+            <div key={p._id} className="p-4 sm:p-5 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-coral-500 text-white font-bold text-sm flex items-center justify-center">
+                  {p.name?.charAt(0)?.toUpperCase() || '?'}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-bold text-white">{p.name}</p>
+                    {p.role === 'owner' ? (
+                      <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-coral-500/20 text-coral-300 border border-coral-500/30">
+                        Owner
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                        Active
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-400">{p.email}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                {isOwner && p.role !== 'owner' ? (
+                  <select
+                    value={p.role}
+                    onChange={(e) => handleRoleChange(p._id, e.target.value)}
+                    className="px-3 py-1.5 rounded-xl bg-ink-950 border border-white/10 text-xs text-slate-200 font-semibold focus:outline-none focus:border-coral-500"
+                  >
+                    <option value="editor">Editor (Can edit)</option>
+                    <option value="viewer">Viewer (Read only)</option>
+                  </select>
+                ) : (
+                  <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-slate-300">
+                    {p.role}
+                  </span>
+                )}
+
+                {isOwner && p.role !== 'owner' && (
+                  <button
+                    onClick={() => handleRemoveMember(p._id, p.name, false)}
+                    className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 transition-colors"
+                    title="Remove from trip"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -1574,9 +1739,17 @@ const AddActivityModal = ({ trip, isOpen, onClose, onCreated }) => {
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-950/80 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-xl rounded-3xl bg-ink-900 border border-white/10 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+  const modal = (
+    <div
+      className="fixed inset-0 z-[9999] overflow-y-auto bg-ink-950/85 backdrop-blur-md p-4 flex justify-center py-6 sm:py-12 animate-fade-in"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="relative w-full max-w-xl rounded-3xl bg-ink-900 border border-white/10 shadow-2xl overflow-hidden m-auto flex flex-col max-h-[calc(100vh-3rem)]"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="p-6 border-b border-white/10 flex items-center justify-between">
           <h3 className="text-lg font-bold text-white font-display">Add Itinerary Activity</h3>
           <button onClick={onClose} className="text-slate-400 hover:text-white">
@@ -1734,6 +1907,8 @@ const AddActivityModal = ({ trip, isOpen, onClose, onCreated }) => {
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modal, document.body) : modal;
 };
 
 const AddExpenseModal = ({ trip, isOpen, onClose, onCreated }) => {
@@ -1768,9 +1943,17 @@ const AddExpenseModal = ({ trip, isOpen, onClose, onCreated }) => {
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-950/80 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-md rounded-3xl bg-ink-900 border border-white/10 shadow-2xl overflow-hidden">
+  const modal = (
+    <div
+      className="fixed inset-0 z-[9999] overflow-y-auto bg-ink-950/85 backdrop-blur-md p-4 flex justify-center py-6 sm:py-12 animate-fade-in"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="relative w-full max-w-md rounded-3xl bg-ink-900 border border-white/10 shadow-2xl overflow-hidden m-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="p-6 border-b border-white/10 flex items-center justify-between">
           <h3 className="text-lg font-bold text-white font-display">Record Trip Expense</h3>
           <button onClick={onClose} className="text-slate-400 hover:text-white">
@@ -1872,6 +2055,8 @@ const AddExpenseModal = ({ trip, isOpen, onClose, onCreated }) => {
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modal, document.body) : modal;
 };
 
 const AddMemberModal = ({ trip, isOpen, onClose, onCreated }) => {
@@ -1889,49 +2074,75 @@ const AddMemberModal = ({ trip, isOpen, onClose, onCreated }) => {
       setLoading(true);
       const res = await ApiClient.addTripParticipant(trip._id, { name, email, role });
       if (res.success) {
-        showToast('Companion invited to journey!', 'success');
+        showToast(res.message || 'Collaboration request sent successfully!', 'success');
+        setName('');
+        setEmail('');
         onCreated();
         onClose();
       }
     } catch (err) {
-      showToast(err.message || 'Failed to invite companion', 'error');
+      showToast(err.message || 'Failed to send collaboration request', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-950/80 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-sm rounded-3xl bg-ink-900 border border-white/10 shadow-2xl p-6 space-y-4">
+  const modal = (
+    <div
+      className="fixed inset-0 z-[9999] overflow-y-auto bg-ink-950/85 backdrop-blur-md p-4 flex justify-center py-6 sm:py-12 animate-fade-in"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="relative w-full max-w-sm rounded-3xl bg-ink-900 border border-white/10 shadow-2xl p-6 space-y-4 m-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between">
-          <h3 className="text-base font-bold text-white font-display">Invite Companion</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-white">
-            <X className="w-5 h-5" />
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-coral-500/10 border border-coral-500/20 text-coral-400 flex items-center justify-center">
+              <Mail className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-white font-display">Send Collaboration Request</h3>
+              <p className="text-[11px] text-slate-400">Invite a partner to plan this journey</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+          >
+            <X className="w-4 h-4" />
           </button>
         </div>
 
+        <p className="text-xs text-slate-400 leading-relaxed bg-ink-950/60 p-3 rounded-2xl border border-white/5">
+          An invitation request will be sent to the companion. They will be in{' '}
+          <strong className="text-amber-400">Pending</strong> status until they accept the request.
+        </p>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1">Full Name *</label>
+            <label className="block text-xs font-bold text-slate-300 mb-1">Companion Full Name *</label>
             <input
               type="text"
               required
               placeholder="e.g. Priya Sharma"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-white/10 text-xs text-white"
+              className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-white/10 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-coral-500"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1">Email Address *</label>
+            <label className="block text-xs font-bold text-slate-300 mb-1">Companion Email Address *</label>
             <input
               type="email"
               required
               placeholder="e.g. priya@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-white/10 text-xs text-white"
+              className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-white/10 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-coral-500"
             />
           </div>
 
@@ -1940,33 +2151,36 @@ const AddMemberModal = ({ trip, isOpen, onClose, onCreated }) => {
             <select
               value={role}
               onChange={(e) => setRole(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-white/10 text-xs text-white font-semibold"
+              className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-white/10 text-xs text-white font-semibold focus:outline-none focus:border-coral-500"
             >
-              <option value="editor">Editor (Can edit itinerary & expenses)</option>
+              <option value="editor">Editor (Can edit itinerary & track expenses)</option>
               <option value="viewer">Viewer (Read-only access)</option>
             </select>
           </div>
 
-          <div className="pt-2 flex justify-end gap-2">
+          <div className="pt-2 flex justify-end gap-2 border-t border-white/5">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl bg-ink-800 text-slate-300 text-xs font-semibold"
+              className="px-4 py-2 rounded-xl bg-ink-800 text-slate-300 text-xs font-semibold hover:bg-ink-700 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 rounded-xl bg-coral-500 hover:bg-coral-600 text-white text-xs font-bold shadow-glow"
+              className="px-5 py-2 rounded-xl bg-gradient-to-r from-coral-500 to-rose-600 hover:from-coral-600 text-white text-xs font-bold shadow-glow flex items-center gap-1.5 disabled:opacity-50 transition-all"
             >
-              {loading ? 'Inviting...' : 'Send Invitation'}
+              <Send className="w-3.5 h-3.5" />
+              <span>{loading ? 'Sending...' : 'Send Request'}</span>
             </button>
           </div>
         </form>
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modal, document.body) : modal;
 };
 
 const UploadDocModal = ({ trip, isOpen, onClose, onUploaded }) => {
@@ -2029,9 +2243,17 @@ const UploadDocModal = ({ trip, isOpen, onClose, onUploaded }) => {
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-950/80 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-sm rounded-3xl bg-ink-900 border border-white/10 shadow-2xl p-6 space-y-4">
+  const modal = (
+    <div
+      className="fixed inset-0 z-[9999] overflow-y-auto bg-ink-950/85 backdrop-blur-md p-4 flex justify-center py-6 sm:py-12 animate-fade-in"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="relative w-full max-w-sm rounded-3xl bg-ink-900 border border-white/10 shadow-2xl p-6 space-y-4 m-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between">
           <h3 className="text-base font-bold text-white font-display">Upload Travel Document</h3>
           <button onClick={onClose} className="text-slate-400 hover:text-white">
@@ -2101,4 +2323,6 @@ const UploadDocModal = ({ trip, isOpen, onClose, onUploaded }) => {
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modal, document.body) : modal;
 };

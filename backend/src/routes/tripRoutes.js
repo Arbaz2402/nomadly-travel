@@ -22,6 +22,8 @@ import {
   addTripParticipant,
   updateTripParticipantRole,
   removeTripParticipant,
+  resendTripInvitation,
+  respondToTripInvitation,
   getTripDocuments,
   uploadTripDocument,
   downloadTripDocument,
@@ -69,6 +71,8 @@ router.get('/:id/analytics', requireTripAccess(['owner', 'editor', 'viewer']), g
 // 6. Collaboration & Members
 router.get('/:id/participants', requireTripAccess(['owner', 'editor', 'viewer']), getTripParticipants);
 router.post('/:id/participants', requireTripAccess(['owner', 'editor']), addTripParticipant);
+router.post('/:id/invitation/respond', respondToTripInvitation);
+router.post('/:id/participants/:participantId/resend', requireTripAccess(['owner']), resendTripInvitation);
 router.put('/:id/participants/:participantId', requireTripAccess(['owner']), updateTripParticipantRole);
 router.delete('/:id/participants/:participantId', requireTripAccess(['owner']), removeTripParticipant);
 

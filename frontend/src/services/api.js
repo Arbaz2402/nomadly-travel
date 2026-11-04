@@ -242,6 +242,14 @@ export class ApiClient {
     return this.request(`/trips/${tripId}/participants`, { method: 'POST', body: JSON.stringify(payload) });
   }
 
+  static resendTripInvitation(tripId, participantId) {
+    return this.request(`/trips/${tripId}/participants/${participantId}/resend`, { method: 'POST' });
+  }
+
+  static respondToTripInvitation(tripId, action) {
+    return this.request(`/trips/${tripId}/invitation/respond`, { method: 'POST', body: JSON.stringify({ action }) });
+  }
+
   static updateTripParticipantRole(tripId, participantId, role) {
     return this.request(`/trips/${tripId}/participants/${participantId}`, { method: 'PUT', body: JSON.stringify({ role }) });
   }
