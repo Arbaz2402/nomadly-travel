@@ -40,7 +40,6 @@ export const useAuthStore = create((set, get) => ({
     if (!token) return;
 
     try {
-      set({ isLoading: true });
       const res = await ApiClient.getMe();
       if (res.success && res.data) {
         set({ user: res.data });
@@ -50,8 +49,6 @@ export const useAuthStore = create((set, get) => ({
     } catch (err) {
       console.warn('Session check failed:', err.message);
       get().logout();
-    } finally {
-      set({ isLoading: false });
     }
   },
 

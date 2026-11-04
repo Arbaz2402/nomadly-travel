@@ -14,8 +14,14 @@ export class ApiClient {
 
   static async request(endpoint, options = {}) {
     const url = `${API_BASE}${endpoint}`;
+    
+    // 15-second timeout safeguard to prevent hanging requests
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
     const config = {
       ...options,
+      signal: options.signal || controller.signal,
       headers: {
         ...this.getHeaders(),
         ...options.headers,
@@ -24,6 +30,7 @@ export class ApiClient {
 
     try {
       const response = await fetch(url, config);
+      clearTimeout(timeoutId);
       const data = await response.json();
 
       if (!response.ok) {
@@ -32,6 +39,10 @@ export class ApiClient {
 
       return data;
     } catch (error) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        throw new Error('Connection timed out. Please verify your internet or try again.');
+      }
       console.error(`API Error on [${options.method || 'GET'} ${endpoint}]:`, error);
       throw error;
     }

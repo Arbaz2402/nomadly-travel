@@ -365,3 +365,4 @@ To prevent two travelers from booking the same seat or room simultaneously:
 - **Firebase Project ID**: `nomadly-app-fe5b9`
 - **MongoDB Atlas Cluster**: `cluster0.j4cv3aq.mongodb.net/nomadly`
 - **Automated Tests**: 37 / 37 automated tests passing via Vitest.
+
