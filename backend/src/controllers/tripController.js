@@ -25,6 +25,35 @@ const logActivity = async (tripId, user, action, details) => {
   }
 };
 
+// Helper to safely map itinerary/booking category to TripExpense enum
+const mapToExpenseCategory = (cat) => {
+  if (!cat) return 'activities';
+  const c = String(cat).toLowerCase().trim();
+  const mapping = {
+    flight: 'flights',
+    flights: 'flights',
+    hotel: 'hotels',
+    hotels: 'hotels',
+    train: 'trains',
+    trains: 'trains',
+    bus: 'buses',
+    buses: 'buses',
+    buss: 'buses',
+    car_rental: 'local_transportation',
+    local_transportation: 'local_transportation',
+    restaurant: 'food',
+    food: 'food',
+    sightseeing: 'activities',
+    activities: 'activities',
+    activity: 'activities',
+    activitiess: 'activities',
+    shopping: 'shopping',
+    insurance: 'insurance',
+    other: 'other',
+  };
+  return mapping[c] || 'activities';
+};
+
 // ==========================================
 // 1. TRIP CRUD & DASHBOARD
 // ==========================================
@@ -468,7 +497,7 @@ export const attachBookingToTrip = async (req, res) => {
       await TripExpense.create({
         trip: trip._id,
         title: `Booking: ${title}`,
-        category: booking.travelCategory === 'hotel' ? 'hotels' : `${booking.travelCategory}s`,
+        category: mapToExpenseCategory(booking.travelCategory),
         amount: payable,
         currency: booking.priceBreakdown?.currency || 'INR',
         exchangeRate: conversion.exchangeRate,
@@ -604,7 +633,7 @@ export const addItineraryItem = async (req, res) => {
       await TripExpense.create({
         trip: trip._id,
         title: newItem.title,
-        category: newItem.category === 'hotel' ? 'hotels' : `${newItem.category}s` || 'activities',
+        category: mapToExpenseCategory(newItem.category),
         amount: Number(actualCost),
         currency: newItem.currency,
         exchangeRate: conv.exchangeRate,

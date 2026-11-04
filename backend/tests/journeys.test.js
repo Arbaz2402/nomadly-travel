@@ -102,7 +102,7 @@ describe('My Journeys — Independent Trip Planning & Expense Suite', () => {
 
   it('3. Adds a manual sightseeing activity and detects scheduling overlaps', async () => {
     // Activity 1: Solang Valley Skiing (10:00 to 14:00)
-    await request(app)
+    const act1Res = await request(app)
       .post(`/api/v1/trips/${createdTripId}/itinerary`)
       .set('Authorization', `Bearer ${authToken}`)
       .send({
@@ -115,6 +115,15 @@ describe('My Journeys — Independent Trip Planning & Expense Suite', () => {
         estimatedCost: 3500,
         actualCost: 3500,
       });
+
+    expect(act1Res.status).toBe(201);
+    expect(act1Res.body.success).toBe(true);
+
+    // Verify auto-generated expense has valid enum 'activities' and NOT 'activitiess'
+    const autoExpense = await TripExpense.findOne({ trip: createdTripId, title: 'Solang Valley Snowboarding & Skiing' });
+    expect(autoExpense).toBeTruthy();
+    expect(autoExpense.category).toBe('activities');
+    expect(autoExpense.amount).toBe(3500);
 
     // Activity 2: Overlapping Lunch Tour on same day (13:00 to 15:00)
     await request(app)

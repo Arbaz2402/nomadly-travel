@@ -42,6 +42,18 @@ const tripExpenseSchema = new mongoose.Schema(
       ],
       default: 'food',
       index: true,
+      set: (val) => {
+        if (!val) return 'other';
+        const normalized = String(val).toLowerCase().trim();
+        if (normalized === 'activitiess' || normalized === 'activity' || normalized === 'sightseeing') return 'activities';
+        if (normalized === 'flight') return 'flights';
+        if (normalized === 'hotel') return 'hotels';
+        if (normalized === 'train') return 'trains';
+        if (normalized === 'bus' || normalized === 'buss') return 'buses';
+        if (normalized === 'restaurant') return 'food';
+        if (normalized === 'car_rental') return 'local_transportation';
+        return normalized;
+      },
     },
     amount: {
       type: Number,
