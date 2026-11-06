@@ -9,6 +9,7 @@ import {
   MapPin,
   ArrowRightLeft,
   Sparkles,
+  Compass,
 } from 'lucide-react';
 
 export const UnifiedSearchHero = () => {
@@ -27,6 +28,10 @@ export const UnifiedSearchHero = () => {
   const [checkOut, setCheckOut] = useState('2026-11-18');
   const [hotelGuests, setHotelGuests] = useState('2');
 
+  // Tour / Experience states
+  const [tourCity, setTourCity] = useState('Goa');
+  const [tourCategory, setTourCategory] = useState('all');
+
   const handleFlightSearch = (e) => {
     e.preventDefault();
     const originCode = flightOrigin.includes('(') ? flightOrigin.split('(')[1].replace(')', '') : flightOrigin;
@@ -37,6 +42,11 @@ export const UnifiedSearchHero = () => {
   const handleHotelSearch = (e) => {
     e.preventDefault();
     navigate(`/hotels?city=${hotelCity}&checkIn=${checkIn}&checkOut=${checkOut}&guests=${hotelGuests}`);
+  };
+
+  const handleTourSearch = (e) => {
+    e.preventDefault();
+    navigate(`/experiences?city=${tourCity}&category=${tourCategory}`);
   };
 
   const swapFlightAirports = () => {
@@ -104,6 +114,18 @@ export const UnifiedSearchHero = () => {
             >
               <Building2 className="w-4 h-4 stroke-[2.2]" />
               Hotels & Stays
+            </button>
+
+            <button
+              onClick={() => setActiveTab('tours')}
+              className={`flex items-center gap-2.5 px-6 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition-all flex-shrink-0 ${
+                activeTab === 'tours'
+                  ? 'bg-coral-500 text-white shadow-glow'
+                  : 'text-slate-300 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Compass className="w-4 h-4 stroke-[2.2]" />
+              Tours & Experiences
             </button>
           </div>
 
@@ -236,6 +258,57 @@ export const UnifiedSearchHero = () => {
                 >
                   <Search className="w-4 h-4 stroke-[2.5]" />
                   <span>Find Stays</span>
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* Tab 3: Tours & Experiences Form */}
+          {activeTab === 'tours' && (
+            <form onSubmit={handleTourSearch} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+              <div className="md:col-span-5 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
+                <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
+                  Destination City
+                </label>
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-coral-500 flex-shrink-0" />
+                  <input
+                    type="text"
+                    value={tourCity}
+                    onChange={(e) => setTourCity(e.target.value)}
+                    placeholder="e.g. Goa, Udaipur, Dubai, Jaipur, Srinagar..."
+                    className="bg-transparent text-sm text-white font-medium focus:outline-none w-full"
+                  />
+                </div>
+              </div>
+
+              <div className="md:col-span-4 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
+                <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
+                  Experience Category
+                </label>
+                <div className="flex items-center gap-2">
+                  <Compass className="w-4 h-4 text-teal-400 flex-shrink-0" />
+                  <select
+                    value={tourCategory}
+                    onChange={(e) => setTourCategory(e.target.value)}
+                    className="bg-transparent text-sm text-white font-medium focus:outline-none w-full"
+                  >
+                    <option value="all" className="bg-ink-900">All Categories</option>
+                    <option value="water_sports" className="bg-ink-900">Water Sports & Scuba</option>
+                    <option value="adventure" className="bg-ink-900">Adventure & Safaris</option>
+                    <option value="culture" className="bg-ink-900">Culture & Heritage</option>
+                    <option value="sightseeing" className="bg-ink-900">Sightseeing Cruises</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="md:col-span-3">
+                <button
+                  type="submit"
+                  className="w-full h-full py-4 px-6 rounded-2xl bg-coral-500 hover:bg-coral-600 text-white font-bold text-sm tracking-wide shadow-glow transition-all flex items-center justify-center gap-2"
+                >
+                  <Search className="w-4 h-4 stroke-[2.5]" />
+                  <span>Explore Tours</span>
                 </button>
               </div>
             </form>

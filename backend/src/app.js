@@ -16,6 +16,9 @@ import tripRoutes from './routes/tripRoutes.js';
 import wishlistRoutes from './routes/wishlistRoutes.js';
 import couponRoutes from './routes/couponRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import experienceRoutes from './routes/experienceRoutes.js';
+import packageRoutes from './routes/packageRoutes.js';
+import aiRoutes from './routes/aiRoutes.js';
 
 const app = express();
 
@@ -101,6 +104,9 @@ app.use('/api/v1/trips', tripRoutes);
 app.use('/api/v1/wishlist', wishlistRoutes);
 app.use('/api/v1/coupons', couponRoutes);
 app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/experiences', experienceRoutes);
+app.use('/api/v1/packages', packageRoutes);
+app.use('/api/v1/ai', aiRoutes);
 
 // 404 Route Handler
 app.use((req, res) => {

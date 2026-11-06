@@ -18,6 +18,8 @@ import { formatCurrency } from '../../utils/formatters';
 export const HomePage = () => {
   const [featuredHotels, setFeaturedHotels] = useState([]);
   const [loadingHotels, setLoadingHotels] = useState(true);
+  const [featuredExperiences, setFeaturedExperiences] = useState([]);
+  const [loadingExp, setLoadingExp] = useState(true);
 
   // Fallback verified boutique collections if database is starting up
   const fallbackCollections = [
@@ -80,7 +82,23 @@ export const HomePage = () => {
         setLoadingHotels(false);
       }
     };
+
+    const fetchExp = async () => {
+      try {
+        setLoadingExp(true);
+        const res = await ApiClient.getFeaturedExperiences();
+        if (res.success && res.data) {
+          setFeaturedExperiences(res.data);
+        }
+      } catch (err) {
+        console.warn('Could not load experiences for home:', err.message);
+      } finally {
+        setLoadingExp(false);
+      }
+    };
+
     fetchHotels();
+    fetchExp();
   }, []);
 
   const popularRoutes = [
@@ -208,6 +226,138 @@ export const HomePage = () => {
             })}
           </div>
         )}
+      </section>
+
+      {/* Featured Destination Experiences & Tours */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-semibold text-coral-400 uppercase tracking-wider mb-2">
+              <Compass className="w-4 h-4" />
+              <span>Verified Destination Activities</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight font-display">
+              Unforgettable Tours & Local Adventures
+            </h2>
+            <p className="text-slate-400 text-xs sm:text-sm mt-1">
+              Scuba diving, royal lake cruises, desert safaris, and sunrise balloon flights with certified local guides.
+            </p>
+          </div>
+          <Link
+            to="/experiences"
+            className="text-xs font-bold text-coral-400 hover:text-coral-300 flex items-center gap-1 group transition-colors"
+          >
+            Explore all tours <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
+
+        {loadingExp ? (
+          <div className="py-12 flex items-center justify-center">
+            <Loader2 className="w-8 h-8 animate-spin text-coral-500" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {featuredExperiences.slice(0, 4).map((exp) => (
+              <Link
+                key={exp._id || exp.slug}
+                to={`/experiences?city=${encodeURIComponent(exp.destinationCity)}`}
+                className="group glass-card rounded-3xl overflow-hidden border border-white/5 hover:border-coral-500/40 transition-all flex flex-col justify-between"
+              >
+                <div className="relative h-56 w-full overflow-hidden">
+                  <img
+                    src={exp.featuredPhoto}
+                    alt={exp.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/20 to-transparent"></div>
+                  <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-ink-950/80 backdrop-blur-md border border-white/10 text-[10px] font-bold text-teal-400 uppercase tracking-wider">
+                    {exp.durationHours} Hours
+                  </span>
+                  <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-ink-950/80 backdrop-blur-md text-[10px] font-bold text-amber-400 border border-white/10">
+                    <Star className="w-3 h-3 fill-amber-400" />
+                    <span>{exp.rating}</span>
+                  </div>
+                  <div className="absolute bottom-3 left-3 right-3">
+                    <div className="flex items-center gap-1 text-[11px] text-coral-300 font-semibold mb-0.5">
+                      <MapPin className="w-3 h-3" />
+                      <span>{exp.destinationCity}</span>
+                    </div>
+                    <h3 className="text-sm font-bold text-white font-display leading-tight line-clamp-1">
+                      {exp.title}
+                    </h3>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-ink-900/60 border-t border-white/5 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="text-[10px] text-slate-400 block -mb-0.5">Per Person</span>
+                    <span className="font-extrabold text-white">
+                      {formatCurrency(exp.pricePerPerson, exp.currency)}
+                    </span>
+                  </div>
+                  <span className="text-coral-400 font-bold group-hover:translate-x-1 transition-transform flex items-center gap-1">
+                    Book Tour <ArrowRight className="w-3 h-3" />
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* AI Smart Planner & Vacation Packages Dual Showcase */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Card 1: AI Planner */}
+          <div className="relative rounded-3xl overflow-hidden p-8 border border-coral-500/30 bg-gradient-to-br from-ink-900 via-ink-850 to-ink-900 flex flex-col justify-between space-y-6 shadow-xl">
+            <div className="space-y-3">
+              <span className="px-3 py-1 rounded-full bg-coral-500/20 text-coral-400 border border-coral-500/30 text-xs font-bold uppercase tracking-wider inline-flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5" />
+                AI Smart Planner
+              </span>
+              <h3 className="text-2xl font-extrabold text-white font-display">
+                Create tailored multi-day itineraries in seconds.
+              </h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Powered by travel intelligence: automatic route sequencing, verified local hot spots, realistic timings, and 1-click export to your Journey Workspace.
+              </p>
+            </div>
+            <div>
+              <Link
+                to="/ai-planner"
+                className="px-5 py-2.5 rounded-xl bg-coral-500 hover:bg-coral-600 text-white font-bold text-xs tracking-wide shadow-glow inline-flex items-center gap-2 transition-all"
+              >
+                <span>Launch AI Trip Planner</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Card 2: Flight + Hotel Combos */}
+          <div className="relative rounded-3xl overflow-hidden p-8 border border-teal-500/30 bg-gradient-to-br from-ink-900 via-ink-850 to-ink-900 flex flex-col justify-between space-y-6 shadow-xl">
+            <div className="space-y-3">
+              <span className="px-3 py-1 rounded-full bg-teal-500/20 text-teal-400 border border-teal-500/30 text-xs font-bold uppercase tracking-wider inline-flex items-center gap-1.5">
+                <Building2 className="w-3.5 h-3.5" />
+                Curated Combos
+              </span>
+              <h3 className="text-2xl font-extrabold text-white font-display">
+                Bundle Return Flights + Luxury Stays and save up to 20%.
+              </h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Explore handpicked combos for Goa, Udaipur, Dubai, Jaipur, and Kashmir featuring complimentary airport transfers and daily champagne breakfasts.
+              </p>
+            </div>
+            <div>
+              <Link
+                to="/packages"
+                className="px-5 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-600 text-white font-bold text-xs tracking-wide shadow-glow-teal inline-flex items-center gap-2 transition-all"
+              >
+                <span>View Vacation Packages</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* 3. Trending Flight Routes Row */}

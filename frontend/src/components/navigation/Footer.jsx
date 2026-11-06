@@ -99,18 +99,18 @@ export const Footer = () => {
             <ul className="space-y-2">
               <li><Link to="/flights" className="hover:text-coral-400 transition-colors">Flights & Airlines</Link></li>
               <li><Link to="/hotels" className="hover:text-coral-400 transition-colors">Hotels & Resorts</Link></li>
-              <li><Link to="/hotels?type=resort" className="hover:text-coral-400 transition-colors">Luxury Boutique Stays</Link></li>
-              <li><Link to="/hotels" className="hover:text-coral-400 transition-colors">Curated Getaways</Link></li>
+              <li><Link to="/experiences" className="hover:text-coral-400 transition-colors">Tours & Experiences</Link></li>
+              <li><Link to="/packages" className="hover:text-coral-400 transition-colors">Vacation Packages</Link></li>
             </ul>
           </div>
 
           <div>
             <h4 className="text-white font-semibold mb-3">Smart Features</h4>
             <ul className="space-y-2">
+              <li><Link to="/ai-planner" className="hover:text-coral-400 transition-colors flex items-center gap-1.5"><Sparkles className="w-3 h-3 text-coral-400" /> AI Trip Planner</Link></li>
               <li><Link to="/journeys" className="hover:text-coral-400 transition-colors">My Journeys Organizer</Link></li>
               <li><Link to="/trip-builder" className="hover:text-coral-400 transition-colors">Unified Trip Builder</Link></li>
               <li><Link to="/wishlist" className="hover:text-coral-400 transition-colors">Fare Price Watchlist</Link></li>
-              <li><Link to="/admin" className="hover:text-coral-400 transition-colors">Admin Governance</Link></li>
             </ul>
           </div>
 

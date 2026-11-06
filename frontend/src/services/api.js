@@ -349,4 +349,37 @@ export class ApiClient {
   static getAdminInventoryStats() {
     return this.request('/admin/inventory-stats');
   }
+
+  // Experiences & Tours
+  static searchExperiences(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    return this.request(`/experiences?${query}`);
+  }
+
+  static getFeaturedExperiences() {
+    return this.request('/experiences/featured');
+  }
+
+  static getExperienceById(id) {
+    return this.request(`/experiences/${id}`);
+  }
+
+  // Vacation Packages & Combos
+  static getVacationPackages(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    return this.request(`/packages?${query}`);
+  }
+
+  static getPackageById(id) {
+    return this.request(`/packages/${id}`);
+  }
+
+  // AI Smart Trip Planner
+  static generateAIItinerary(payload) {
+    return this.request('/ai/generate-itinerary', { method: 'POST', body: JSON.stringify(payload) });
+  }
+
+  static exportAIItineraryToJourney(payload) {
+    return this.request('/ai/export-to-journey', { method: 'POST', body: JSON.stringify(payload) });
+  }
 }

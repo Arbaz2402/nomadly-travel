@@ -9,6 +9,9 @@ import { TrainsPage } from './pages/trains/TrainsPage';
 import { BusesPage } from './pages/buses/BusesPage';
 import { CheckoutPage } from './pages/checkout/CheckoutPage';
 import { BookingConfirmation } from './pages/bookings/BookingConfirmation';
+import { ExperiencesPage } from './pages/experiences/ExperiencesPage';
+import { PackagesPage } from './pages/packages/PackagesPage';
+import { AITripPlannerPage } from './pages/ai/AITripPlannerPage';
 import { CustomerDashboard } from './pages/profile/CustomerDashboard';
 import { TripBuilderPage } from './pages/trip-builder/TripBuilderPage';
 import { JourneysDashboard } from './pages/journeys/JourneysDashboard';
@@ -36,10 +39,20 @@ export const App = () => {
           <Route path="/" element={<HomePage />} />
           <Route path="/flights" element={<FlightsPage />} />
           <Route path="/hotels" element={<HotelsPage />} />
+          <Route path="/experiences" element={<ExperiencesPage />} />
+          <Route path="/packages" element={<PackagesPage />} />
+          <Route path="/ai-planner" element={<AITripPlannerPage />} />
           <Route path="/trains" element={<Navigate to="/flights" replace />} />
           <Route path="/buses" element={<Navigate to="/flights" replace />} />
           <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/confirmation" element={<BookingConfirmation />} />
+          <Route
+            path="/confirmation"
+            element={
+              <ErrorBoundary>
+                <BookingConfirmation />
+              </ErrorBoundary>
+            }
+          />
           <Route path="/dashboard" element={<CustomerDashboard />} />
           <Route path="/journeys" element={<JourneysDashboard />} />
           <Route path="/my-journeys" element={<JourneysDashboard />} />

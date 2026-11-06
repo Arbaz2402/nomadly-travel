@@ -13,6 +13,7 @@ import {
   Bookmark,
   Sparkles,
   ChevronDown,
+  PackageCheck,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useToast } from '../../context/ToastContext';
@@ -50,6 +51,9 @@ export const Navbar = () => {
   const navLinks = [
     { name: 'Flights', path: '/flights', icon: Plane },
     { name: 'Hotels', path: '/hotels', icon: Building2 },
+    { name: 'Experiences', path: '/experiences', icon: Compass },
+    { name: 'Packages', path: '/packages', icon: PackageCheck, badge: 'Save 20%' },
+    { name: 'AI Planner', path: '/ai-planner', icon: Sparkles, badge: 'AI' },
     { name: 'My Journeys', path: '/journeys', icon: Map, badge: 'Organizer' },
   ];
 
