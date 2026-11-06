@@ -85,12 +85,12 @@ export const Footer = () => {
               <span className="text-lg font-bold text-white tracking-tight font-display">NOMADLY</span>
             </div>
             <p className="text-slate-400 max-w-sm mb-4 leading-relaxed">
-              Your entire journey, intelligently organized. Search, compare, and book domestic & international flights, boutique stays, express trains, and luxury sleeper coaches.
+              Your entire journey, intelligently organized. Search, compare, and book domestic & international flights and verified luxury boutique stays with live real-time rates.
             </p>
             <div className="flex items-center gap-2 text-[11px] text-slate-500">
               <span>Production-Grade Architecture</span>
               <span>•</span>
-              <span>Advanced MERN Platform</span>
+              <span>Live Flights & Stays Platform</span>
             </div>
           </div>
 
@@ -99,8 +99,8 @@ export const Footer = () => {
             <ul className="space-y-2">
               <li><Link to="/flights" className="hover:text-coral-400 transition-colors">Flights & Airlines</Link></li>
               <li><Link to="/hotels" className="hover:text-coral-400 transition-colors">Hotels & Resorts</Link></li>
-              <li><Link to="/trains" className="hover:text-coral-400 transition-colors">Vande Bharat & Trains</Link></li>
-              <li><Link to="/buses" className="hover:text-coral-400 transition-colors">Intercity Sleeper Buses</Link></li>
+              <li><Link to="/hotels?type=resort" className="hover:text-coral-400 transition-colors">Luxury Boutique Stays</Link></li>
+              <li><Link to="/hotels" className="hover:text-coral-400 transition-colors">Curated Getaways</Link></li>
             </ul>
           </div>
 

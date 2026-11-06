@@ -10,8 +10,6 @@ import {
   RotateCcw,
   Plane,
   Building2,
-  Train,
-  Bus,
   Mail,
   Phone,
   Clock,
@@ -135,26 +133,6 @@ export const PolicyModal = ({ isOpen, onClose, initialTab = 'cancellation' }) =>
                   Most verified properties offer 100% free cancellation up to 48 hours prior to check-in (14:00 local time). Non-refundable promotional bookings are explicitly highlighted with amber badges prior to confirmation.
                 </p>
               </div>
-
-              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-3">
-                <div className="flex items-center gap-2 text-white font-bold text-sm">
-                  <Train className="w-4 h-4 text-amber-400" />
-                  <h4>Indian Railways (IRCTC Slabs)</h4>
-                </div>
-                <p>
-                  Confirmed railway tickets cancelled before chart preparation are refunded per official Indian Railways cancellation tiers (flat fee per passenger for AC1/AC2/AC3/Chair Car). Waitlisted or RAC tickets are automatically refunded if unconfirmed at chart finalization.
-                </p>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-3">
-                <div className="flex items-center gap-2 text-white font-bold text-sm">
-                  <Bus className="w-4 h-4 text-rose-400" />
-                  <h4>Intercity Luxury Sleeper Coaches</h4>
-                </div>
-                <p>
-                  Cancellations initiated more than 12 hours before origin departure receive a 90% fare refund. Cancellations between 4 and 12 hours receive a 50% refund.
-                </p>
-              </div>
             </div>
           )}
 
@@ -211,9 +189,9 @@ export const PolicyModal = ({ isOpen, onClose, initialTab = 'cancellation' }) =>
               </div>
 
               <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-2">
-                <h4 className="text-white font-bold text-sm">3. Multi-Modal Transfer Buffers</h4>
+                <h4 className="text-white font-bold text-sm">3. Direct Airline & Hotel Synchronization</h4>
                 <p>
-                  Our Unified Trip Builder automatically flags transfers with less than 90 minutes connection buffer to minimize missed inter-modal connections between flights, trains, and buses.
+                  NOMADLY synchronizes real-time live seat inventory from global airline reservation systems and certified hotel hospitality partners to ensure instant ticket issuance.
                 </p>
               </div>
             </div>
@@ -313,3 +291,4 @@ export const PolicyModal = ({ isOpen, onClose, initialTab = 'cancellation' }) =>
 
   return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 };
+

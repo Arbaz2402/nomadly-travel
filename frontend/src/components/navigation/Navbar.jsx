@@ -3,8 +3,6 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   Plane,
   Building2,
-  Train,
-  Bus,
   Compass,
   Map,
   User,
@@ -52,8 +50,6 @@ export const Navbar = () => {
   const navLinks = [
     { name: 'Flights', path: '/flights', icon: Plane },
     { name: 'Hotels', path: '/hotels', icon: Building2 },
-    { name: 'Trains', path: '/trains', icon: Train },
-    { name: 'Buses', path: '/buses', icon: Bus },
     { name: 'My Journeys', path: '/journeys', icon: Map, badge: 'Organizer' },
   ];
 

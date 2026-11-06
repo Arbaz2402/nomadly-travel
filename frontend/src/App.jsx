@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { Navbar } from './components/navigation/Navbar';
 import { Footer } from './components/navigation/Footer';
 import { HomePage } from './pages/home/HomePage';
@@ -36,8 +36,8 @@ export const App = () => {
           <Route path="/" element={<HomePage />} />
           <Route path="/flights" element={<FlightsPage />} />
           <Route path="/hotels" element={<HotelsPage />} />
-          <Route path="/trains" element={<TrainsPage />} />
-          <Route path="/buses" element={<BusesPage />} />
+          <Route path="/trains" element={<Navigate to="/flights" replace />} />
+          <Route path="/buses" element={<Navigate to="/flights" replace />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/confirmation" element={<BookingConfirmation />} />
           <Route path="/dashboard" element={<CustomerDashboard />} />

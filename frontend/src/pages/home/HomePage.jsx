@@ -1,79 +1,144 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Plane,
   Building2,
-  Train,
-  Bus,
   Compass,
   ArrowRight,
   Sparkles,
-  ShieldCheck,
   Star,
   MapPin,
   TrendingUp,
+  Loader2,
 } from 'lucide-react';
 import { UnifiedSearchHero } from '../../components/search/UnifiedSearchHero';
+import { ApiClient } from '../../services/api';
 import { formatCurrency } from '../../utils/formatters';
 
 export const HomePage = () => {
-  const curatedCollections = [
+  const [featuredHotels, setFeaturedHotels] = useState([]);
+  const [loadingHotels, setLoadingHotels] = useState(true);
+
+  // Fallback verified boutique collections if database is starting up
+  const fallbackCollections = [
     {
-      title: 'Udaipur Royal Heritage',
-      tagline: 'Lakeside Palaces & Romance',
-      image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&q=80',
-      price: 'From ₹18,500',
-      link: '/hotels?city=Udaipur',
-      badge: 'Heritage',
+      _id: 'fallback-1',
+      name: 'The Oberoi Udaivilas, Udaipur',
+      propertyType: 'resort',
+      featuredPhoto: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&q=80',
+      location: { city: 'Udaipur', state: 'Rajasthan' },
+      starRating: 5,
+      guestRating: 9.8,
+      rooms: [{ pricePerNight: 36000 }],
     },
     {
-      title: 'Coastal Goa Escapes',
-      tagline: 'Serene Infinity Pools & Sands',
-      image: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=800&q=80',
-      price: 'From ₹8,999',
-      link: '/hotels?city=Goa',
-      badge: 'Trending',
+      _id: 'fallback-2',
+      name: 'Alila Diwa Goa - Hyatt Unbound',
+      propertyType: 'resort',
+      featuredPhoto: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=800&q=80',
+      location: { city: 'Goa', state: 'Goa' },
+      starRating: 5,
+      guestRating: 9.2,
+      rooms: [{ pricePerNight: 18500 }],
     },
     {
-      title: 'Vande Bharat High Speed',
-      tagline: 'Western Corridor Rail Express',
-      image: 'https://images.unsplash.com/photo-1532105956626-9569c03602f6?w=800&q=80',
-      price: 'From ₹1,420',
-      link: '/trains?origin=Mumbai&destination=Ahmedabad',
-      badge: 'Rail Express',
+      _id: 'fallback-3',
+      name: 'The Taj Mahal Palace, Mumbai',
+      propertyType: 'hotel',
+      featuredPhoto: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80',
+      location: { city: 'Mumbai', state: 'Maharashtra' },
+      starRating: 5,
+      guestRating: 9.6,
+      rooms: [{ pricePerNight: 24500 }],
     },
     {
-      title: 'Dubai Skyline & Sands',
-      tagline: 'Ultra-Luxury Emirates Getaways',
-      image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&q=80',
-      price: 'From ₹21,900',
-      link: '/flights?origin=DEL&destination=DXB',
-      badge: 'International',
+      _id: 'fallback-4',
+      name: 'The Leela Palace, New Delhi',
+      propertyType: 'hotel',
+      featuredPhoto: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&q=80',
+      location: { city: 'New Delhi', state: 'Delhi' },
+      starRating: 5,
+      guestRating: 9.4,
+      rooms: [{ pricePerNight: 22000 }],
     },
   ];
 
+  useEffect(() => {
+    const fetchHotels = async () => {
+      try {
+        setLoadingHotels(true);
+        const res = await ApiClient.getFeaturedHotels();
+        if (res.success && res.data && res.data.length > 0) {
+          setFeaturedHotels(res.data);
+        } else {
+          setFeaturedHotels(fallbackCollections);
+        }
+      } catch (err) {
+        console.warn('Loading fallback curated stays:', err.message);
+        setFeaturedHotels(fallbackCollections);
+      } finally {
+        setLoadingHotels(false);
+      }
+    };
+    fetchHotels();
+  }, []);
+
   const popularRoutes = [
-    { from: 'Mumbai (BOM)', to: 'Delhi (DEL)', mode: 'Flight', icon: Plane, time: '2h 10m', fare: '₹4,850', link: '/flights?origin=BOM&destination=DEL' },
-    { from: 'Mumbai', to: 'Goa', mode: 'AC Sleeper Bus', icon: Bus, time: '10h 30m', fare: '₹1,450', link: '/buses?origin=Mumbai&destination=Goa' },
-    { from: 'Mumbai Central', to: 'Gandhinagar', mode: 'Vande Bharat', icon: Train, time: '5h 25m', fare: '₹1,420', link: '/trains?origin=Mumbai&destination=Ahmedabad' },
-    { from: 'Delhi', to: 'Jaipur', mode: 'SmartBus', icon: Bus, time: '5h 00m', fare: '₹750', link: '/buses?origin=Delhi&destination=Jaipur' },
+    {
+      from: 'Mumbai (BOM)',
+      to: 'Delhi (DEL)',
+      mode: 'Non-stop Flight',
+      icon: Plane,
+      time: '2h 10m',
+      fare: '₹4,850',
+      link: '/flights?origin=BOM&destination=DEL',
+    },
+    {
+      from: 'Delhi (DEL)',
+      to: 'Goa (GOI)',
+      mode: 'Non-stop Flight',
+      icon: Plane,
+      time: '2h 35m',
+      fare: '₹5,450',
+      link: '/flights?origin=DEL&destination=GOI',
+    },
+    {
+      from: 'Bengaluru (BLR)',
+      to: 'Mumbai (BOM)',
+      mode: 'Non-stop Flight',
+      icon: Plane,
+      time: '1h 45m',
+      fare: '₹3,200',
+      link: '/flights?origin=BLR&destination=BOM',
+    },
+    {
+      from: 'Delhi (DEL)',
+      to: 'Dubai (DXB)',
+      mode: 'International Flight',
+      icon: Plane,
+      time: '3h 50m',
+      fare: '₹18,900',
+      link: '/flights?origin=DEL&destination=DXB',
+    },
   ];
+
+  const displayHotels = featuredHotels.length > 0 ? featuredHotels : fallbackCollections;
 
   return (
     <div className="space-y-16 pb-20">
-      {/* 1. Full-Width Editorial Hero with Floating 4-Tab Search */}
+      {/* 1. Full-Width Editorial Hero with Live Flight & Stay Search */}
       <UnifiedSearchHero />
 
-      {/* 2. Curated Seasonal Travel Collections */}
+      {/* 2. Live Curated Boutique Stays & Luxury Escapes */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
           <div>
             <div className="flex items-center gap-2 text-xs font-semibold text-coral-400 uppercase tracking-wider mb-1">
               <Sparkles className="w-4 h-4" />
-              <span>Curated Handpicked Journeys</span>
+              <span>Curated Handpicked Stays</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight font-display">
-              Seasonal Travel Collections
+              Featured Luxury Resorts & Boutique Stays
             </h2>
           </div>
           <Link
@@ -85,54 +150,80 @@ export const HomePage = () => {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {curatedCollections.map((col, idx) => (
-            <Link
-              key={idx}
-              to={col.link}
-              className="group glass-card rounded-3xl overflow-hidden border border-white/5 hover:border-coral-500/40 transition-all flex flex-col justify-between"
-            >
-              <div className="relative h-60 w-full overflow-hidden">
-                <img
-                  src={col.image}
-                  alt={col.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/20 to-transparent"></div>
-                <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-ink-950/80 backdrop-blur-md border border-white/10 text-[10px] font-bold text-coral-400 uppercase tracking-wider">
-                  {col.badge}
-                </span>
-                <div className="absolute bottom-3 left-3 right-3">
-                  <span className="text-[11px] text-coral-300 font-semibold block">{col.tagline}</span>
-                  <h3 className="text-lg font-bold text-white font-display leading-tight">{col.title}</h3>
-                </div>
-              </div>
+        {loadingHotels ? (
+          <div className="py-16 flex items-center justify-center">
+            <Loader2 className="w-8 h-8 animate-spin text-coral-500" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {displayHotels.slice(0, 4).map((hotel) => {
+              const lowestPrice = hotel.rooms?.[0]?.pricePerNight || 8500;
+              const cityName = hotel.location?.city || 'India';
+              const targetLink = `/hotels?city=${encodeURIComponent(cityName)}`;
 
-              <div className="p-4 bg-ink-900/60 border-t border-white/5 flex items-center justify-between text-xs">
-                <span className="font-extrabold text-white">{col.price}</span>
-                <span className="text-coral-400 font-bold group-hover:translate-x-1 transition-transform flex items-center gap-1">
-                  Book <ArrowRight className="w-3 h-3" />
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
+              return (
+                <Link
+                  key={hotel._id || hotel.name}
+                  to={targetLink}
+                  className="group glass-card rounded-3xl overflow-hidden border border-white/5 hover:border-coral-500/40 transition-all flex flex-col justify-between"
+                >
+                  <div className="relative h-60 w-full overflow-hidden">
+                    <img
+                      src={hotel.featuredPhoto || hotel.gallery?.[0] || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80'}
+                      alt={hotel.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/20 to-transparent"></div>
+                    <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-ink-950/80 backdrop-blur-md border border-white/10 text-[10px] font-bold text-coral-400 uppercase tracking-wider">
+                      {hotel.propertyType === 'resort' ? 'Luxury Resort' : 'Boutique Stay'}
+                    </span>
+                    <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-ink-950/80 backdrop-blur-md text-[10px] font-bold text-amber-400 border border-white/10">
+                      <Star className="w-3 h-3 fill-amber-400" />
+                      <span>{hotel.guestRating || 9.5}</span>
+                    </div>
+                    <div className="absolute bottom-3 left-3 right-3">
+                      <div className="flex items-center gap-1 text-[11px] text-coral-300 font-semibold mb-0.5">
+                        <MapPin className="w-3 h-3" />
+                        <span>{cityName}</span>
+                      </div>
+                      <h3 className="text-base font-bold text-white font-display leading-tight line-clamp-1">
+                        {hotel.name}
+                      </h3>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-ink-900/60 border-t border-white/5 flex items-center justify-between text-xs">
+                    <div>
+                      <span className="text-[10px] text-slate-400 block -mb-0.5">Starting from</span>
+                      <span className="font-extrabold text-white">
+                        {formatCurrency(lowestPrice, 'INR')} <span className="text-[10px] font-normal text-slate-400">/ night</span>
+                      </span>
+                    </div>
+                    <span className="text-coral-400 font-bold group-hover:translate-x-1 transition-transform flex items-center gap-1">
+                      View Stay <ArrowRight className="w-3 h-3" />
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </section>
 
-      {/* 3. Trending Routes Row */}
+      {/* 3. Trending Flight Routes Row */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-white/10">
           <div className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b border-white/5">
             <div>
               <div className="flex items-center gap-2 text-xs font-semibold text-teal-400 uppercase tracking-wider mb-1">
                 <TrendingUp className="w-4 h-4" />
-                <span>Instant Travel Discovery</span>
+                <span>Instant Flight Discovery</span>
               </div>
               <h2 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight font-display">
-                Trending Passenger Routes
+                Trending Airline Routes
               </h2>
             </div>
-            <p className="text-xs text-slate-400">One-click live availability checking</p>
+            <p className="text-xs text-slate-400">Live seat inventory & real-time pricing</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -176,26 +267,26 @@ export const HomePage = () => {
         </div>
       </section>
 
-      {/* 4. Smart Multi-Modal Bundles Teaser */}
+      {/* 4. Smart Journey Builder Teaser */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative rounded-3xl overflow-hidden p-8 sm:p-12 border border-coral-500/30 bg-gradient-to-r from-ink-900 via-ink-850 to-ink-900 shadow-2xl">
           <div className="max-w-2xl relative z-10 space-y-4">
             <span className="px-3 py-1 rounded-full bg-coral-500/20 text-coral-400 border border-coral-500/30 text-xs font-bold uppercase tracking-wider inline-flex items-center gap-1.5">
               <Compass className="w-3.5 h-3.5" />
-              Unified Trip Builder
+              Unified Travel Workspaces
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight font-display">
-              Orchestrate Train + Flight + Luxury Stay into one single itinerary.
+              Orchestrate Flights + Boutique Stays into one intelligent itinerary.
             </h2>
             <p className="text-sm text-slate-300 leading-relaxed">
-              Experience the future of multi-modal travel. Build multi-leg journeys, monitor connection gap warnings, track your dynamic budget, and checkout seamlessly.
+              Plan your travel smoothly. Build multi-city journeys, split expenses with companions, track your budget utilization, and organize booking vouchers in one secure workspace.
             </p>
             <div className="pt-2">
               <Link
-                to="/trip-builder"
+                to="/journeys"
                 className="px-6 py-3.5 rounded-2xl bg-coral-500 hover:bg-coral-600 text-white font-bold text-xs tracking-wide shadow-glow inline-flex items-center gap-2 transition-all"
               >
-                <span>Launch Interactive Trip Builder</span>
+                <span>Explore My Journeys</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>

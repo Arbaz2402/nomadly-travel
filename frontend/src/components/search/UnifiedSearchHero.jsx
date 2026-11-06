@@ -3,8 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import {
   Plane,
   Building2,
-  Train,
-  Bus,
   Search,
   Calendar,
   Users,
@@ -29,17 +27,6 @@ export const UnifiedSearchHero = () => {
   const [checkOut, setCheckOut] = useState('2026-11-18');
   const [hotelGuests, setHotelGuests] = useState('2');
 
-  // Train states
-  const [trainOrigin, setTrainOrigin] = useState('Mumbai');
-  const [trainDest, setTrainDest] = useState('Ahmedabad');
-  const [trainDate, setTrainDate] = useState('2026-11-16');
-  const [trainClass, setTrainClass] = useState('all');
-
-  // Bus states
-  const [busOrigin, setBusOrigin] = useState('Mumbai');
-  const [busDest, setBusDest] = useState('Goa');
-  const [busDate, setBusDate] = useState('2026-11-18');
-
   const handleFlightSearch = (e) => {
     e.preventDefault();
     const originCode = flightOrigin.includes('(') ? flightOrigin.split('(')[1].replace(')', '') : flightOrigin;
@@ -52,32 +39,10 @@ export const UnifiedSearchHero = () => {
     navigate(`/hotels?city=${hotelCity}&checkIn=${checkIn}&checkOut=${checkOut}&guests=${hotelGuests}`);
   };
 
-  const handleTrainSearch = (e) => {
-    e.preventDefault();
-    navigate(`/trains?origin=${trainOrigin}&destination=${trainDest}&travelClass=${trainClass}`);
-  };
-
-  const handleBusSearch = (e) => {
-    e.preventDefault();
-    navigate(`/buses?origin=${busOrigin}&destination=${busDest}`);
-  };
-
   const swapFlightAirports = () => {
     const temp = flightOrigin;
     setFlightOrigin(flightDest);
     setFlightDest(temp);
-  };
-
-  const swapTrainStations = () => {
-    const temp = trainOrigin;
-    setTrainOrigin(trainDest);
-    setTrainDest(temp);
-  };
-
-  const swapBusCities = () => {
-    const temp = busOrigin;
-    setBusOrigin(busDest);
-    setBusDest(temp);
   };
 
   return (
@@ -100,7 +65,7 @@ export const UnifiedSearchHero = () => {
         <div className="text-center max-w-3xl mx-auto mb-10 md:mb-14">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-coral-500/10 border border-coral-500/20 text-coral-400 text-xs font-semibold uppercase tracking-wider mb-5 backdrop-blur-md">
             <Sparkles className="w-3.5 h-3.5" />
-            Next-Gen Multi-Modal Travel Engine
+            Live Global Flights & Verified Boutique Stays
           </div>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight leading-[1.1] mb-5 font-display">
             Your entire journey, <br />
@@ -109,7 +74,7 @@ export const UnifiedSearchHero = () => {
             </span>
           </h1>
           <p className="text-base sm:text-lg text-slate-300 font-normal leading-relaxed">
-            Search real-time flights, verified boutique stays, express Indian railways, and luxury sleeper buses from one unified interface.
+            Search real-time airline flights and verified boutique stays from one unified interface.
           </p>
         </div>
 
@@ -119,7 +84,7 @@ export const UnifiedSearchHero = () => {
           <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1 scrollbar-none">
             <button
               onClick={() => setActiveTab('flights')}
-              className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition-all flex-shrink-0 ${
+              className={`flex items-center gap-2.5 px-6 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition-all flex-shrink-0 ${
                 activeTab === 'flights'
                   ? 'bg-coral-500 text-white shadow-glow'
                   : 'text-slate-300 hover:text-white hover:bg-white/5'
@@ -131,7 +96,7 @@ export const UnifiedSearchHero = () => {
 
             <button
               onClick={() => setActiveTab('hotels')}
-              className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition-all flex-shrink-0 ${
+              className={`flex items-center gap-2.5 px-6 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition-all flex-shrink-0 ${
                 activeTab === 'hotels'
                   ? 'bg-coral-500 text-white shadow-glow'
                   : 'text-slate-300 hover:text-white hover:bg-white/5'
@@ -139,30 +104,6 @@ export const UnifiedSearchHero = () => {
             >
               <Building2 className="w-4 h-4 stroke-[2.2]" />
               Hotels & Stays
-            </button>
-
-            <button
-              onClick={() => setActiveTab('trains')}
-              className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition-all flex-shrink-0 ${
-                activeTab === 'trains'
-                  ? 'bg-coral-500 text-white shadow-glow'
-                  : 'text-slate-300 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Train className="w-4 h-4 stroke-[2.2]" />
-              Trains & Express
-            </button>
-
-            <button
-              onClick={() => setActiveTab('buses')}
-              className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition-all flex-shrink-0 ${
-                activeTab === 'buses'
-                  ? 'bg-coral-500 text-white shadow-glow'
-                  : 'text-slate-300 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Bus className="w-4 h-4 stroke-[2.2]" />
-              Intercity Buses
             </button>
           </div>
 
@@ -179,7 +120,7 @@ export const UnifiedSearchHero = () => {
                     type="text"
                     value={flightOrigin}
                     onChange={(e) => setFlightOrigin(e.target.value)}
-                    placeholder="City or Airport (e.g. BOM)"
+                    placeholder="e.g. Mumbai (BOM)"
                     className="bg-transparent text-sm text-white font-medium focus:outline-none w-full"
                   />
                 </div>
@@ -190,6 +131,7 @@ export const UnifiedSearchHero = () => {
                   type="button"
                   onClick={swapFlightAirports}
                   className="w-10 h-10 rounded-full bg-ink-800 border border-white/10 hover:border-coral-500 text-slate-300 hover:text-white flex items-center justify-center transition-all shadow-md"
+                  title="Swap Origin & Destination"
                 >
                   <ArrowRightLeft className="w-4 h-4" />
                 </button>
@@ -205,7 +147,7 @@ export const UnifiedSearchHero = () => {
                     type="text"
                     value={flightDest}
                     onChange={(e) => setFlightDest(e.target.value)}
-                    placeholder="City or Airport (e.g. DEL)"
+                    placeholder="e.g. Delhi (DEL)"
                     className="bg-transparent text-sm text-white font-medium focus:outline-none w-full"
                   />
                 </div>
@@ -243,7 +185,7 @@ export const UnifiedSearchHero = () => {
             <form onSubmit={handleHotelSearch} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
               <div className="md:col-span-4 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
                 <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
-                  Destination / City
+                  Destination City
                 </label>
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-coral-500 flex-shrink-0" />
@@ -251,7 +193,7 @@ export const UnifiedSearchHero = () => {
                     type="text"
                     value={hotelCity}
                     onChange={(e) => setHotelCity(e.target.value)}
-                    placeholder="City (e.g. Mumbai, Goa, Udaipur)"
+                    placeholder="e.g. Mumbai, Goa, Udaipur"
                     className="bg-transparent text-sm text-white font-medium focus:outline-none w-full"
                   />
                 </div>
@@ -259,7 +201,7 @@ export const UnifiedSearchHero = () => {
 
               <div className="md:col-span-3 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
                 <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
-                  Check-in Date
+                  Check-In
                 </label>
                 <div className="flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-slate-400 flex-shrink-0" />
@@ -274,7 +216,7 @@ export const UnifiedSearchHero = () => {
 
               <div className="md:col-span-3 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
                 <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
-                  Check-out Date
+                  Check-Out
                 </label>
                 <div className="flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-slate-400 flex-shrink-0" />
@@ -294,139 +236,6 @@ export const UnifiedSearchHero = () => {
                 >
                   <Search className="w-4 h-4 stroke-[2.5]" />
                   <span>Find Stays</span>
-                </button>
-              </div>
-            </form>
-          )}
-
-          {/* Tab 3: Trains Form */}
-          {activeTab === 'trains' && (
-            <form onSubmit={handleTrainSearch} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
-              <div className="md:col-span-3 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
-                <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
-                  From (Station / City)
-                </label>
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-coral-500 flex-shrink-0" />
-                  <input
-                    type="text"
-                    value={trainOrigin}
-                    onChange={(e) => setTrainOrigin(e.target.value)}
-                    placeholder="e.g. Mumbai (MMCT)"
-                    className="bg-transparent text-sm text-white font-medium focus:outline-none w-full"
-                  />
-                </div>
-              </div>
-
-              <div className="md:col-span-1 flex items-center justify-center">
-                <button
-                  type="button"
-                  onClick={swapTrainStations}
-                  className="w-10 h-10 rounded-full bg-ink-800 border border-white/10 hover:border-coral-500 text-slate-300 hover:text-white flex items-center justify-center transition-all shadow-md"
-                >
-                  <ArrowRightLeft className="w-4 h-4" />
-                </button>
-              </div>
-
-              <div className="md:col-span-3 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
-                <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
-                  To (Station / City)
-                </label>
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-teal-400 flex-shrink-0" />
-                  <input
-                    type="text"
-                    value={trainDest}
-                    onChange={(e) => setTrainDest(e.target.value)}
-                    placeholder="e.g. Ahmedabad (ADI)"
-                    className="bg-transparent text-sm text-white font-medium focus:outline-none w-full"
-                  />
-                </div>
-              </div>
-
-              <div className="md:col-span-3 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
-                <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
-                  Travel Class
-                </label>
-                <select
-                  value={trainClass}
-                  onChange={(e) => setTrainClass(e.target.value)}
-                  className="bg-transparent text-sm text-white font-medium focus:outline-none w-full [color-scheme:dark]"
-                >
-                  <option value="all" className="bg-ink-900">All Classes</option>
-                  <option value="EC" className="bg-ink-900">Executive Chair Car (EC)</option>
-                  <option value="CC" className="bg-ink-900">AC Chair Car (CC)</option>
-                  <option value="1A" className="bg-ink-900">AC First Class (1A)</option>
-                  <option value="2A" className="bg-ink-900">AC 2 Tier (2A)</option>
-                  <option value="3A" className="bg-ink-900">AC 3 Tier (3A)</option>
-                  <option value="SL" className="bg-ink-900">Sleeper (SL)</option>
-                </select>
-              </div>
-
-              <div className="md:col-span-2">
-                <button
-                  type="submit"
-                  className="w-full h-full py-4 px-6 rounded-2xl bg-coral-500 hover:bg-coral-600 text-white font-bold text-sm tracking-wide shadow-glow transition-all flex items-center justify-center gap-2"
-                >
-                  <Search className="w-4 h-4 stroke-[2.5]" />
-                  <span>Search Trains</span>
-                </button>
-              </div>
-            </form>
-          )}
-
-          {/* Tab 4: Buses Form */}
-          {activeTab === 'buses' && (
-            <form onSubmit={handleBusSearch} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
-              <div className="md:col-span-4 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
-                <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
-                  From City
-                </label>
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-coral-500 flex-shrink-0" />
-                  <input
-                    type="text"
-                    value={busOrigin}
-                    onChange={(e) => setBusOrigin(e.target.value)}
-                    placeholder="e.g. Mumbai"
-                    className="bg-transparent text-sm text-white font-medium focus:outline-none w-full"
-                  />
-                </div>
-              </div>
-
-              <div className="md:col-span-1 flex items-center justify-center">
-                <button
-                  type="button"
-                  onClick={swapBusCities}
-                  className="w-10 h-10 rounded-full bg-ink-800 border border-white/10 hover:border-coral-500 text-slate-300 hover:text-white flex items-center justify-center transition-all shadow-md"
-                >
-                  <ArrowRightLeft className="w-4 h-4" />
-                </button>
-              </div>
-
-              <div className="md:col-span-4 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
-                <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
-                  To City
-                </label>
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-teal-400 flex-shrink-0" />
-                  <input
-                    type="text"
-                    value={busDest}
-                    onChange={(e) => setBusDest(e.target.value)}
-                    placeholder="e.g. Goa, Jaipur, Pune"
-                    className="bg-transparent text-sm text-white font-medium focus:outline-none w-full"
-                  />
-                </div>
-              </div>
-
-              <div className="md:col-span-3">
-                <button
-                  type="submit"
-                  className="w-full h-full py-4 px-6 rounded-2xl bg-coral-500 hover:bg-coral-600 text-white font-bold text-sm tracking-wide shadow-glow transition-all flex items-center justify-center gap-2"
-                >
-                  <Search className="w-4 h-4 stroke-[2.5]" />
-                  <span>Search Buses</span>
                 </button>
               </div>
             </form>
