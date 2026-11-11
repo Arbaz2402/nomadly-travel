@@ -20,10 +20,18 @@ import experienceRoutes from './routes/experienceRoutes.js';
 import packageRoutes from './routes/packageRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 
+// Swagger OpenAPI Documentation
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './docs/swagger.js';
+
 const app = express();
 
-// Security Headers
-app.use(helmet());
+// Security Headers (configured to allow interactive Swagger UI assets)
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+  })
+);
 
 // CORS Setup
 const clientUrl = process.env.CLIENT_URL ? process.env.CLIENT_URL.replace(/\/$/, '') : null;
@@ -107,6 +115,31 @@ app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/experiences', experienceRoutes);
 app.use('/api/v1/packages', packageRoutes);
 app.use('/api/v1/ai', aiRoutes);
+
+// Interactive Swagger OpenAPI Documentation
+const swaggerUiOptions = {
+  customCss: `
+    .swagger-ui .topbar { display: none }
+    .swagger-ui { background-color: #0b0f19; color: #f1f5f9; }
+    .swagger-ui .info .title, .swagger-ui .info h1, .swagger-ui .info h2, .swagger-ui .info h3 { color: #ffffff !important; }
+    .swagger-ui .info p, .swagger-ui .info li { color: #cbd5e1 !important; }
+    .swagger-ui .scheme-container { background: #0f172a; box-shadow: none; border-bottom: 1px solid #1e293b; }
+    .swagger-ui .opblock .opblock-summary-operation-id, .swagger-ui .opblock .opblock-summary-path, .swagger-ui .opblock .opblock-summary-path__deprecated { color: #f8fafc; }
+  `,
+  customSiteTitle: 'NOMADLY API Documentation | Swagger UI',
+};
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerUiOptions));
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerUiOptions));
+
+app.get('/api-docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.status(200).json(swaggerSpec);
+});
+app.get('/api/docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.status(200).json(swaggerSpec);
+});
 
 // 404 Route Handler
 app.use((req, res) => {

@@ -12,3 +12,4 @@ router.get('/featured', getFeaturedExperiences);
 router.get('/:id', getExperienceById);
 
 export default router;
+

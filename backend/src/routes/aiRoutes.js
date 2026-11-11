@@ -8,3 +8,4 @@ router.post('/generate-itinerary', generateItinerary);
 router.post('/export-to-journey', verifyAuth, exportToJourney);
 
 export default router;
+

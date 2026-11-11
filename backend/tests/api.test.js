@@ -36,6 +36,26 @@ describe('NOMADLY API Core Test Suite', () => {
     expect(res.body.status).toBe('online');
   });
 
+  describe('Swagger OpenAPI Documentation', () => {
+    it('GET /api-docs.json should serve OpenAPI 3.0.3 spec', async () => {
+      const res = await request(app).get('/api-docs.json');
+      expect(res.status).toBe(200);
+      expect(res.body.openapi).toBe('3.0.3');
+      expect(res.body.info.title).toContain('NOMADLY');
+      expect(res.body.paths['/auth/me']).toBeDefined();
+      expect(res.body.paths['/flights/search']).toBeDefined();
+      expect(res.body.paths['/hotels/search']).toBeDefined();
+      expect(res.body.paths['/experiences']).toBeDefined();
+      expect(res.body.paths['/packages']).toBeDefined();
+      expect(res.body.paths['/ai/generate-itinerary']).toBeDefined();
+    });
+
+    it('GET /api-docs/ should serve interactive Swagger UI', async () => {
+      const res = await request(app).get('/api-docs/');
+      expect([200, 301, 302]).toContain(res.status);
+    });
+  });
+
   describe('Search & Discovery Modules', () => {
     it('GET /api/v1/flights/search returns flight offers', async () => {
       const res = await request(app).get('/api/v1/flights/search?origin=BOM&destination=DEL');

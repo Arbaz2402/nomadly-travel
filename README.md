@@ -1,217 +1,428 @@
-# 🧭 NOMADLY — Production-Ready MERN Travel Reservation Platform
+# 🧭 NOMADLY — Unified Travel Reservation & Intelligent Journey Platform
+
+[![Production Status](https://img.shields.io/badge/Production-Live-success?style=for-the-badge&logo=render)](https://nomadly-travel.onrender.com)
+[![Frontend Client](https://img.shields.io/badge/Frontend-Netlify-00C7B7?style=for-the-badge&logo=netlify)](https://nomadly-travel.netlify.app)
+[![API Documentation](https://img.shields.io/badge/Swagger-OpenAPI%203.0-85EA2D?style=for-the-badge&logo=swagger)](https://nomadly-travel.onrender.com/api-docs)
+[![Test Suite](https://img.shields.io/badge/Tests-39%20Passing-brightgreen?style=for-the-badge&logo=vitest)](https://github.com/Arbaz2402/nomadly-travel)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 
 > **"Your entire journey, intelligently organized."**  
-> A production-ready full-stack travel booking and itinerary platform built with **React 18, Vite, Node.js Express, MongoDB Atlas, Firebase Cloud Auth, RapidAPI Booking.com, and Tailwind CSS**. Search, compare, hold, book, and orchestrate flights, luxury hotels, express railways, and intercity buses under a unified booking engine.
-
-📚 **Deep-Dive Guides**:
-- [🏛️ Full System Architecture & Tech Stack Reference](TECH_STACK_AND_ARCHITECTURE.md)
-- [🧪 Testing Tutorial & Automated Test Guide](temp.md)
+> **NOMADLY** is a production-grade full-stack travel booking, itinerary collaboration, and expense splitting platform built on the modern MERN architecture (**React 18, Vite, Node.js Express, MongoDB Atlas, Firebase Cloud Identity, RapidAPI Booking.com, and Tailwind CSS**). Search, compare, hold, book, and orchestrate flights, luxury boutique hotels, verified local tours, flight+hotel combo packages, and AI-generated multi-day itineraries from a single unified interface.
 
 ---
 
-## 🌟 System Architecture & Cloud Integrations
+## 📑 Table of Contents
+
+1. [Live Production Deployments](#-live-production-deployments)
+2. [Interactive System Architecture](#-interactive-system-architecture)
+3. [Core Feature Breakdown](#-core-feature-breakdown)
+4. [Technology Stack](#-technology-stack)
+5. [Database Architecture & Data Models](#-database-architecture--data-models)
+6. [Interactive Swagger OpenAPI Documentation](#-interactive-swagger-openapi-documentation)
+7. [API Endpoint Directory](#-api-endpoint-directory)
+8. [Automated Testing Suite (100% Passing)](#-automated-testing-suite)
+9. [Quickstart & Local Development](#-quickstart--local-development)
+10. [Environment Variables Reference](#-environment-variables-reference)
+11. [Project Directory Structure](#-project-directory-structure)
+
+---
+
+## 🌐 Live Production Deployments
+
+| Component | URL | Description |
+| :--- | :--- | :--- |
+| **Frontend Web App** | [nomadly-travel.netlify.app](https://nomadly-travel.netlify.app) | React 18 SPA deployed on Netlify with global CDN, responsive dark theme, and interactive travel tools. |
+| **Backend REST API** | [nomadly-travel.onrender.com](https://nomadly-travel.onrender.com) | Express ESM API deployed on Render with rate limiting, helmet security, and MongoDB Atlas connection. |
+| **Swagger OpenAPI UI** | [nomadly-travel.onrender.com/api-docs](https://nomadly-travel.onrender.com/api-docs) | Interactive Swagger UI for testing all REST endpoints with live request execution and schema examples. |
+| **API Health Check** | [nomadly-travel.onrender.com/api/health](https://nomadly-travel.onrender.com/api/health) | Uptime health status endpoint returning server timestamp, version, and connectivity. |
+
+---
+
+## 🏛️ Interactive System Architecture
 
 ```mermaid
 flowchart TD
-    subgraph Client["Frontend Client (React 18 + Vite :5173)"]
-        UI["Discovery UI & Search Bars\n(/flights, /hotels, /trains, /buses)"]
-        AuthM["Firebase Auth Modal\n(Google Sign-In + Email/Password)"]
-        Workspaces["My Journeys Planner\n(Kanban, Budget Tracker, Packing List)"]
-        PayCheckout["Checkout & Payment Gateway\n(Cards, UPI QR, NetBanking, Pay at Property)"]
+    subgraph ClientTier["Frontend Client (Netlify : nomadly-travel.netlify.app)"]
+        ReactApp["React 18 + Vite SPA"]
+        ZustandStore["Zustand State (Auth & Session)"]
+        ApiClient["Singleton ApiClient (Fetch Engine)"]
+        FirebaseSDK["Firebase Web SDK 10.11 (OAuth Client)"]
+        ReactApp --> ZustandStore
+        ReactApp --> ApiClient
+        ReactApp --> FirebaseSDK
     end
 
-    subgraph API["Backend API (Express :5000)"]
-        Core["REST API Routing (/api/v1)"]
-        AuthMid["Auth Middleware\n(Firebase Admin SDK + JWT)"]
-        OpenEngines["Open Travel Engines\n(IRCTC Rail, Zingbus Deck, Open Flights)"]
-        RapidSvc["RapidAPI Booking.com Service"]
-        HoldSvc["Atomic 10-Min Hold Engine\n(Concurrency Conflict Prevention)"]
-        PaySvc["Payment & Booking Engine\n(Audit Trail, Invoices, QR Generator)"]
+    subgraph EdgeAuth["Cloud Identity Provider"]
+        FirebaseCloud["Firebase Auth Platform (nomadly-app-fe5b9)\n• Google OAuth Popup\n• Cryptographic ID Token Minting"]
     end
 
-    subgraph Cloud["Production Cloud Infrastructure"]
-        Atlas[("MongoDB Atlas Cloud Database\n(Permanent Persistence)")]
-        FirebaseCloud[("Firebase Authentication\n(nomadly-app-fe5b9)")]
-        BookingLive[("RapidAPI Booking.com\n(Real Properties, Reviews, Photos)")]
+    subgraph BackendTier["Backend API (Render : nomadly-travel.onrender.com)"]
+        ExpressApp["Express 4.19 REST API (/api/v1)"]
+        SwaggerDoc["Swagger UI Engine (/api-docs)\n• OpenAPI 3.0.3 Interactive Spec"]
+        AuthMid["Firebase Admin SDK 12.0 + JWT Middleware"]
+        HoldEngine["Atomic 10-Minute Hold Engine"]
+        PaymentEngine["NOMADLY Secure Payment Engine\n(Card, UPI QR, NetBanking)"]
+        AIEngine["Google Gemini 1.5 Flash\nSmart Trip Concierge"]
+        ExpressApp --> SwaggerDoc
+        ExpressApp --> AuthMid
+        ExpressApp --> HoldEngine
+        ExpressApp --> PaymentEngine
+        ExpressApp --> AIEngine
     end
 
-    UI --> Core
-    AuthM --> FirebaseCloud
-    FirebaseCloud --> AuthMid
-    Core --> Atlas
-    Core --> RapidSvc
-    Core --> OpenEngines
-    RapidSvc --> BookingLive
-    PayCheckout --> PaySvc
-    PaySvc --> HoldSvc
-    PaySvc --> Atlas
-    Workspaces --> Core
+    subgraph DataTier["Data & Cloud Storage Layer"]
+        Atlas[("MongoDB Atlas Cloud Cluster\n• 19 Collections\n• Users, Bookings, Trips, Inventory")]
+        RapidAPI["RapidAPI Booking.com Live API\n(Real Properties, Reviews, Pricing)"]
+    end
+
+    FirebaseSDK -->|1. OAuth Login Popup| FirebaseCloud
+    FirebaseCloud -->|2. Returns Signed ID Token| FirebaseSDK
+    ApiClient -->|3. POST /auth/firebase-login (ID Token)| ExpressApp
+    AuthMid -->|4. Verifies Signature| FirebaseCloud
+    ExpressApp -->|5. Find or Create User| Atlas
+    ExpressApp -->|6. Search Live Stays| RapidAPI
+    HoldEngine -->|7. Concurrency Lock & TTL Index| Atlas
+    PaymentEngine -->|8. Store Confirmed Reservation| Atlas
 ```
 
 ---
 
-## 🚀 Key Production Features
+## 🌟 Core Feature Breakdown
 
-1. **Permanent Cloud Database (MongoDB Atlas)**:
-   - Configured with live production cluster (`nomadly` database).
-   - Permanent data persistence across all collections (Users, Bookings, Trips, Flights, Hotels, Trains, Buses, Coupons, AuditLogs).
-   - Automated parallel-seed lock protection.
+### 1. Flights Discovery Engine
+- **Live Search**: Autocomplete for domestic and international airports (e.g. BOM, DEL, BLR, GOI, DXB).
+- **Cabin Classes**: Economy, Premium Economy, Business, and First Class with realistic cabin amenities.
+- **Dynamic Seating & Fares**: Live seat matrix, baggage allowances, duration calculation, and stops filtering.
 
-2. **Firebase Cloud Authentication (Google Sign-In & Email)**:
-   - **Backend**: Firebase Admin SDK initialized with official service account credentials.
-   - **Frontend**: One-click Google Sign-In popup via Firebase Web SDK + Email & Password authentication.
-   - **Dual-Mode**: Includes 1-click **Traveler** and **Admin** demo personas for instant evaluation.
+### 2. Hotels & Boutique Stays (RapidAPI Booking.com)
+- **Live Inventory**: Direct query against RapidAPI Booking.com for verified global properties.
+- **Rich Media**: High-resolution room galleries, guest review scores, verified star ratings, and neighborhood tags.
+- **Local Fallback**: Instant local destination caching and OpenStreetMap spatial discovery for 100% uptime.
 
-3. **Live Hotel Discovery (RapidAPI Booking.com)**:
-   - Connected with active RapidAPI credentials querying verified real-world properties.
-   - Shows authentic traveler reviews, guest ratings, room types, and photos directly from `bstatic.com`.
-   - OpenStreetMap (OSM) geographic fallback engine for zero-quota coverage.
+### 3. Tours & Destination Experiences
+- **Authentic Local Activities**: Scuba diving in Goa, sunset yacht sailing in Mumbai, royal boat cruises in Udaipur, red dunes desert safaris in Dubai, hot air balloons in Jaipur, and Shikara rides on Dal Lake.
+- **Direct Integration**: Instant booking or 1-click **Add to Journey** to schedule activities into travel workspaces.
 
-4. **Multi-Modal Travel Discovery**:
-   - **Flights ✈️**: Standalone flight engine computing authentic schedules across carriers (IndiGo, Air India, Vistara, Akasa Air) for any airport/city pair worldwide. Zero external signups required.
-   - **Trains (IRCTC) 🚆**: Official timetable engine generating authentic **Vande Bharat Express**, **Rajdhani Express**, and **Superfast** trains with accurate station codes (`CSMT`, `NDLS`, `SBC`, `MAS`, `MAO`, `BSB`) and class berth allocations (`EC`, `CC`, `1A`, `2A`, `3A`, `SL`).
-   - **Buses 🚌**: Generates verified routes for top operators (**Zingbus Electric**, **IntrCity SmartBus**, **VRL Travels**) with **30-seat interactive upper/lower deck layouts**.
+### 4. Curated Vacation Packages & Combos
+- **Dynamic Bundling**: Pairs real live flights and boutique hotels with authentic package discounts (15–20% off).
+- **Complimentary Perks**: Airport transfers, daily champagne breakfast, and activity credits included in a single e-ticket.
 
-5. **Atomic 10-Minute Hold Engine**:
-   - Concurrency-safe seat reservation (`InventoryHold`) locks selected seats for 10 minutes.
-   - Prevents double-booking collisions while customers complete checkout.
+### 5. AI Smart Trip Planner (Google Gemini 1.5 Flash)
+- **Zero Cost & Real Data**: Powered by Google Gemini 1.5 Flash via REST integration with local destination intelligence fallback.
+- **Customization Wizard**: Input destination, days (2–7), budget style (*Budget*, *Balanced*, *Luxury*), and interests.
+- **1-Click Export to My Journeys**: Automatically compiles day-by-day itineraries and creates live interactive `Trip` and `ItineraryItem` records.
 
-6. **Unified Trip Workspace (My Journeys)**:
-   - Multi-segment trip planner with drag-and-drop Kanban boards, day-by-day itineraries, connection gap warnings, real-time budget trackers, and packing checklists.
+### 6. Concurrency-Safe 10-Minute Hold Engine
+- **Lock Protection**: Temporary seat and room reservation holds prevent double-booking collisions while travelers complete checkout.
+- **TTL Indexing**: MongoDB native Time-To-Live index automatically releases abandoned seats after 10 minutes without polling.
 
-7. **Production Payment Gateway Sandbox**:
-   - Accepts Credit/Debit Cards, UPI QR codes, NetBanking, and Pay at Property.
-   - Issues authentic transaction IDs, confirms bookings, creates audit logs, and generates printable/downloadable PDF receipts with verification QR codes.
+### 7. Collaborative "My Journeys" Workspace
+- **Multi-Day Itinerary Builder**: Morning, afternoon, and evening timeline with manual entries or linked reservations.
+- **Split Expense Ledger**: Track shared trip costs, assign payers, compute who owes whom, and mark debts as settled.
+- **Document Vault**: Upload and store flight tickets, boarding passes, hotel vouchers, and ID scans.
+- **Travel Companion Collaboration**: Invite travel partners via email with *Owner*, *Editor*, or *Viewer* access controls and invitation request lifecycles.
 
----
+### 8. Payment Gateway & E-Ticket Issuance
+- **Sandbox Processing**: Supports Credit/Debit Cards, UPI QR codes, NetBanking, and Pay at Property.
+- **Voucher Verification**: Issues printable and downloadable PDF receipts with official booking references (PNR), GST breakdown, and dynamic QR verification barcodes.
 
-## 💻 Tech Stack
-
-| Layer | Technologies |
-| :--- | :--- |
-| **Frontend** | React 18, Vite 5, Tailwind CSS, Zustand, TanStack React Query v5, Framer Motion, Lucide Icons, Recharts |
-| **Backend** | Node.js, Express.js (ESM), Mongoose 8, Zod, Helmet, CORS, Morgan, Express Rate Limit |
-| **Database** | MongoDB Atlas (Cloud) + In-Memory Fallback |
-| **Authentication** | Firebase Admin SDK + Firebase Web SDK (Google OAuth + Email) + JWT |
-| **Inventory APIs** | RapidAPI Booking.com + OpenStreetMap Nominatim + Open Travel Engines |
-| **Testing** | Vitest, Supertest (37 automated tests passing 100%) |
+### 9. Admin Governance Dashboard
+- **Executive Metrics**: Platform GMV, total bookings, active users, and system conversion rates.
+- **User Governance**: Suspend/unsuspend user accounts and elevate roles.
+- **Audit Trails**: Security logs documenting all administrative and financial actions.
 
 ---
 
-## ⚡ Quickstart Guide
+## 💻 Technology Stack
 
-### 1. Prerequisites
-- **Node.js** (v18+ recommended, tested on v22)
-- **npm** (v9+)
+| Layer | Technologies | Purpose |
+| :--- | :--- | :--- |
+| **Frontend Framework** | React 18 (Vite 5) | Component-driven Single Page Application (SPA) with fast HMR |
+| **Styling & Icons** | Tailwind CSS 3, Lucide React, Framer Motion | Modern midnight dark theme, responsive layouts, smooth micro-animations |
+| **Client State** | Zustand, Context API | Lightweight session, authentication, and toast notification state |
+| **Backend Framework** | Node.js (ESM), Express.js 4.19 | Modular RESTful API architecture with centralized error handling |
+| **API Documentation** | Swagger UI Express, OpenAPI 3.0.3 | Interactive browser documentation mounted at `/api-docs` |
+| **Database & ODM** | MongoDB Atlas, Mongoose 8 | Cloud-hosted NoSQL cluster with schema validation and TTL indexes |
+| **Authentication** | Firebase Admin SDK + Firebase Web SDK + JWT | Google OAuth 2.0 popup sign-in, email/password, and role-based authorization |
+| **AI Generation** | Google Gemini 1.5 Flash | Structured multi-day itinerary generation |
+| **Security & Middleware** | Helmet, CORS, Morgan, Express Rate Limit, Zod | Security headers, IP rate limiting, input validation, request logging |
+| **Testing** | Vitest, Supertest, MongoDB Memory Server | Rapid automated integration and unit testing (39 passing tests) |
 
-### 2. Installation
-Install all dependencies across root, backend, and frontend:
-```bash
-npm run install-all
+---
+
+## 🗄️ Database Architecture & Data Models
+
+NOMADLY uses **19 Mongoose schemas** on MongoDB Atlas to model travel inventory, reservations, and collaboration:
+
+| # | Collection / Model | File Path | Description |
+|---|---|---|---|
+| 1 | **`users`** (`User`) | `backend/src/models/User.js` | User account records, bcrypt passwords, avatar, role (`customer`, `admin`), loyalty points, and saved co-travelers. |
+| 2 | **`bookings`** (`Booking`) | `backend/src/models/Booking.js` | Confirmed travel reservations with unique PNR reference, category, passengers, payment status, and pricing. |
+| 3 | **`inventoryholds`** (`InventoryHold`) | `backend/src/models/InventoryHold.js` | Atomic 10-minute hold lock preventing seat collisions during checkout with MongoDB TTL auto-expiry. |
+| 4 | **`payments`** (`Payment`) | `backend/src/models/Payment.js` | Transaction logs, payment gateway orders, currency, and verification signatures. |
+| 5 | **`refunds`** (`Refund`) | `backend/src/models/Refund.js` | Cancellation audit records, refund reference, penalty deductions, and processing status. |
+| 6 | **`trips`** (`Trip`) | `backend/src/models/Trip.js` | "My Journeys" collaborative travel workspace with dates, total budget, linked bookings, and participants. |
+| 7 | **`itineraryitems`** (`ItineraryItem`) | `backend/src/models/ItineraryItem.js` | Individual activities, scheduled times, locations, estimated costs, and order sequence in a trip. |
+| 8 | **`tripexpenses`** (`TripExpense`) | `backend/src/models/TripExpense.js` | Shared budget ledger records with payer, split shares, and category mappings. |
+| 9 | **`tripdocuments`** (`TripDocument`) | `backend/src/models/TripDocument.js` | Boarding passes, hotel confirmation vouchers, and insurance files attached to a journey. |
+| 10 | **`tripactivitylogs`** (`TripActivityLog`) | `backend/src/models/TripActivityLog.js` | Audit trail of edits made by travel companions in a journey workspace. |
+| 11 | **`flightoffers`** (`FlightOffer`) | `backend/src/models/FlightOffer.js` | Flight schedules, carrier details, airport codes, cabin classes, and pricing. |
+| 12 | **`hotels`** (`Hotel`) | `backend/src/models/Hotel.js` | Hotel properties, address coordinates, star rating, amenities, and room availability. |
+| 13 | **`experiences`** (`Experience`) | `backend/src/models/Experience.js` | Destination tours, scuba diving, safaris, inclusions, meeting points, and reviews. |
+| 14 | **`trains`** (`Train`) | `backend/src/models/Train.js` | Express rail timetables, station codes, and coach class berth layouts (`EC`, `CC`, `1A`, `2A`, `3A`, `SL`). |
+| 15 | **`buses`** (`Bus`) | `backend/src/models/Bus.js` | Intercity bus routes with upper and lower sleeper deck seat configurations. |
+| 16 | **`coupons`** (`Coupon`) | `backend/src/models/Coupon.js` | Promotional discount vouchers (`NOMAD20`, `FIRST10`) with expiry and minimum order conditions. |
+| 17 | **`wishlists`** (`Wishlist`) | `backend/src/models/Wishlist.js` | User bucket-list saved travel items with snapshot metadata. |
+| 18 | **`pricealerts`** (`PriceAlert`) | `backend/src/models/PriceAlert.js` | Watchlist alerts triggering notifications when fares drop below a traveler's target price. |
+| 19 | **`auditlogs`** (`AuditLog`) | `backend/src/models/AuditLog.js` | Immutable administrative audit log tracking privilege elevation, user status toggles, and payment captures. |
+
+---
+
+## 📖 Interactive Swagger OpenAPI Documentation
+
+NOMADLY features complete, interactive OpenAPI 3.0.3 documentation hosted directly on the server:
+
+- **Interactive UI**: [https://nomadly-travel.onrender.com/api-docs](https://nomadly-travel.onrender.com/api-docs) (or `http://localhost:5000/api-docs` locally)
+- **Raw OpenAPI 3.0.3 JSON**: [https://nomadly-travel.onrender.com/api-docs.json](https://nomadly-travel.onrender.com/api-docs.json)
+
+### Authorization in Swagger UI
+Click the green **Authorize 🔓** button at the top of Swagger UI and provide:
+```http
+Bearer <YOUR_JWT_OR_FIREBASE_TOKEN>
 ```
+*(You can obtain a demo token instantly by calling `POST /api/v1/auth/demo-login` with `{"role": "customer"}` or `{"role": "admin"}`!)*
 
-### 3. Environment Setup
-Your environment files are already configured with your live **MongoDB Atlas** cluster, **Firebase credentials**, and **RapidAPI key**:
-- Root `.env` & `backend/.env`:
-  ```env
-  PORT=5000
-  NODE_ENV=development
-  CLIENT_URL=http://localhost:5173
-  MONGODB_URI=mongodb+srv://...
-  FIREBASE_PROJECT_ID=nomadly-app-fe5b9
-  RAPIDAPI_KEY=...
-  ```
-- `frontend/.env`:
-  ```env
-  VITE_API_URL=http://localhost:5000/api/v1
-  VITE_FIREBASE_API_KEY=...
-  VITE_FIREBASE_PROJECT_ID=nomadly-app-fe5b9
-  ```
+---
 
-### 4. Run Development Servers
-Start both servers concurrently with one command:
-```bash
-npm run dev
-```
+## 📡 API Endpoint Directory
 
-- **Frontend Application**: `http://localhost:5173`
-- **Backend API**: `http://localhost:5000/api/v1`
-- **Health Check**: `http://localhost:5000/api/health`
+### 1. Authentication & Profile (`/api/v1/auth`)
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/auth/me` | User | Get current profile, preferences, and saved travelers. |
+| `PUT` | `/api/v1/auth/profile` | User | Update display name, phone, and notification settings. |
+| `POST` | `/api/v1/auth/travelers` | User | Save frequent companion travelers for 1-click checkout autofill. |
+| `DELETE` | `/api/v1/auth/travelers/:id` | User | Delete a saved companion traveler. |
+| `POST` | `/api/v1/auth/demo-login` | Public | Instant 1-click sign-in as Customer or Admin demo persona. |
+
+### 2. Flights Inventory (`/api/v1/flights`)
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/flights/search` | Public | Search live flights by origin, destination, date, cabin, and stops. |
+| `GET` | `/api/v1/flights/airports` | Public | Autocomplete directory of registered airport codes and cities. |
+| `GET` | `/api/v1/flights/:id` | Public | Get flight offer details and live seat inventory. |
+
+### 3. Hotels & Resorts (`/api/v1/hotels`)
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/hotels/search` | Public | Search properties via RapidAPI Booking.com by city, dates, and stars. |
+| `GET` | `/api/v1/hotels/featured` | Public | Retrieve curated boutique luxury stays and palace resorts. |
+| `GET` | `/api/v1/hotels/:id` | Public | Get hotel property details, room types, and amenities. |
+
+### 4. Tours & Experiences (`/api/v1/experiences`)
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/experiences` | Public | Search verified tours by city, category, and price range. |
+| `GET` | `/api/v1/experiences/featured`| Public | Get top-rated featured destination experiences. |
+| `GET` | `/api/v1/experiences/:id` | Public | Get tour itinerary, inclusions, meeting point, and photo gallery. |
+
+### 5. Vacation Packages & Combos (`/api/v1/packages`)
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/packages` | Public | Get dynamic Flight + Hotel combo packages with 15–20% discounts. |
+| `GET` | `/api/v1/packages/:id` | Public | Get package details with paired flight legs and resort amenities. |
+
+### 6. AI Smart Trip Planner (`/api/v1/ai`)
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/v1/ai/generate-itinerary` | Public | Synthesize day-by-day itinerary via Gemini 1.5 Flash. |
+| `POST` | `/api/v1/ai/export-to-journey` | User | 1-Click Export generated plan into an interactive Journey workspace. |
+
+### 7. Bookings & Reservations (`/api/v1/bookings`)
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/v1/bookings` | User | Initialize reservation with travelers, contact info, and pricing. |
+| `GET` | `/api/v1/bookings/my-bookings` | User | List all past and confirmed reservations for current user. |
+| `GET` | `/api/v1/bookings/:id` | User | Get booking confirmation e-ticket with validation QR code. |
+| `POST` | `/api/v1/bookings/:id/cancel` | User | Cancel reservation and calculate refund eligibility. |
+| `GET` | `/api/v1/bookings/:id/receipt`| User | Generate printable PDF tax invoice receipt. |
+
+### 8. Payments & Verification (`/api/v1/payments`)
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/v1/payments/create-order` | User | Create payment order with gateway transaction ID. |
+| `POST` | `/api/v1/payments/verify` | User | Cryptographically verify signature and confirm booking status. |
+| `POST` | `/api/v1/payments/webhook` | Public | Payment gateway webhook handler. |
+
+### 9. Collaborative Journeys (`/api/v1/trips`)
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/trips` | User | List all user journeys (as owner, editor, or viewer). |
+| `POST` | `/api/v1/trips` | User | Create new trip workspace with dates and budget. |
+| `GET` | `/api/v1/trips/:id` | Collaborator | Get complete trip workspace with itinerary and ledger. |
+| `PUT` | `/api/v1/trips/:id` | Editor | Update trip destination, dates, and budget allocations. |
+| `DELETE`| `/api/v1/trips/:id` | Owner | Delete trip workspace. |
+| `POST` | `/api/v1/trips/:id/attach-booking` | Editor | Link a confirmed NOMADLY booking into trip itinerary. |
+| `GET` | `/api/v1/trips/:id/itinerary` | Collaborator | Get chronological day-by-day scheduled activities. |
+| `POST` | `/api/v1/trips/:id/itinerary` | Editor | Add activity or reservation to itinerary timeline. |
+| `GET` | `/api/v1/trips/:id/expenses` | Collaborator | Get shared trip expense ledger and budget progress. |
+| `POST` | `/api/v1/trips/:id/expenses` | Editor | Log shared trip expense with payer and split shares. |
+| `GET` | `/api/v1/trips/:id/settlement` | Collaborator | Calculate net debt balances between travel companions. |
+| `POST` | `/api/v1/trips/:id/participants` | Editor | Invite co-travelers by email with editor/viewer roles. |
+| `POST` | `/api/v1/trips/:id/documents` | Editor | Upload boarding passes and hotel confirmation documents. |
+
+### 10. Wishlist & Price Alerts (`/api/v1/wishlist`)
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/wishlist` | User | Retrieve saved bucket-list flights, hotels, and tours. |
+| `POST` | `/api/v1/wishlist` | User | Save item to wishlist. |
+| `DELETE`| `/api/v1/wishlist/:id` | User | Remove item from wishlist. |
+| `GET` | `/api/v1/wishlist/alerts` | User | List active price watch alerts. |
+| `POST` | `/api/v1/wishlist/alerts` | User | Create price watch alert with target budget threshold. |
+
+### 11. Coupons & Promotions (`/api/v1/coupons`)
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/v1/coupons/validate` | Public | Validate promotional discount codes (`NOMAD20`, `FIRST10`). |
+| `GET` | `/api/v1/coupons/active` | Public | List currently active public promotional codes. |
+
+### 12. Admin Governance (`/api/v1/admin`)
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/admin/overview` | Admin | Get executive dashboard metrics (GMV, users, bookings). |
+| `GET` | `/api/v1/admin/users` | Admin | Search and paginate platform user accounts. |
+| `PUT` | `/api/v1/admin/users/:id/suspend` | Admin | Toggle account suspension. |
+| `PUT` | `/api/v1/admin/users/:id/role` | Admin | Elevate user role (`customer` ↔ `admin`). |
+| `GET` | `/api/v1/admin/bookings` | Admin | System-wide booking records with audit details. |
+| `GET` | `/api/v1/admin/audit-logs` | Admin | View immutable security and administrative audit trail. |
+| `GET` | `/api/v1/admin/inventory-stats`| Admin | Real-time 10-minute hold metrics and inventory counts. |
 
 ---
 
 ## 🧪 Automated Testing Suite
 
-The project includes 6 comprehensive test suites covering all core services and business logic:
+The repository contains **6 comprehensive automated test suites** executed via **Vitest** and **Supertest** with an in-memory MongoDB server:
 
 ```bash
-# Run all automated tests
+# Execute the full automated test suite
 npm test
 ```
 
-### Test Coverage (37/37 Tests Passed - 100%):
-- `tests/flights.test.js`: IATA airport resolution, airline registry, and dynamic flight generation (8 tests)
-- `tests/trains.test.js`: IRCTC timetables, class filters (`EC`, `CC`, `1A`), and stops inspection (4 tests)
-- `tests/buses.test.js`: Intercity routes, 10-minute atomic seat hold, conflict rejection, and seat release (5 tests)
-- `tests/payments.test.js`: Order creation, sandbox verification, booking status sync, and auth guards (3 tests)
-- `tests/journeys.test.js`: Multi-modal trip builder, budget calculation, documents, and itinerary items (7 tests)
-- `tests/api.test.js`: Search discovery, rate limiting, and health check endpoints (10 tests)
+### Test Results: 39 / 39 Tests Passing (100%)
+- **`tests/api.test.js`** (12 tests): Health check, Swagger OpenAPI 3.0 spec verification, Swagger UI routes, discovery modules, server-side coupon calculations, and admin authorization guards.
+- **`tests/flights.test.js`** (8 tests): IATA airport resolution engine, airline registry, and dynamic flight generation.
+- **`tests/trains.test.js`** (4 tests): Express train timetable generator, class filters (`EC`, `CC`, `1A`), and stop inspections.
+- **`tests/buses.test.js`** (5 tests): Intercity routes, atomic 10-minute seat hold acquisition, double-booking rejection, and release.
+- **`tests/payments.test.js`** (3 tests): Order creation, signature verification, booking status confirmation, and audit logging.
+- **`tests/journeys.test.js`** (7 tests): Collaborative trip planner, budget allocation calculations, documents vault, and itinerary items.
 
 ---
 
-## 📡 API Reference Directory
+## ⚡ Quickstart & Local Development
 
-### Authentication (`/api/v1/auth`)
-- `GET /me` - Get authenticated user profile
-- `POST /demo-login` - Instant sign-in as Customer or Admin demo persona
-- `PUT /profile` - Update display name, phone, preferences
-- `POST /travelers` - Add saved traveler for one-click autofill
+### 1. Prerequisites
+- **Node.js** v18+ (tested on Node v20 & v22)
+- **npm** v9+
 
-### Inventory Discovery
-- `GET /api/v1/flights/search` - Search flights by origin, destination, cabin class, date, sort
-- `GET /api/v1/flights/airports` - List registered airports with city and IATA codes
-- `GET /api/v1/hotels/search` - Search live hotels by city, star rating, price, amenities
-- `GET /api/v1/trains/search` - Search IRCTC trains by origin, destination, travel class (`EC`, `CC`, `1A`, etc.)
-- `GET /api/v1/buses/search` - Search intercity buses with deck maps and pricing
-- `POST /api/v1/buses/:id/hold` - Acquire 10-minute atomic seat hold
-- `POST /api/v1/buses/:id/release` - Release held bus seats
+### 2. Installation
+Clone the repository and install dependencies across root, backend, and frontend with one command:
+```bash
+git clone https://github.com/Arbaz2402/nomadly-travel.git
+cd nomadly-travel
+npm run install-all
+```
 
-### Bookings & Checkout
-- `POST /api/v1/bookings` - Create reservation with passenger details and price breakdown
-- `GET /api/v1/bookings/my` - List current user's bookings
-- `GET /api/v1/bookings/:id` - Get booking confirmation and receipt data
-- `POST /api/v1/coupons/validate` - Validate promotional discount code (`NOMAD20`, `FIRST10`)
+### 3. Launch Development Servers
+Run both backend and frontend simultaneously with live hot-reloading:
+```bash
+npm run dev
+```
 
-### Payments (`/api/v1/payments`)
-- `POST /create-order` - Create secure payment order
-- `POST /verify` - Verify transaction, confirm booking, and generate invoice receipt
-
-### Multi-Segment Trip Planner (`/api/v1/trips`)
-- `GET /` - List user trips
-- `POST /` - Create trip workspace
-- `GET /:id` - Get trip with itinerary, expenses, budget, and documents
-- `POST /:id/items` - Add flight/hotel/train/bus segment or custom event
-- `POST /:id/expenses` - Log trip expense against allocated budget
+- **Frontend Client**: `http://localhost:5173`
+- **Backend API**: `http://localhost:5000/api/v1`
+- **Swagger Documentation**: `http://localhost:5000/api-docs`
+- **Health Check**: `http://localhost:5000/api/health`
 
 ---
 
-## 🚢 Production Deployment
+## 🔐 Environment Variables Reference
 
-### Frontend (e.g. Vercel / Netlify / Render)
-```bash
-npm --prefix frontend run build
+### Backend (`backend/.env`)
+```env
+PORT=5000
+NODE_ENV=development
+CLIENT_URL=http://localhost:5173
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/nomadly?retryWrites=true&w=majority
+JWT_SECRET=your_jwt_secret_key
+FIREBASE_PROJECT_ID=nomadly-app-fe5b9
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-...@nomadly-app-fe5b9.iam.gserviceaccount.com
+RAPIDAPI_KEY=your_rapidapi_booking_com_key
+GEMINI_API_KEY=your_free_google_gemini_api_key
 ```
-- Output directory: `frontend/dist`
-- Set `VITE_API_URL` to your live backend URL.
 
-### Backend (e.g. Render / Railway / AWS EC2)
-```bash
-npm --prefix backend start
+### Frontend (`frontend/.env`)
+```env
+VITE_API_URL=http://localhost:5000/api/v1
+VITE_FIREBASE_API_KEY=your_firebase_web_api_key
+VITE_FIREBASE_AUTH_DOMAIN=nomadly-app-fe5b9.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=nomadly-app-fe5b9
 ```
-- Set `NODE_ENV=production`
-- Add `MONGODB_URI`, `CLIENT_URL`, `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, and `serviceAccountKey.json`.
+
+---
+
+## 📁 Project Directory Structure
+
+```
+reservation_app/
+├── README.md                      # Complete project documentation & system reference
+├── package.json                   # Root orchestrator scripts (dev, test, install-all)
+│
+├── backend/                       # Express ESM REST API
+│   ├── package.json
+│   ├── src/
+│   │   ├── server.js              # Server bootstrapper & port listener
+│   │   ├── app.js                 # Express application, CORS, Helmet, Swagger mount
+│   │   ├── config/                # Database (Mongoose) and Firebase Admin config
+│   │   ├── controllers/           # Route handler controllers (Auth, Flights, Hotels, etc.)
+│   │   ├── docs/
+│   │   │   └── swagger.js         # Complete OpenAPI 3.0.3 specification
+│   │   ├── middleware/            # Auth, RBAC, Rate limit, and Trip collaborator guards
+│   │   ├── models/                # 19 Mongoose Schemas (User, Booking, Trip, etc.)
+│   │   ├── routes/                # Express API router definitions (/api/v1/*)
+│   │   ├── services/              # Business logic (Inventory, Pricing, Payments, Holds)
+│   │   └── utils/                 # Seed scripts and formatters
+│   └── tests/                     # 6 Vitest integration test suites (39 tests)
+│
+└── frontend/                      # React 18 + Vite SPA
+    ├── package.json
+    ├── vite.config.js
+    ├── tailwind.config.js
+    └── src/
+        ├── App.jsx                # Router, navigation, error boundary wrappers
+        ├── main.jsx               # Application entrypoint & providers
+        ├── components/
+        │   ├── common/            # ErrorBoundary, AuthModal, PolicyModal
+        │   ├── navigation/        # Navbar & Footer
+        │   └── search/            # UnifiedSearchHero (Flights, Hotels, Tours)
+        ├── context/               # ToastContext notification manager
+        ├── pages/
+        │   ├── home/              # Landing page with featured stays & tour showcases
+        │   ├── flights/           # Flight search, filters, and airline offers
+        │   ├── hotels/            # Hotel discovery with photo carousels & room selector
+        │   ├── experiences/       # Verified tours & scuba/safari booking
+        │   ├── packages/          # Flight + Hotel vacation combo deals
+        │   ├── ai/                # AI Smart Trip Planner wizard
+        │   ├── checkout/          # Checkout stepper, seat hold timer, payment gateway
+        │   ├── bookings/          # E-Ticket confirmation voucher with QR validation
+        │   ├── journeys/          # My Journeys workspace (Itinerary, Split expenses, Docs)
+        │   ├── wishlist/          # Bucket-list & price watch alerts
+        │   └── admin/             # Admin governance dashboard
+        ├── services/              # ApiClient singleton fetch wrapper
+        └── store/                 # Zustand authentication store
+```
 
 ---
 
 ## 📄 License
-This project is licensed under the MIT License.
+This project is licensed under the **MIT License**.
+Distributed with pride by NOMADLY Platform Engineering.
