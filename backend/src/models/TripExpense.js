@@ -45,14 +45,19 @@ const tripExpenseSchema = new mongoose.Schema(
       set: (val) => {
         if (!val) return 'other';
         const normalized = String(val).toLowerCase().trim();
-        if (normalized === 'activitiess' || normalized === 'activity' || normalized === 'sightseeing') return 'activities';
-        if (normalized === 'flight') return 'flights';
-        if (normalized === 'hotel') return 'hotels';
-        if (normalized === 'train') return 'trains';
-        if (normalized === 'bus' || normalized === 'buss') return 'buses';
-        if (normalized === 'restaurant') return 'food';
-        if (normalized === 'car_rental') return 'local_transportation';
-        return normalized;
+        if (normalized === 'activitiess' || normalized === 'activity' || normalized === 'sightseeing' || normalized === 'activities' || normalized === 'experience' || normalized === 'experiences') return 'activities';
+        if (normalized === 'flight' || normalized === 'flights') return 'flights';
+        if (normalized === 'hotel' || normalized === 'hotels' || normalized === 'package' || normalized === 'packages') return 'hotels';
+        if (normalized === 'train' || normalized === 'trains') return 'trains';
+        if (normalized === 'bus' || normalized === 'buss' || normalized === 'buses') return 'buses';
+        if (normalized === 'restaurant' || normalized === 'food') return 'food';
+        if (normalized === 'car_rental' || normalized === 'local_transportation' || normalized === 'transport') return 'local_transportation';
+        if (normalized === 'shopping') return 'shopping';
+        if (normalized === 'insurance') return 'insurance';
+        if (['flights', 'hotels', 'trains', 'buses', 'local_transportation', 'food', 'activities', 'shopping', 'insurance', 'other'].includes(normalized)) {
+          return normalized;
+        }
+        return 'other';
       },
     },
     amount: {

@@ -14,6 +14,7 @@ import {
   Loader2,
   Plus,
   Percent,
+  Eye,
 } from 'lucide-react';
 import { ApiClient } from '../../services/api';
 import { formatCurrency } from '../../utils/formatters';
@@ -180,7 +181,10 @@ export const PackagesPage = () => {
                 className="glass-panel rounded-3xl border border-white/10 overflow-hidden hover:border-teal-500/40 transition-all flex flex-col group"
               >
                 {/* Hero Destination Banner */}
-                <div className="relative aspect-[16/8] sm:aspect-[16/7] overflow-hidden bg-ink-900">
+                <div
+                  onClick={() => navigate(`/packages/${pkg.id}`)}
+                  className="relative aspect-[16/8] sm:aspect-[16/7] overflow-hidden bg-ink-900 cursor-pointer"
+                >
                   <img
                     src={pkg.heroImage}
                     alt={pkg.title}
@@ -202,7 +206,7 @@ export const PackagesPage = () => {
                     <span className="text-[10px] uppercase font-bold text-teal-400 tracking-wider">
                       {pkg.destinationCity} Holiday Combo
                     </span>
-                    <h3 className="text-xl sm:text-2xl font-extrabold text-white font-display">
+                    <h3 className="text-xl sm:text-2xl font-extrabold text-white font-display hover:text-teal-300 transition-colors">
                       {pkg.title}
                     </h3>
                     <p className="text-xs text-slate-300 mt-0.5">{pkg.tagline}</p>
@@ -284,13 +288,22 @@ export const PackagesPage = () => {
                       </div>
                     </div>
 
-                    <button
-                      onClick={() => handleBookPackage(pkg)}
-                      className="px-6 py-3 rounded-2xl bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white text-xs font-bold shadow-glow-teal flex items-center gap-2 transition-all"
-                    >
-                      <span>Book Complete Package</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        onClick={() => navigate(`/packages/${pkg.id}`)}
+                        className="px-4 py-2.5 rounded-2xl bg-white/[0.05] hover:bg-white/[0.12] text-white text-xs font-bold border border-white/10 flex items-center gap-1.5 transition-all hover:border-teal-500/40"
+                      >
+                        <Eye className="w-3.5 h-3.5 text-teal-400" />
+                        <span>Explore Details</span>
+                      </button>
+                      <button
+                        onClick={() => handleBookPackage(pkg)}
+                        className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white text-xs font-bold shadow-glow-teal flex items-center gap-1.5 transition-all"
+                      >
+                        <span>Book Package</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

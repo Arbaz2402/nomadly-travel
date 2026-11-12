@@ -36,6 +36,19 @@ const itineraryItemSchema = new mongoose.Schema(
       ],
       default: 'activities',
       index: true,
+      set: (val) => {
+        if (!val) return 'activities';
+        const n = String(val).toLowerCase().trim();
+        if (n === 'activity' || n === 'activitiess') return 'activities';
+        if (n === 'flights') return 'flight';
+        if (n === 'hotels') return 'hotel';
+        if (n === 'trains') return 'train';
+        if (n === 'buses' || n === 'buss') return 'bus';
+        if (['flight', 'hotel', 'train', 'bus', 'package', 'experience', 'car_rental', 'restaurant', 'sightseeing', 'activities', 'shopping', 'other'].includes(n)) {
+          return n;
+        }
+        return 'other';
+      },
     },
     sourceType: {
       type: String,

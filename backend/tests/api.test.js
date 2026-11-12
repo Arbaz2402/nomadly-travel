@@ -135,4 +135,42 @@ describe('NOMADLY API Core Test Suite', () => {
       expect(res.body.data.kpis).toBeDefined();
     });
   });
+
+  describe('Vacation Packages & Details Endpoints', () => {
+    it('GET /api/v1/packages returns list of curated vacation packages with flights and hotels', async () => {
+      const res = await request(app).get('/api/v1/packages');
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(Array.isArray(res.body.data)).toBe(true);
+      expect(res.body.data.length).toBeGreaterThan(0);
+      const pkg = res.body.data[0];
+      expect(pkg.id).toBeDefined();
+      expect(pkg.title).toBeDefined();
+      expect(pkg.pricing.packagePrice).toBeGreaterThan(0);
+      expect(pkg.flight).toBeDefined();
+      expect(pkg.hotel).toBeDefined();
+    });
+
+    it('GET /api/v1/packages/:id returns full package details with gallery, itinerary, and policies', async () => {
+      const res = await request(app).get('/api/v1/packages/pkg-goa-3n');
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      const pkg = res.body.data;
+      expect(pkg.id).toBe('pkg-goa-3n');
+      expect(pkg.destinationCity).toBe('Goa');
+      expect(Array.isArray(pkg.gallery)).toBe(true);
+      expect(pkg.gallery.length).toBeGreaterThan(0);
+      expect(Array.isArray(pkg.itinerary)).toBe(true);
+      expect(pkg.itinerary.length).toBeGreaterThan(0);
+      expect(pkg.overview).toBeDefined();
+      expect(pkg.roomType).toBeDefined();
+      expect(pkg.cancellationPolicy).toBeDefined();
+    });
+
+    it('GET /api/v1/packages/non-existent returns 404 not found', async () => {
+      const res = await request(app).get('/api/v1/packages/non-existent-pkg-999');
+      expect(res.status).toBe(404);
+      expect(res.body.success).toBe(false);
+    });
+  });
 });

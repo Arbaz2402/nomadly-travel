@@ -11,6 +11,7 @@ import { CheckoutPage } from './pages/checkout/CheckoutPage';
 import { BookingConfirmation } from './pages/bookings/BookingConfirmation';
 import { ExperiencesPage } from './pages/experiences/ExperiencesPage';
 import { PackagesPage } from './pages/packages/PackagesPage';
+import { PackageDetailsPage } from './pages/packages/PackageDetailsPage';
 import { AITripPlannerPage } from './pages/ai/AITripPlannerPage';
 import { CustomerDashboard } from './pages/profile/CustomerDashboard';
 import { TripBuilderPage } from './pages/trip-builder/TripBuilderPage';
@@ -41,6 +42,7 @@ export const App = () => {
           <Route path="/hotels" element={<ErrorBoundary><HotelsPage /></ErrorBoundary>} />
           <Route path="/experiences" element={<ErrorBoundary><ExperiencesPage /></ErrorBoundary>} />
           <Route path="/packages" element={<ErrorBoundary><PackagesPage /></ErrorBoundary>} />
+          <Route path="/packages/:id" element={<ErrorBoundary><PackageDetailsPage /></ErrorBoundary>} />
           <Route path="/ai-planner" element={<ErrorBoundary><AITripPlannerPage /></ErrorBoundary>} />
           <Route path="/trains" element={<Navigate to="/flights" replace />} />
           <Route path="/buses" element={<Navigate to="/flights" replace />} />
