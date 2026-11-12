@@ -625,6 +625,11 @@ This interactive Swagger documentation details all available API endpoints acros
                   travelersCount: { type: 'number', default: 2, example: 2 },
                   budgetStyle: { type: 'string', enum: ['budget', 'moderate', 'luxury'], default: 'moderate', example: 'moderate' },
                   interests: { type: 'array', items: { type: 'string' }, example: ['sightseeing', 'culture', 'food'] },
+                  customPrompt: {
+                    type: 'string',
+                    example: 'Focus on authentic vegetarian food, stroller-friendly paths, and sunset dining',
+                    description: 'Custom prompt or special requirements for Gemini AI to personalize the itinerary',
+                  },
                 },
               },
             },

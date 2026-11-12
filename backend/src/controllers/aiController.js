@@ -715,6 +715,7 @@ export const generateItinerary = async (req, res) => {
       travelersCount = 2,
       budgetStyle = 'moderate', // luxury, moderate, budget
       interests = ['sightseeing', 'culture', 'food'],
+      customPrompt = '',
     } = req.body;
 
     if (!destination || destination.trim() === '') {
@@ -723,6 +724,7 @@ export const generateItinerary = async (req, res) => {
 
     const cleanDest = destination.trim();
     const destKey = cleanDest.toLowerCase();
+    const cleanCustomPrompt = customPrompt ? String(customPrompt).trim() : '';
 
     // 1. Check for real live matching hotel in DB
     const matchingHotel = await Hotel.findOne({
@@ -740,12 +742,17 @@ export const generateItinerary = async (req, res) => {
 
     if (geminiApiKey) {
       try {
+        const customPromptClause = cleanCustomPrompt
+          ? `\nSPECIAL TRAVELER INSTRUCTION / CUSTOM PROMPT:\n"${cleanCustomPrompt}"\n-> You MUST heavily tailor the itinerary, activities, food choices, locations, and pace to strictly accommodate this specific traveler request!\n`
+          : '';
+
         const prompt = `You are Nomadly's world-class AI travel concierge. Create a detailed, realistic, and highly authentic ${days}-day travel itinerary for "${cleanDest}" for ${travelersCount} traveler(s) with a ${budgetStyle} budget style.
-Traveler Interests: ${Array.isArray(interests) ? interests.join(', ') : interests}.
+Traveler Interests: ${Array.isArray(interests) ? interests.join(', ') : interests}.${customPromptClause}
 
 CRITICAL REQUIREMENTS:
 - Provide REAL landmarks, specific genuine restaurant names, accurate neighborhood names, and authentic local sights for "${cleanDest}".
 - EVERY SINGLE DAY MUST BE COMPLETELY UNIQUE. Never repeat activity names, locations, or descriptions across different days.
+${cleanCustomPrompt ? `- Strictly prioritize the traveler's custom request: "${cleanCustomPrompt}"` : ''}
 - Include authentic local dishes, practical timings, and realistic costs in INR.
 
 Return ONLY a valid JSON object without Markdown backticks or prose, adhering to this structure:
@@ -826,6 +833,7 @@ Return ONLY a valid JSON object without Markdown backticks or prose, adhering to
               daysCount: days,
               travelersCount,
               budgetStyle,
+              customPrompt: cleanCustomPrompt || null,
               ...parsedItinerary,
               matchedHotel: matchingHotel,
               matchedExperiences: matchingExperiences,
@@ -872,6 +880,7 @@ Return ONLY a valid JSON object without Markdown backticks or prose, adhering to
         daysCount: days,
         travelersCount,
         budgetStyle,
+        customPrompt: cleanCustomPrompt || null,
         currency: 'INR',
         ...curated,
         matchedHotel: matchingHotel,

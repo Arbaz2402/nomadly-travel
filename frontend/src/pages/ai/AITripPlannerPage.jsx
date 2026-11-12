@@ -16,6 +16,7 @@ import {
   Layers,
   Info,
   ChevronRight,
+  MessageSquare,
 } from 'lucide-react';
 import { ApiClient } from '../../services/api';
 import { formatCurrency } from '../../utils/formatters';
@@ -52,6 +53,7 @@ export const AITripPlannerPage = () => {
   const [travelersCount, setTravelersCount] = useState(2);
   const [budgetStyle, setBudgetStyle] = useState('moderate');
   const [selectedInterests, setSelectedInterests] = useState(['sightseeing', 'culture', 'food']);
+  const [customPrompt, setCustomPrompt] = useState('');
 
   const [generating, setGenerating] = useState(false);
   const [itinerary, setItinerary] = useState(null);
@@ -81,6 +83,7 @@ export const AITripPlannerPage = () => {
         travelersCount: Number(travelersCount),
         budgetStyle,
         interests: selectedInterests,
+        customPrompt: customPrompt.trim(),
       });
 
       if (res.success && res.data) {
@@ -277,6 +280,50 @@ export const AITripPlannerPage = () => {
                   </div>
                 </div>
 
+                {/* Custom Prompt / Special Requests */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                      <MessageSquare className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Custom Prompt / Special Instructions</span>
+                    </label>
+                    <span className="text-[10px] text-teal-400 font-semibold flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" />
+                      Gemini AI
+                    </span>
+                  </div>
+                  <textarea
+                    rows={3}
+                    value={customPrompt}
+                    onChange={(e) => setCustomPrompt(e.target.value)}
+                    placeholder="e.g. Traveling with infant, need stroller-friendly spots; 5th wedding anniversary with romantic candlelit dining; Pure vegetarian street food trail..."
+                    className="w-full px-3.5 py-2.5 rounded-2xl bg-ink-950 border border-white/10 text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-coral-500 transition-colors resize-none leading-relaxed"
+                  />
+                  {/* Quick suggestion prompt chips */}
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {[
+                      'Romantic / Anniversary',
+                      'Vegetarian Food Trail',
+                      'Kid & Stroller Friendly',
+                      'Offbeat & Hidden Gems',
+                      'Scenic Photography Walk',
+                    ].map((suggestion) => (
+                      <button
+                        key={suggestion}
+                        type="button"
+                        onClick={() =>
+                          setCustomPrompt((prev) =>
+                            prev ? `${prev}; ${suggestion}` : suggestion
+                          )
+                        }
+                        className="px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/[0.09] border border-white/5 transition-colors"
+                      >
+                        + {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Generate Button */}
                 <button
                   type="submit"
@@ -335,12 +382,25 @@ export const AITripPlannerPage = () => {
                 <div className="glass-panel rounded-3xl border border-white/10 p-6 space-y-4">
                   <div className="flex flex-wrap items-center justify-between gap-4">
                     <div>
-                      <span className="text-[10px] uppercase font-bold text-teal-400 tracking-wider">
-                        AI Recommended Plan • {itinerary.days?.length} Days
-                      </span>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] uppercase font-bold text-teal-400 tracking-wider">
+                          AI Recommended Plan • {itinerary.days?.length} Days
+                        </span>
+                        {itinerary.source && (
+                          <span className="px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-300 border border-teal-500/20 text-[10px] font-semibold">
+                            {itinerary.source.includes('gemini') ? 'Google Gemini AI' : 'Nomadly Engine'}
+                          </span>
+                        )}
+                      </div>
                       <h2 className="text-2xl font-extrabold text-white font-display">
                         {itinerary.title}
                       </h2>
+                      {itinerary.customPrompt && (
+                        <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs">
+                          <MessageSquare className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                          <span>Custom Prompt: &ldquo;{itinerary.customPrompt}&rdquo;</span>
+                        </div>
+                      )}
                     </div>
 
                     <div className="text-right">
