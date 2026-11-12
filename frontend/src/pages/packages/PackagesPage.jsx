@@ -48,15 +48,17 @@ export const PackagesPage = () => {
   }, []);
 
   const handleBookPackage = (pkg) => {
+    const pkgPrice = pkg?.pricing?.packagePrice || 25000;
     navigate('/checkout', {
       state: {
         category: 'package',
+        inventoryId: pkg.id,
         title: pkg.title,
         pricing: {
-          baseFare: pkg.pricing.packagePrice,
-          taxesAndFees: Math.round(pkg.pricing.packagePrice * 0.12),
-          totalPayable: Math.round(pkg.pricing.packagePrice * 1.12),
-          currency: pkg.pricing.currency || 'INR',
+          baseFare: pkgPrice,
+          taxesAndFees: Math.round(pkgPrice * 0.12),
+          totalPayable: Math.round(pkgPrice * 1.12),
+          currency: pkg?.pricing?.currency || 'INR',
         },
         passengers: [
           {
@@ -66,6 +68,17 @@ export const PackagesPage = () => {
             gender: 'male',
           },
         ],
+        itinerary: {
+          title: pkg.title,
+          destinationCity: pkg.destinationCity,
+          originCity: pkg.originCity,
+          nights: pkg.nights,
+          flight: pkg.flight,
+          hotel: pkg.hotel,
+          perks: pkg.perks,
+          baseFare: pkgPrice,
+          totalAmount: pkgPrice,
+        },
         itinerarySnapshot: {
           title: pkg.title,
           destinationCity: pkg.destinationCity,
@@ -74,6 +87,7 @@ export const PackagesPage = () => {
           flight: pkg.flight,
           hotel: pkg.hotel,
           perks: pkg.perks,
+          baseFare: pkgPrice,
         },
       },
     });

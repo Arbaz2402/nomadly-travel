@@ -51,11 +51,11 @@ export class ErrorBoundary extends React.Component {
                 Reload Page
               </button>
               <Link
-                to="/journeys"
+                to="/"
                 className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 font-semibold text-xs border border-white/10 flex items-center justify-center gap-1.5 transition-all"
               >
                 <Home className="w-3.5 h-3.5" />
-                Return to My Journeys
+                Return to Home
               </Link>
             </div>
           </div>

@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const tripSegmentSchema = new mongoose.Schema({
   segmentType: {
     type: String,
-    enum: ['flight', 'hotel', 'train', 'bus'],
+    enum: ['flight', 'hotel', 'train', 'bus', 'package', 'experience'],
     required: true,
   },
   title: { type: String, required: true },

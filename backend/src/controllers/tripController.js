@@ -39,6 +39,10 @@ const mapToExpenseCategory = (cat) => {
     bus: 'buses',
     buses: 'buses',
     buss: 'buses',
+    package: 'hotels',
+    packages: 'hotels',
+    experience: 'activities',
+    experiences: 'activities',
     car_rental: 'local_transportation',
     local_transportation: 'local_transportation',
     restaurant: 'food',
@@ -455,6 +459,12 @@ export const attachBookingToTrip = async (req, res) => {
         itemDate = new Date(snap.departureTime);
         startTime = new Date(snap.departureTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
       }
+    } else if (booking.travelCategory === 'package') {
+      title = snap.title || `Vacation Package (${booking.bookingReference})`;
+      locationName = snap.destinationCity || 'Vacation Destination';
+    } else if (booking.travelCategory === 'experience') {
+      title = snap.title || `Tour Experience (${booking.bookingReference})`;
+      locationName = snap.meetingPoint || snap.destinationCity || 'Experience Meeting Point';
     } else if (booking.travelCategory === 'bus') {
       title = `${snap.operatorName || 'Intercity Bus'} (${snap.busType || ''})`;
       locationName = snap.boardingPoint || snap.origin || '';
@@ -462,6 +472,12 @@ export const attachBookingToTrip = async (req, res) => {
         itemDate = new Date(snap.departureTime);
         startTime = new Date(snap.departureTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
       }
+    } else if (booking.travelCategory === 'package') {
+      title = snap.title || `Vacation Package (${booking.bookingReference})`;
+      locationName = snap.destinationCity || 'Vacation Destination';
+    } else if (booking.travelCategory === 'experience') {
+      title = snap.title || `Tour Experience (${booking.bookingReference})`;
+      locationName = snap.meetingPoint || snap.destinationCity || 'Experience Meeting Point';
     }
 
     const payable = booking.totalPayable || booking.priceBreakdown?.totalPayable || 0;

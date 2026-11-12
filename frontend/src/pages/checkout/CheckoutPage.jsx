@@ -77,13 +77,24 @@ export const CheckoutPage = () => {
 
   if (!checkoutState) return null;
 
-  const { category, inventoryId, itinerary, sessionId, seatNumbers } = checkoutState;
+  const {
+    category = 'flight',
+    inventoryId,
+    itinerary: rawItinerary,
+    itinerarySnapshot,
+    sessionId,
+    seatNumbers,
+    pricing,
+    title,
+  } = checkoutState || {};
+
+  const itinerary = rawItinerary || itinerarySnapshot || {};
 
   // Calculate local preview (Authoritative validation occurs on the server)
-  const baseFare = itinerary.baseFare || 3000;
+  const baseFare = pricing?.baseFare || itinerary?.baseFare || 3000;
   const quantity = passengers.length;
   const rawBase = baseFare * quantity;
-  const taxes = Math.round(rawBase * (category === 'flight' || category === 'hotel' ? 0.18 : 0.12));
+  const taxes = Math.round(rawBase * (category === 'flight' || category === 'hotel' || category === 'experience' ? 0.18 : 0.12));
   const serviceFee = category === 'bus' ? 40 : 150;
   const addOnsTotal = selectedAddOns.reduce((sum, item) => sum + item.price, 0);
   const discountAmount = appliedCoupon ? appliedCoupon.calculatedDiscount : 0;
@@ -466,12 +477,12 @@ export const CheckoutPage = () => {
             {/* Itinerary Snapshot */}
             <div className="bg-ink-900/60 p-4 rounded-2xl border border-white/5 text-xs space-y-2">
               <span className="text-[10px] uppercase font-bold text-coral-400 tracking-wider block">
-                {category.toUpperCase()} RESERVATION
+                {(category || 'travel').toUpperCase()} RESERVATION
               </span>
               <p className="font-bold text-white text-sm">
-                {itinerary.airline || itinerary.hotelName || itinerary.trainName || itinerary.operatorName}
+                {title || itinerary?.title || itinerary?.airline || itinerary?.hotelName || itinerary?.trainName || itinerary?.operatorName || 'Travel Reservation'}
               </p>
-              {itinerary.originCity && itinerary.destinationCity && (
+              {itinerary?.originCity && itinerary?.destinationCity && (
                 <p className="text-slate-300">
                   {itinerary.originCity} → {itinerary.destinationCity}
                 </p>

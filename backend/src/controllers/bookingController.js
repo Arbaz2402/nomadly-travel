@@ -5,6 +5,7 @@ import { Bus } from '../models/Bus.js';
 import { FlightOffer } from '../models/FlightOffer.js';
 import { Hotel } from '../models/Hotel.js';
 import { Train } from '../models/Train.js';
+import { Experience } from '../models/Experience.js';
 import { Refund } from '../models/Refund.js';
 
 export const createBooking = async (req, res) => {
@@ -104,6 +105,33 @@ export const createBooking = async (req, res) => {
         boardingPoint: bus.boardingPoints[0]?.locationName || 'Main Station',
         droppingPoint: bus.droppingPoints[0]?.locationName || 'Central Terminal',
       };
+    } else if (travelCategory === 'package') {
+      baseFare = customSnapshot?.baseFare || customSnapshot?.pricing?.packagePrice || customSnapshot?.totalAmount || 25000;
+      providerName = 'NOMADLY Vacation Combos';
+      itinerarySnapshot = customSnapshot || { title: 'Vacation Combo Package' };
+    } else if (travelCategory === 'experience') {
+      if (inventoryId) {
+        try {
+          const exp = await Experience.findById(inventoryId);
+          if (exp) {
+            baseFare = exp.pricePerPerson;
+            providerName = exp.meetingPoint || 'Local Certified Experience';
+            itinerarySnapshot = {
+              title: exp.title,
+              destinationCity: exp.destinationCity,
+              durationHours: exp.durationHours,
+              featuredPhoto: exp.featuredPhoto,
+            };
+          }
+        } catch {
+          // fallback to custom snapshot
+        }
+      }
+      if (!baseFare) {
+        baseFare = customSnapshot?.baseFare || customSnapshot?.pricing?.baseFare || customSnapshot?.totalAmount || 2500;
+        providerName = 'NOMADLY Experiences';
+        itinerarySnapshot = customSnapshot || { title: 'Local Tour Experience' };
+      }
     }
 
     // 2. Authoritative server-side price calculation

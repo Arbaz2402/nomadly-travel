@@ -77,15 +77,16 @@ export const ExperiencesPage = () => {
   };
 
   const handleBookNow = (exp) => {
+    const cost = exp.pricePerPerson || 2500;
     navigate('/checkout', {
       state: {
         category: 'experience',
+        inventoryId: exp._id,
         title: exp.title,
-        experienceId: exp._id,
         pricing: {
-          baseFare: exp.pricePerPerson,
-          taxesAndFees: Math.round(exp.pricePerPerson * 0.18),
-          totalPayable: Math.round(exp.pricePerPerson * 1.18),
+          baseFare: cost,
+          taxesAndFees: Math.round(cost * 0.18),
+          totalPayable: Math.round(cost * 1.18),
           currency: exp.currency || 'INR',
         },
         passengers: [
@@ -96,12 +97,22 @@ export const ExperiencesPage = () => {
             gender: 'male',
           },
         ],
+        itinerary: {
+          destinationCity: exp.destinationCity,
+          title: exp.title,
+          durationHours: exp.durationHours,
+          meetingPoint: exp.meetingPoint,
+          featuredPhoto: exp.featuredPhoto,
+          baseFare: cost,
+          totalAmount: cost,
+        },
         itinerarySnapshot: {
           destinationCity: exp.destinationCity,
           title: exp.title,
           durationHours: exp.durationHours,
           meetingPoint: exp.meetingPoint,
           featuredPhoto: exp.featuredPhoto,
+          baseFare: cost,
         },
       },
     });

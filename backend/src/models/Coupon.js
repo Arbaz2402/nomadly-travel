@@ -31,7 +31,7 @@ const couponSchema = new mongoose.Schema(
     },
     applicableCategories: [{
       type: String,
-      enum: ['flight', 'hotel', 'train', 'bus', 'all'],
+      enum: ['flight', 'hotel', 'train', 'bus', 'package', 'experience', 'all'],
       default: 'all',
     }],
     validFrom: { type: Date, default: Date.now },

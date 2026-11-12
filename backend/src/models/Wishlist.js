@@ -10,7 +10,7 @@ const wishlistSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ['flight', 'hotel', 'train', 'bus', 'destination'],
+      enum: ['flight', 'hotel', 'train', 'bus', 'package', 'experience', 'destination'],
       required: true,
     },
     itemId: {

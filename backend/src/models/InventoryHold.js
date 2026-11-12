@@ -4,7 +4,7 @@ const inventoryHoldSchema = new mongoose.Schema(
   {
     category: {
       type: String,
-      enum: ['flight', 'hotel', 'train', 'bus'],
+      enum: ['flight', 'hotel', 'train', 'bus', 'package', 'experience'],
       required: true,
       index: true,
     },

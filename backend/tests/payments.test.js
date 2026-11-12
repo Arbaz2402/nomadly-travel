@@ -102,4 +102,48 @@ describe('Production Payment Engine & Gateway Sandbox Suite', () => {
 
     expect(res.status).toBe(401);
   });
+
+  it('POST /api/v1/bookings creates a package booking successfully', async () => {
+    const res = await request(app)
+      .post('/api/v1/bookings')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({
+        travelCategory: 'package',
+        passengers: [{ title: 'Mr', firstName: 'Priya', lastName: 'Sharma' }],
+        contactInfo: { email: 'priya@test.com', phone: '+91 98765 00000' },
+        customSnapshot: {
+          title: 'Goa 3N Vacation Combo',
+          baseFare: 24000,
+          destinationCity: 'Goa',
+        },
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.travelCategory).toBe('package');
+    expect(res.body.data.pricing.baseFare).toBe(24000);
+    expect(res.body.data.bookingReference).toContain('NOMAD-PA-');
+  });
+
+  it('POST /api/v1/bookings creates an experience booking successfully', async () => {
+    const res = await request(app)
+      .post('/api/v1/bookings')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({
+        travelCategory: 'experience',
+        passengers: [{ title: 'Mr', firstName: 'Priya', lastName: 'Sharma' }],
+        contactInfo: { email: 'priya@test.com', phone: '+91 98765 00000' },
+        customSnapshot: {
+          title: 'Grande Island Scuba Diving',
+          baseFare: 2850,
+          destinationCity: 'Goa',
+        },
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.travelCategory).toBe('experience');
+    expect(res.body.data.pricing.baseFare).toBe(2850);
+    expect(res.body.data.bookingReference).toContain('NOMAD-EX-');
+  });
 });

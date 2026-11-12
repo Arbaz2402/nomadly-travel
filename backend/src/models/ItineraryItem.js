@@ -25,6 +25,8 @@ const itineraryItemSchema = new mongoose.Schema(
         'hotel',
         'train',
         'bus',
+        'package',
+        'experience',
         'car_rental',
         'restaurant',
         'sightseeing',

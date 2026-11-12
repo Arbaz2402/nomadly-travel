@@ -39,7 +39,7 @@ const bookingSchema = new mongoose.Schema(
     },
     travelCategory: {
       type: String,
-      enum: ['flight', 'hotel', 'train', 'bus'],
+      enum: ['flight', 'hotel', 'train', 'bus', 'package', 'experience'],
       required: true,
       index: true,
     },

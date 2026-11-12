@@ -36,15 +36,22 @@ export const App = () => {
       <Navbar />
       <main className="flex-1">
         <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/flights" element={<FlightsPage />} />
-          <Route path="/hotels" element={<HotelsPage />} />
-          <Route path="/experiences" element={<ExperiencesPage />} />
-          <Route path="/packages" element={<PackagesPage />} />
-          <Route path="/ai-planner" element={<AITripPlannerPage />} />
+          <Route path="/" element={<ErrorBoundary><HomePage /></ErrorBoundary>} />
+          <Route path="/flights" element={<ErrorBoundary><FlightsPage /></ErrorBoundary>} />
+          <Route path="/hotels" element={<ErrorBoundary><HotelsPage /></ErrorBoundary>} />
+          <Route path="/experiences" element={<ErrorBoundary><ExperiencesPage /></ErrorBoundary>} />
+          <Route path="/packages" element={<ErrorBoundary><PackagesPage /></ErrorBoundary>} />
+          <Route path="/ai-planner" element={<ErrorBoundary><AITripPlannerPage /></ErrorBoundary>} />
           <Route path="/trains" element={<Navigate to="/flights" replace />} />
           <Route path="/buses" element={<Navigate to="/flights" replace />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route
+            path="/checkout"
+            element={
+              <ErrorBoundary>
+                <CheckoutPage />
+              </ErrorBoundary>
+            }
+          />
           <Route
             path="/confirmation"
             element={
