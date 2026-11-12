@@ -774,46 +774,64 @@ Return ONLY a valid JSON object without Markdown backticks or prose, adhering to
   ]
 }`;
 
-        // Attempt Gemini 2.5 Flash / 1.5 Flash endpoint
-        const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`;
+        // Attempt multiple Gemini flash models with automatic fallback
+        const modelsToTry = [
+          'gemini-3.1-flash-lite',
+          'gemini-3.5-flash',
+          'gemini-3.5-flash-lite',
+          'gemini-flash-latest',
+        ];
 
-        const response = await fetch(apiEndpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-              temperature: 0.4,
-              maxOutputTokens: 3000,
-              responseMimeType: 'application/json',
-            },
-          }),
-        });
+        let parsedItinerary = null;
+        let successfulModel = null;
 
-        if (response.ok) {
-          const result = await response.json();
-          let rawText = result.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (rawText) {
-            // Strip any unintended markdown if present
-            rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
-            const parsedItinerary = JSON.parse(rawText);
-            return res.status(200).json({
-              success: true,
-              data: {
-                destination: cleanDest,
-                daysCount: days,
-                travelersCount,
-                budgetStyle,
-                ...parsedItinerary,
-                matchedHotel: matchingHotel,
-                matchedExperiences: matchingExperiences,
-                source: 'gemini-ai',
-              },
+        for (const model of modelsToTry) {
+          try {
+            const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiApiKey}`;
+            const response = await fetch(apiEndpoint, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: {
+                  temperature: 0.4,
+                  maxOutputTokens: 3000,
+                  responseMimeType: 'application/json',
+                },
+              }),
             });
+
+            if (response.ok) {
+              const result = await response.json();
+              let rawText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (rawText) {
+                rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+                parsedItinerary = JSON.parse(rawText);
+                successfulModel = model;
+                break;
+              }
+            } else {
+              console.warn(`[Gemini API] Model ${model} returned HTTP ${response.status}`);
+            }
+          } catch (modelErr) {
+            console.warn(`[Gemini API] Model ${model} failed:`, modelErr.message);
           }
-        } else {
-          const errBody = await response.text();
-          console.warn('[Gemini API] Request returned non-200:', response.status, errBody);
+        }
+
+        if (parsedItinerary) {
+          return res.status(200).json({
+            success: true,
+            data: {
+              destination: cleanDest,
+              daysCount: days,
+              travelersCount,
+              budgetStyle,
+              ...parsedItinerary,
+              matchedHotel: matchingHotel,
+              matchedExperiences: matchingExperiences,
+              source: `google-${successfulModel}`,
+            },
+          });
         }
       } catch (geminiError) {
         console.warn('Gemini API call failed, falling back to curated intelligence:', geminiError.message);
