@@ -552,3 +552,4 @@ export const PackageDetailsPage = () => {
 };
 
 export default PackageDetailsPage;
+
