@@ -1180,8 +1180,8 @@ export const addTripParticipant = async (req, res) => {
     return res.status(201).json({
       success: true,
       message: emailResult.sent
-        ? `Collaboration invitation email sent to ${newParticipant.email}.`
-        : `Collaboration invitation request created for ${newParticipant.email}.`,
+        ? `Invitation email successfully sent to ${newParticipant.name} (${newParticipant.email})!`
+        : `Collaboration invitation created for ${newParticipant.name} (${newParticipant.email}).`,
       data: trip.participants,
       emailStatus: {
         sent: emailResult.sent,
@@ -1225,8 +1225,8 @@ export const resendTripInvitation = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: emailResult.sent
-        ? `Invitation email re-sent to ${participant.email}!`
-        : `Invitation request refreshed for ${participant.email}!`,
+        ? `Invitation email successfully re-sent to ${participant.name} (${participant.email})!`
+        : `Invitation request refreshed for ${participant.name} (${participant.email})!`,
       data: trip.participants,
       emailStatus: {
         sent: emailResult.sent,

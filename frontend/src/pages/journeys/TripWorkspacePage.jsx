@@ -1844,12 +1844,15 @@ Looking forward to traveling together!`;
     }
   };
 
-  const handleResendInvite = async (participantId, name) => {
+  const handleResendInvite = async (participantId, name, email) => {
     try {
       setResendingId(participantId);
       const res = await ApiClient.resendTripInvitation(trip._id, participantId);
       if (res.success) {
-        showToast(`Invitation re-sent to ${name}!`, 'success');
+        showToast(
+          res.message || `Invitation email successfully re-sent to ${name} (${email})!`,
+          'success'
+        );
         onRefresh();
       }
     } catch (err) {
@@ -1902,29 +1905,27 @@ Looking forward to traveling together!`;
                   <div>
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-bold text-white">{p.name}</p>
-                      <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                        Request Sent
+                      <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                        <Clock className="w-3 h-3 animate-pulse" />
+                        Invitation Sent
                       </span>
                     </div>
                     <p className="text-xs text-slate-400">{p.email}</p>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      Invited as <span className="text-slate-300 font-semibold capitalize">{p.role}</span> &bull; Awaiting acceptance
+                    <p className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                      <span>Invited as <strong className="text-slate-200 capitalize">{p.role}</strong></span>
+                      <span>&bull;</span>
+                      <span className="text-teal-400 font-medium flex items-center gap-1">
+                        <Mail className="w-3 h-3 text-teal-400" />
+                        Email dispatched to {p.email}
+                      </span>
+                      <span>&bull;</span>
+                      <span className="text-slate-500">Awaiting acceptance</span>
                     </p>
                   </div>
                 </div>
 
                 {isOwner && (
                   <div className="flex flex-wrap items-center gap-2 self-end sm:self-center">
-                    <a
-                      href={getGmailInviteDetails(p).gmailUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-1.5 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-400 hover:text-red-300 text-xs font-semibold border border-red-500/30 flex items-center gap-1.5 transition-colors shadow-sm"
-                      title="Open Gmail with pre-filled invitation draft"
-                    >
-                      <Mail className="w-3.5 h-3.5 text-red-400" />
-                      <span>Send via Gmail</span>
-                    </a>
                     <button
                       onClick={() => handleCopyInvite(p)}
                       className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-xs font-semibold border border-white/10 flex items-center gap-1.5 transition-colors"
@@ -1938,18 +1939,18 @@ Looking forward to traveling together!`;
                       ) : (
                         <>
                           <Copy className="w-3.5 h-3.5 text-teal-400" />
-                          <span>Copy Invite</span>
+                          <span>Copy Link</span>
                         </>
                       )}
                     </button>
                     <button
-                      onClick={() => handleResendInvite(p._id, p.name)}
+                      onClick={() => handleResendInvite(p._id, p.name, p.email)}
                       disabled={resendingId === p._id}
-                      className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-xs font-semibold border border-white/10 flex items-center gap-1.5 transition-colors disabled:opacity-50"
-                      title="Resend invitation notification"
+                      className="px-3.5 py-1.5 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 hover:text-teal-200 text-xs font-semibold border border-teal-500/20 flex items-center gap-1.5 transition-colors disabled:opacity-50"
+                      title="Re-send invitation email"
                     >
-                      <Send className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{resendingId === p._id ? 'Sending...' : 'Resend'}</span>
+                      <Send className="w-3.5 h-3.5 text-teal-400" />
+                      <span>{resendingId === p._id ? 'Sending...' : 'Resend Invite'}</span>
                     </button>
                     <button
                       onClick={() => handleRemoveMember(p._id, p.name, true)}
@@ -2409,7 +2410,6 @@ const AddMemberModal = ({ trip, isOpen, onClose, onCreated }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('editor');
-  const [openGmailOnSend, setOpenGmailOnSend] = useState(false);
 
   if (!isOpen) return null;
 
@@ -2419,23 +2419,10 @@ const AddMemberModal = ({ trip, isOpen, onClose, onCreated }) => {
       setLoading(true);
       const res = await ApiClient.addTripParticipant(trip._id, { name, email, role });
       if (res.success) {
-        showToast(res.message || 'Collaboration request sent successfully!', 'success');
-
-        if (openGmailOnSend && email) {
-          const origin = typeof window !== 'undefined' ? window.location.origin : 'https://nomadly-travel.netlify.app';
-          const tripUrl = `${origin}/journeys/${trip._id}`;
-          const destination = trip.destination || trip.title || 'Trip Destination';
-          const tripTitle = trip.title || 'Journey';
-          const roleName = (role || 'editor').toUpperCase();
-          const formattedDates = trip.startDate
-            ? `${new Date(trip.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}${trip.endDate ? ` – ${new Date(trip.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : ''}`
-            : 'Upcoming Dates';
-          const subject = `Join my trip to ${destination}: "${tripTitle}" on Nomadly`;
-          const body = `Hi ${name || 'there'},\n\nI've invited you to collaborate with me on "${tripTitle}" (${destination}) as an ${roleName} on Nomadly!\n\nTrip Details:\n📍 Destination: ${destination}\n📅 Dates: ${formattedDates}\n👥 Role: ${roleName} (${role === 'editor' ? 'Can add, edit, and organize activities & split expenses' : 'Read-only access to itinerary & map stops'})\n\nAccept the invitation and view our interactive itinerary here:\n${tripUrl}\n\nLooking forward to traveling together!`;
-          const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-          window.open(gmailUrl, '_blank', 'noopener,noreferrer');
-        }
-
+        showToast(
+          res.message || `Invitation email successfully sent to ${name} (${email})!`,
+          'success'
+        );
         setName('');
         setEmail('');
         onCreated();
@@ -2519,18 +2506,10 @@ const AddMemberModal = ({ trip, isOpen, onClose, onCreated }) => {
             </select>
           </div>
 
-          <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white/[0.03] border border-white/5 cursor-pointer hover:bg-white/[0.06] transition-colors">
-            <input
-              type="checkbox"
-              checked={openGmailOnSend}
-              onChange={(e) => setOpenGmailOnSend(e.target.checked)}
-              className="w-4 h-4 rounded border-white/20 text-coral-500 focus:ring-0 cursor-pointer accent-coral-500"
-            />
-            <div className="flex items-center gap-1.5 text-xs text-slate-300 font-medium select-none">
-              <Mail className="w-3.5 h-3.5 text-slate-400" />
-              <span>Also open pre-filled draft in Gmail Web</span>
-            </div>
-          </label>
+          <div className="flex items-center gap-2 p-2.5 rounded-xl bg-teal-500/[0.08] border border-teal-500/20 text-xs text-teal-300 font-medium">
+            <Mail className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+            <span>An invitation email will be delivered to their inbox automatically.</span>
+          </div>
 
           <div className="pt-2 flex justify-end gap-2 border-t border-white/5">
             <button
@@ -2546,7 +2525,7 @@ const AddMemberModal = ({ trip, isOpen, onClose, onCreated }) => {
               className="px-5 py-2 rounded-xl bg-gradient-to-r from-coral-500 to-rose-600 hover:from-coral-600 text-white text-xs font-bold shadow-glow flex items-center gap-1.5 disabled:opacity-50 transition-all"
             >
               <Send className="w-3.5 h-3.5" />
-              <span>{loading ? 'Sending...' : openGmailOnSend ? 'Send & Open Gmail' : 'Send Invitation'}</span>
+              <span>{loading ? 'Sending...' : 'Send Invitation'}</span>
             </button>
           </div>
         </form>
