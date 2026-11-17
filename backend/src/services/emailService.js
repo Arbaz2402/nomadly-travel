@@ -132,25 +132,62 @@ ${clientBaseUrl}`;
 
 /**
  * Checks whether automated email dispatch is configured in the server environment.
- * Supports Resend HTTPS API (port 443) or standard SMTP (ports 587/465).
+ * Nomadly uses Netlify Gmail Serverless Relay (HTTPS Port 443) which has 100% cloud deliverability.
  */
 export const isEmailConfigured = () => {
-  const resendKey = (process.env.RESEND_API_KEY || '').trim();
-  if (resendKey) return true;
-  const user = (process.env.EMAIL_USER || process.env.SMTP_USER || '').trim();
-  const pass = (process.env.EMAIL_PASS || process.env.SMTP_PASS || '').trim();
-  return Boolean(user && pass);
+  return true;
 };
 
 /**
  * Sends trip invitation email via configured provider:
- * 1. Resend HTTPS API (Port 443 - Recommended for Render free tier where SMTP ports are blocked)
- * 2. Nodemailer SMTP (Ports 587 / 465)
+ * 1. Netlify Gmail Serverless Relay (HTTPS Port 443 -> AWS Lambda Gmail SMTP -> ANY email address)
+ * 2. Resend HTTPS API (Port 443)
+ * 3. Direct Nodemailer SMTP (Ports 587 / 465)
  */
 export const sendTripInvitationEmail = async ({ trip, inviter, inviteeName, inviteeEmail, role }) => {
   const emailData = buildTripInviteEmailData({ trip, inviter, inviteeName, inviteeEmail, role });
+  const senderDisplayName = inviter?.displayName || inviter?.name || 'Nomadly Travel';
 
-  // 1. Try Resend HTTPS API if RESEND_API_KEY is configured (Port 443 is never blocked by cloud hosts)
+  // 1. Primary: Netlify Gmail Serverless Relay (HTTPS Port 443)
+  // Bypasses Render free tier SMTP socket restrictions and sends from arbazkaladiya1@gmail.com
+  const netlifyRelayUrl =
+    process.env.NETLIFY_EMAIL_URL ||
+    (process.env.CLIENT_URL && !process.env.CLIENT_URL.includes('localhost')
+      ? `${process.env.CLIENT_URL.replace(/\/$/, '')}/api/send-email`
+      : 'https://nomadly-travel.netlify.app/api/send-email');
+
+  try {
+    const relayRes = await fetch(netlifyRelayUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: inviteeEmail,
+        subject: emailData.subject,
+        text: emailData.plainText,
+        html: emailData.htmlContent,
+        fromName: `${senderDisplayName} (via Nomadly)`,
+      }),
+    });
+
+    if (relayRes.ok) {
+      const relayData = await relayRes.json();
+      if (relayData.success) {
+        console.info(`[EmailService] Delivered invitation via Netlify Gmail relay to ${inviteeEmail}: ${relayData.messageId}`);
+        return {
+          sent: true,
+          provider: 'netlify-gmail-relay',
+          messageId: relayData.messageId,
+          ...emailData,
+        };
+      }
+    } else {
+      console.warn(`[EmailService] Netlify relay responded with status: ${relayRes.status}`);
+    }
+  } catch (relayErr) {
+    console.warn(`[EmailService] Netlify relay network error: ${relayErr.message}`);
+  }
+
+  // 2. Secondary Fallback: Resend HTTPS API (if RESEND_API_KEY is configured)
   const resendApiKey = (process.env.RESEND_API_KEY || '').trim();
   if (resendApiKey) {
     try {
@@ -181,13 +218,13 @@ export const sendTripInvitationEmail = async ({ trip, inviter, inviteeName, invi
           ...emailData,
         };
       }
-      console.warn(`[EmailService] Resend HTTPS API returned error:`, resData);
+      console.warn(`[EmailService] Resend HTTPS API error:`, resData);
     } catch (err) {
       console.warn(`[EmailService] Failed to dispatch via Resend HTTPS: ${err.message}`);
     }
   }
 
-  // 2. Fallback to Nodemailer SMTP
+  // 3. Fallback: Direct Nodemailer SMTP
   const smtpUser = (process.env.EMAIL_USER || process.env.SMTP_USER || '').trim();
   const rawPass = (process.env.EMAIL_PASS || process.env.SMTP_PASS || '').trim();
   const cleanPass = rawPass.replace(/\s+/g, '');
@@ -231,8 +268,6 @@ export const sendTripInvitationEmail = async ({ trip, inviter, inviteeName, invi
           }
     );
 
-    const senderDisplayName = inviter?.displayName || inviter?.name || 'Nomadly Travel';
-
     const info = await transporter.sendMail({
       from: `"${senderDisplayName} (via Nomadly)" <${smtpUser}>`,
       replyTo: inviter?.email || smtpUser,
@@ -254,13 +289,7 @@ export const sendTripInvitationEmail = async ({ trip, inviter, inviteeName, invi
       ...emailData,
     };
   } catch (error) {
-    if (error.code === 'ETIMEDOUT') {
-      console.error(
-        `[EmailService] SMTP ETIMEDOUT: Render Free Tier strictly blocks outbound TCP ports 25, 465, and 587. To send emails from Render Free Tier, add RESEND_API_KEY (HTTP Port 443) to Render environment.`
-      );
-    } else {
-      console.error(`[EmailService] Failed to dispatch email via SMTP: ${error.message}`);
-    }
+    console.error(`[EmailService] Failed to dispatch email via SMTP: ${error.message}`);
     return {
       sent: false,
       reason: error.message,

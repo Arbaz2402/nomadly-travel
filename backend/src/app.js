@@ -114,9 +114,41 @@ app.get('/api/test-email', async (req, res) => {
   const smtpUser = (process.env.EMAIL_USER || process.env.SMTP_USER || '').trim();
   const rawPass = (process.env.EMAIL_PASS || process.env.SMTP_PASS || '').trim();
   const cleanPass = rawPass.replace(/\s+/g, '');
-  const testTo = req.query.to || smtpUser || 'test@example.com';
+  const testTo = req.query.to || 'shahbazkaladiya3@gmail.com';
 
-  // 1. If Resend is configured, test HTTPS API
+  // 1. Primary: Test Netlify Gmail Relay
+  const netlifyRelayUrl =
+    process.env.NETLIFY_EMAIL_URL ||
+    (process.env.CLIENT_URL && !process.env.CLIENT_URL.includes('localhost')
+      ? `${process.env.CLIENT_URL.replace(/\/$/, '')}/api/send-email`
+      : 'https://nomadly-travel.netlify.app/api/send-email');
+
+  try {
+    const relayRes = await fetch(netlifyRelayUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: testTo,
+        subject: 'Nomadly Live Verification Test',
+        text: 'Success! Your Nomadly Gmail integration via Netlify Serverless relay is delivering emails.',
+        fromName: 'Nomadly Travel',
+      }),
+    });
+    const relayData = await relayRes.json();
+    if (relayRes.ok && relayData.success) {
+      return res.json({
+        success: true,
+        provider: 'netlify-gmail-relay',
+        recipient: testTo,
+        messageId: relayData.messageId,
+        note: 'Email delivered directly from arbazkaladiya1@gmail.com to recipient inbox via Netlify AWS Lambda relay.',
+      });
+    }
+  } catch (err) {
+    // continue to other fallbacks
+  }
+
+  // 2. Secondary: If Resend is configured, test HTTPS API
   if (resendApiKey) {
     try {
       const response = await fetch('https://api.resend.com/emails', {
