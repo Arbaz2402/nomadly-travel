@@ -485,16 +485,17 @@ export const AITripPlannerPage = () => {
                             <p className="text-[11px] text-slate-300 leading-relaxed">
                               {act.description}
                             </p>
-                            <div className="flex items-center gap-1.5 text-[10px] text-slate-400 pt-1">
-                              <MapPin className="w-3 h-3 text-coral-400 shrink-0" />
+                            <div className="pt-2">
                               <a
-                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.googleMapsQuery || act.location || '')}`}
+                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.googleMapsQuery || `${act.location}, ${itinerary.destination || ''}`.trim())}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="hover:text-coral-400 hover:underline transition-colors cursor-pointer"
-                                title="Open in Google Maps"
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-coral-500/10 hover:bg-coral-500/20 border border-coral-500/25 text-[11px] font-semibold text-coral-400 hover:text-coral-300 transition-all group shadow-sm"
+                                title="Open location in Google Maps"
                               >
-                                {act.location}
+                                <MapPin className="w-3 h-3 text-coral-400 group-hover:scale-110 transition-transform shrink-0" />
+                                <span>{act.location}</span>
+                                <ExternalLink className="w-2.5 h-2.5 text-coral-400/70 group-hover:text-coral-300 shrink-0" />
                               </a>
                             </div>
                           </div>

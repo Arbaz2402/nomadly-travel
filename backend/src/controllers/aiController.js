@@ -1,4 +1,4 @@
-﻿import { Trip } from '../models/Trip.js';
+import { Trip } from '../models/Trip.js';
 import { ItineraryItem } from '../models/ItineraryItem.js';
 import { Hotel } from '../models/Hotel.js';
 import { Experience } from '../models/Experience.js';
@@ -735,16 +735,22 @@ export const generateItinerary = async (req, res) => {
     const destKey = cleanDest.toLowerCase();
     const cleanCustomPrompt = customPrompt ? String(customPrompt).trim() : '';
 
-    // 1. Check for real live matching hotel in DB
-    const matchingHotel = await Hotel.findOne({
-      city: new RegExp(cleanDest, 'i'),
-    }).sort({ rating: -1 });
+    // 1. Check for real live matching hotel & experiences in DB
+    let matchingHotel = null;
+    let matchingExperiences = [];
+    try {
+      matchingHotel = await Hotel.findOne({
+        'location.city': new RegExp(cleanDest, 'i'),
+        isActive: true,
+      }).sort({ starRating: -1 });
 
-    // 2. Check for real live matching experiences in DB
-    const matchingExperiences = await Experience.find({
-      destinationCity: new RegExp(cleanDest, 'i'),
-      isActive: true,
-    }).limit(3);
+      matchingExperiences = await Experience.find({
+        destinationCity: new RegExp(cleanDest, 'i'),
+        isActive: true,
+      }).limit(3);
+    } catch (dbErr) {
+      console.warn('Optional hotel/experiences DB lookup skipped:', dbErr.message);
+    }
 
     // 3. Check if Google Gemini API key is configured
     const geminiApiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
@@ -1032,6 +1038,8 @@ export const exportToJourney = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+
 
 
 
