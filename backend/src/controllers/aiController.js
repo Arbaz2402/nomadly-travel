@@ -3,6 +3,46 @@ import { ItineraryItem } from '../models/ItineraryItem.js';
 import { Hotel } from '../models/Hotel.js';
 import { Experience } from '../models/Experience.js';
 
+/**
+ * Strips common activity prefix actions to extract the genuine venue / landmark name
+ */
+export const cleanVenueTitle = (rawTitle = '') => {
+  if (!rawTitle) return '';
+  return String(rawTitle)
+    .replace(/^(lunch at|dinner at|breakfast at|brunch at|evening snacks at|tea and snacks at|coffee at|visit to|explore|tour of|guided tour of|morning walk at|sunset at|sunrise at|trek to|hike to|stop at|relax at)\s+/i, '')
+    .trim();
+};
+
+/**
+ * Synthesizes an exact, unambiguous venue location query for Google Maps navigation
+ * combining clean venue name, neighborhood/area, and overall destination city
+ */
+export const buildExactVenueQuery = (title = '', location = '', destination = '') => {
+  const venue = cleanVenueTitle(title);
+  const loc = (location || '').trim();
+  const dest = (destination || '').trim();
+
+  const parts = [];
+
+  if (loc && venue && loc.toLowerCase().includes(venue.toLowerCase())) {
+    // Location already has the specific venue (e.g. "Raintree Restaurant, Madikeri")
+    parts.push(loc);
+  } else {
+    if (venue && (!dest || venue.toLowerCase() !== dest.toLowerCase())) {
+      parts.push(venue);
+    }
+    if (loc && (!dest || loc.toLowerCase() !== dest.toLowerCase()) && (!venue || !venue.toLowerCase().includes(loc.toLowerCase()))) {
+      parts.push(loc);
+    }
+  }
+
+  if (dest && !parts.some((p) => p.toLowerCase().includes(dest.toLowerCase()))) {
+    parts.push(dest);
+  }
+
+  return parts.join(', ') || loc || dest;
+};
+
 // Curated authentic destination fallback engine
 const CURATED_DESTINATIONS_DATA = {
   coorg: {
@@ -769,6 +809,8 @@ CRITICAL REQUIREMENTS:
 - EVERY SINGLE DAY MUST BE COMPLETELY UNIQUE. Never repeat activity names, locations, or descriptions across different days.
 ${cleanCustomPrompt ? `- Strictly prioritize the traveler's custom request: "${cleanCustomPrompt}"` : ''}
 - Include authentic local dishes, practical timings, and realistic costs in INR.
+- EXACT VENUE LOCATIONS: "location" MUST include the specific exact venue or landmark name along with its area (e.g., "Raintree Restaurant, Madikeri", "Dubare Elephant Camp, Kushalnagar", "Barapole River Rafting Point, Ponampet", "Madikeri Fort, Stuart Hill"). DO NOT return just a generic town, city, or district name like "${cleanDest}" or "City Center" alone as the location!
+- "googleMapsQuery" MUST be the full exact searchable venue name with area, city, and country for Google Maps navigation (e.g., "Raintree Restaurant, Madikeri, Coorg, Karnataka, India").
 
 Return ONLY a valid JSON object without Markdown backticks or prose, adhering to this structure:
 {
@@ -785,10 +827,10 @@ Return ONLY a valid JSON object without Markdown backticks or prose, adhering to
       "activities": [
         {
           "time": "09:30",
-          "title": "Real Landmark / Attraction Name",
+          "title": "Activity or Experience Name (e.g., Lunch at Raintree Restaurant)",
           "category": "sightseeing",
-          "location": "Exact Area or Landmark in ${cleanDest}",
-          "googleMapsQuery": "Landmark Name, City, State, India",
+          "location": "Exact Venue Name, Area/Neighborhood (e.g., Raintree Restaurant, Madikeri)",
+          "googleMapsQuery": "Exact Venue Name, Area, ${cleanDest}, India",
           "cost": 500,
           "description": "Engaging description with practical traveler tips"
         }
@@ -845,16 +887,25 @@ Return ONLY a valid JSON object without Markdown backticks or prose, adhering to
         }
 
         if (parsedItinerary) {
-          // Auto-enrich Gemini activities with googleMapsQuery if not returned
+          // Auto-enrich Gemini activities with synthesized exact venue queries and location names
           if (parsedItinerary.days) {
             parsedItinerary = {
               ...parsedItinerary,
               days: parsedItinerary.days.map((day) => ({
                 ...day,
-                activities: day.activities.map((act) => ({
-                  ...act,
-                  googleMapsQuery: act.googleMapsQuery || `${act.location}, India`,
-                })),
+                activities: (day.activities || []).map((act) => {
+                  const exactQuery = buildExactVenueQuery(act.title, act.googleMapsQuery || act.location, cleanDest);
+                  const cleanVenue = cleanVenueTitle(act.title);
+                  let displayLocation = (act.location || cleanDest).trim();
+                  if (cleanVenue && !displayLocation.toLowerCase().includes(cleanVenue.toLowerCase()) && displayLocation.toLowerCase() !== cleanVenue.toLowerCase()) {
+                    displayLocation = `${cleanVenue}, ${displayLocation}`;
+                  }
+                  return {
+                    ...act,
+                    location: displayLocation,
+                    googleMapsQuery: exactQuery,
+                  };
+                }),
               })),
             };
           }
@@ -1003,6 +1054,13 @@ export const exportToJourney = async (req, res) => {
 
       if (dayData.activities && Array.isArray(dayData.activities)) {
         for (const act of dayData.activities) {
+          const exactQuery = buildExactVenueQuery(act.title, act.googleMapsQuery || act.location, destination);
+          const cleanVenue = cleanVenueTitle(act.title);
+          let venueName = (act.location || destination).trim();
+          if (cleanVenue && !venueName.toLowerCase().includes(cleanVenue.toLowerCase()) && venueName.toLowerCase() !== cleanVenue.toLowerCase()) {
+            venueName = `${cleanVenue}, ${venueName}`;
+          }
+
           const item = await ItineraryItem.create({
             trip: newTrip._id,
             title: act.title || `Day ${dayIndex + 1} Activity`,
@@ -1010,8 +1068,8 @@ export const exportToJourney = async (req, res) => {
             category: act.category || 'sightseeing',
             sourceType: 'unbooked_activity',
             location: {
-              name: act.location || destination,
-              address: act.googleMapsQuery || (act.location ? `${act.location}, ${destination}` : destination),
+              name: venueName,
+              address: exactQuery,
             },
             date: activityDate,
             startTime: act.time || '10:00',

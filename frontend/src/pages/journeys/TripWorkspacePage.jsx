@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
@@ -76,6 +76,44 @@ const CATEGORY_ICONS = {
   activities: Camera,
   shopping: ShoppingBag,
   other: MapPin,
+};
+
+/**
+ * Strips common activity prefix actions to extract the genuine venue / landmark name
+ */
+const cleanVenueTitle = (rawTitle = '') => {
+  if (!rawTitle) return '';
+  return String(rawTitle)
+    .replace(/^(lunch at|dinner at|breakfast at|brunch at|evening snacks at|tea and snacks at|coffee at|visit to|explore|tour of|guided tour of|morning walk at|sunset at|sunrise at|trek to|hike to|stop at|relax at)\s+/i, '')
+    .trim();
+};
+
+/**
+ * Synthesizes an exact, unambiguous venue location query for Google Maps navigation
+ */
+const buildExactVenueQuery = (title = '', location = '', destination = '') => {
+  const venue = cleanVenueTitle(title);
+  const loc = (location || '').trim();
+  const dest = (destination || '').trim();
+
+  const parts = [];
+
+  if (loc && venue && loc.toLowerCase().includes(venue.toLowerCase())) {
+    parts.push(loc);
+  } else {
+    if (venue && (!dest || venue.toLowerCase() !== dest.toLowerCase())) {
+      parts.push(venue);
+    }
+    if (loc && (!dest || loc.toLowerCase() !== dest.toLowerCase()) && (!venue || !venue.toLowerCase().includes(loc.toLowerCase()))) {
+      parts.push(loc);
+    }
+  }
+
+  if (dest && !parts.some((p) => p.toLowerCase().includes(dest.toLowerCase()))) {
+    parts.push(dest);
+  }
+
+  return parts.join(', ') || loc || dest;
 };
 
 const CATEGORY_COLORS = {
@@ -637,13 +675,7 @@ const ItineraryView = ({
 
   const openDayRouteOnMaps = (dayItems = []) => {
     const stops = dayItems
-      .map((it) => {
-        let addr = it.location?.address || it.location?.name || it.title || '';
-        if (trip.destination && !addr.toLowerCase().includes(trip.destination.toLowerCase())) {
-          addr = `${addr}, ${trip.destination}`;
-        }
-        return addr.trim();
-      })
+      .map((it) => buildExactVenueQuery(it.title, it.location?.address || it.location?.name, trip.destination))
       .filter(Boolean);
 
     if (stops.length === 0) return;
@@ -822,14 +854,24 @@ const ItineraryView = ({
 
                             {/* Location & Timespan */}
                             <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-400 pt-0.5">
-                              {item.location?.name && (
-                                <span className="flex items-center gap-1">
-                                  <MapPin className="w-3 h-3 text-coral-400" />
-                                  {item.location.name}
-                                </span>
-                              )}
+                              {item.location?.name && (() => {
+                                const venueQuery = buildExactVenueQuery(item.title, item.location?.address || item.location?.name, trip.destination);
+                                return (
+                                  <a
+                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venueQuery)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1 hover:text-coral-400 transition-colors group cursor-pointer"
+                                    title={`Open exact venue in Google Maps: ${venueQuery}`}
+                                  >
+                                    <MapPin className="w-3 h-3 text-coral-400 group-hover:scale-110 transition-transform" />
+                                    <span className="group-hover:underline underline-offset-2">{item.location.name}</span>
+                                    <ExternalLink className="w-2.5 h-2.5 opacity-60 group-hover:opacity-100" />
+                                  </a>
+                                );
+                              })()}
                               <span>
-                                {item.startTime} â€” {item.endTime}
+                                {item.startTime} — {item.endTime}
                               </span>
                               {item.bookingReference && (
                                 <span className="font-mono text-slate-300 bg-ink-950 px-1.5 py-0.5 rounded border border-white/5">
@@ -1375,10 +1417,11 @@ const TripMapView = ({ trip, itinerary }) => {
       const items = itinerary.groupedByDay[dateKey] || [];
       items.forEach((it) => {
         if (it.location?.name || it.title) {
+          const exactAddr = buildExactVenueQuery(it.title, it.location?.address || it.location?.name, trip.destination);
           allStops.push({
             title: it.title,
             type: it.category || 'Sightseeing',
-            address: it.location?.address || it.location?.name || `${it.title}, ${trip.destination}`,
+            address: exactAddr,
             dayIndex: dayIdx + 1,
             time: it.startTime,
             dateKey,
@@ -1389,10 +1432,11 @@ const TripMapView = ({ trip, itinerary }) => {
   } else {
     (itinerary.data || []).forEach((it) => {
       if (it.location?.name || it.title) {
+        const exactAddr = buildExactVenueQuery(it.title, it.location?.address || it.location?.name, trip.destination);
         allStops.push({
           title: it.title,
           type: it.category || 'Sightseeing',
-          address: it.location?.address || it.location?.name || `${it.title}, ${trip.destination}`,
+          address: exactAddr,
           dayIndex: it.dayNumber || 1,
           time: it.startTime,
         });
@@ -1400,11 +1444,10 @@ const TripMapView = ({ trip, itinerary }) => {
     });
   }
 
-  const openGoogleMapsDirections = (destinationAddress) => {
-    let clean = destinationAddress;
-    if (trip.destination && !clean.toLowerCase().includes(trip.destination.toLowerCase())) {
-      clean = `${clean}, ${trip.destination}`;
-    }
+  const openGoogleMapsDirections = (stop) => {
+    const clean = typeof stop === 'string'
+      ? buildExactVenueQuery('', stop, trip.destination)
+      : buildExactVenueQuery(stop?.title, stop?.address, trip.destination);
     const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(clean)}`;
     window.open(url, '_blank');
   };
@@ -1412,13 +1455,7 @@ const TripMapView = ({ trip, itinerary }) => {
   const openMultiStopGoogleMapsRoute = (stopsList) => {
     const list = stopsList || (selectedDayFilter === 'all' ? allStops : allStops.filter((s) => s.dayIndex === Number(selectedDayFilter)));
     const raw = list
-      .map((s) => {
-        let addr = s.address || s.title || '';
-        if (trip.destination && !addr.toLowerCase().includes(trip.destination.toLowerCase())) {
-          addr = `${addr}, ${trip.destination}`;
-        }
-        return addr.trim();
-      })
+      .map((s) => buildExactVenueQuery(s.title, s.address, trip.destination))
       .filter(Boolean);
 
     // Deduplicate consecutive identical addresses
@@ -1536,7 +1573,7 @@ const TripMapView = ({ trip, itinerary }) => {
             </div>
 
             <button
-              onClick={() => openGoogleMapsDirections(stop.address)}
+              onClick={() => openGoogleMapsDirections(stop)}
               className="w-full py-2 px-3 rounded-xl bg-ink-950 hover:bg-ink-850 text-slate-200 border border-white/5 hover:border-coral-500/40 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all"
             >
               <ExternalLink className="w-3.5 h-3.5 text-coral-400" />

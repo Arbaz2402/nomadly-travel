@@ -73,12 +73,50 @@ export const AITripPlannerPage = () => {
   };
 
   /**
+   * Strips common activity prefix actions to extract the genuine venue / landmark name
+   */
+  const cleanVenueTitle = (rawTitle = '') => {
+    if (!rawTitle) return '';
+    return String(rawTitle)
+      .replace(/^(lunch at|dinner at|breakfast at|brunch at|evening snacks at|tea and snacks at|coffee at|visit to|explore|tour of|guided tour of|morning walk at|sunset at|sunrise at|trek to|hike to|stop at|relax at)\s+/i, '')
+      .trim();
+  };
+
+  /**
+   * Synthesizes an exact, unambiguous venue location query for Google Maps navigation
+   */
+  const buildExactVenueQuery = (title = '', location = '', destination = '') => {
+    const venue = cleanVenueTitle(title);
+    const loc = (location || '').trim();
+    const dest = (destination || '').trim();
+
+    const parts = [];
+
+    if (loc && venue && loc.toLowerCase().includes(venue.toLowerCase())) {
+      parts.push(loc);
+    } else {
+      if (venue && (!dest || venue.toLowerCase() !== dest.toLowerCase())) {
+        parts.push(venue);
+      }
+      if (loc && (!dest || loc.toLowerCase() !== dest.toLowerCase()) && (!venue || !venue.toLowerCase().includes(loc.toLowerCase()))) {
+        parts.push(loc);
+      }
+    }
+
+    if (dest && !parts.some((p) => p.toLowerCase().includes(dest.toLowerCase()))) {
+      parts.push(dest);
+    }
+
+    return parts.join(', ') || loc || dest;
+  };
+
+  /**
    * Constructs a chained Google Maps directions link connecting all stops for a specific day
    */
   const getGoogleMapsRouteUrl = (activities = [], destination = '') => {
     if (!activities || activities.length === 0) return null;
     const stops = activities
-      .map((a) => a.googleMapsQuery || (a.location ? `${a.location}, ${destination}`.trim() : null))
+      .map((a) => buildExactVenueQuery(a.title, a.googleMapsQuery || a.location, destination))
       .filter(Boolean);
 
     if (stops.length === 0) return null;
@@ -97,7 +135,7 @@ export const AITripPlannerPage = () => {
     const allStops = [];
     days.forEach((d) => {
       d.activities?.forEach((a) => {
-        const query = a.googleMapsQuery || (a.location ? `${a.location}, ${destination}`.trim() : null);
+        const query = buildExactVenueQuery(a.title, a.googleMapsQuery || a.location, destination);
         if (query && !allStops.includes(query)) {
           allStops.push(query);
         }
@@ -572,17 +610,27 @@ export const AITripPlannerPage = () => {
                               {act.description}
                             </p>
                             <div className="pt-2">
-                              <a
-                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.googleMapsQuery || `${act.location}, ${itinerary.destination || ''}`.trim())}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-coral-500/10 hover:bg-coral-500/20 border border-coral-500/25 text-[11px] font-semibold text-coral-400 hover:text-coral-300 transition-all group shadow-sm"
-                                title="Open location in Google Maps"
-                              >
-                                <MapPin className="w-3 h-3 text-coral-400 group-hover:scale-110 transition-transform shrink-0" />
-                                <span>{act.location}</span>
-                                <ExternalLink className="w-2.5 h-2.5 text-coral-400/70 group-hover:text-coral-300 shrink-0" />
-                              </a>
+                              {(() => {
+                                const venueQuery = buildExactVenueQuery(act.title, act.googleMapsQuery || act.location, itinerary.destination);
+                                const cleanVenue = cleanVenueTitle(act.title);
+                                let displayLoc = (act.location || itinerary.destination || '').trim();
+                                if (cleanVenue && !displayLoc.toLowerCase().includes(cleanVenue.toLowerCase()) && displayLoc.toLowerCase() !== cleanVenue.toLowerCase()) {
+                                  displayLoc = `${cleanVenue}, ${displayLoc}`;
+                                }
+                                return (
+                                  <a
+                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venueQuery)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-coral-500/10 hover:bg-coral-500/20 border border-coral-500/25 text-[11px] font-semibold text-coral-400 hover:text-coral-300 transition-all group shadow-sm"
+                                    title={`Open exact venue in Google Maps: ${venueQuery}`}
+                                  >
+                                    <MapPin className="w-3 h-3 text-coral-400 group-hover:scale-110 transition-transform shrink-0" />
+                                    <span>{displayLoc}</span>
+                                    <ExternalLink className="w-2.5 h-2.5 text-coral-400/70 group-hover:text-coral-300 shrink-0" />
+                                  </a>
+                                );
+                              })()}
                             </div>
                           </div>
 
