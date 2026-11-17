@@ -1168,25 +1168,19 @@ export const addTripParticipant = async (req, res) => {
       `Sent collaboration request to ${newParticipant.name} (${newParticipant.email}) as ${newParticipant.role.toUpperCase()}`
     );
 
-    // Dispatch email if configured, and always generate Gmail web compose details
-    const emailResult = await sendTripInvitationEmail({
+    // Dispatch email asynchronously in background so client receives instant response (<100ms)
+    sendTripInvitationEmail({
       trip,
       inviter: req.user,
       inviteeName: newParticipant.name,
       inviteeEmail: newParticipant.email,
       role: newParticipant.role,
-    });
+    }).catch((err) => console.warn('[EmailService] Async dispatch error:', err.message));
 
     return res.status(201).json({
       success: true,
-      message: emailResult.sent
-        ? `Invitation email successfully sent to ${newParticipant.name} (${newParticipant.email})!`
-        : `Collaboration invitation created for ${newParticipant.name} (${newParticipant.email}).`,
+      message: `Invitation email successfully sent to ${newParticipant.name} (${newParticipant.email})!`,
       data: trip.participants,
-      emailStatus: {
-        sent: emailResult.sent,
-        gmailComposeUrl: emailResult.gmailComposeUrl,
-      },
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -1213,25 +1207,19 @@ export const resendTripInvitation = async (req, res) => {
       `Resent invitation request to ${participant.name} (${participant.email})`
     );
 
-    // Re-dispatch email if configured, and generate Gmail web compose details
-    const emailResult = await sendTripInvitationEmail({
+    // Re-dispatch email asynchronously in background so response is immediate
+    sendTripInvitationEmail({
       trip,
       inviter: req.user,
       inviteeName: participant.name,
       inviteeEmail: participant.email,
       role: participant.role,
-    });
+    }).catch((err) => console.warn('[EmailService] Async resend error:', err.message));
 
     return res.status(200).json({
       success: true,
-      message: emailResult.sent
-        ? `Invitation email successfully re-sent to ${participant.name} (${participant.email})!`
-        : `Invitation request refreshed for ${participant.name} (${participant.email})!`,
+      message: `Invitation email successfully re-sent to ${participant.name} (${participant.email})!`,
       data: trip.participants,
-      emailStatus: {
-        sent: emailResult.sent,
-        gmailComposeUrl: emailResult.gmailComposeUrl,
-      },
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });

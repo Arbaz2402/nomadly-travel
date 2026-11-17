@@ -2419,14 +2419,14 @@ const AddMemberModal = ({ trip, isOpen, onClose, onCreated }) => {
       setLoading(true);
       const res = await ApiClient.addTripParticipant(trip._id, { name, email, role });
       if (res.success) {
+        onClose();
+        setName('');
+        setEmail('');
+        onCreated();
         showToast(
           res.message || `Invitation email successfully sent to ${name} (${email})!`,
           'success'
         );
-        setName('');
-        setEmail('');
-        onCreated();
-        onClose();
       }
     } catch (err) {
       showToast(err.message || 'Failed to send collaboration request', 'error');
