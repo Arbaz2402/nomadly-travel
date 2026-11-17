@@ -2409,7 +2409,7 @@ const AddMemberModal = ({ trip, isOpen, onClose, onCreated }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('editor');
-  const [openGmailOnSend, setOpenGmailOnSend] = useState(true);
+  const [openGmailOnSend, setOpenGmailOnSend] = useState(false);
 
   if (!isOpen) return null;
 
@@ -2519,16 +2519,16 @@ const AddMemberModal = ({ trip, isOpen, onClose, onCreated }) => {
             </select>
           </div>
 
-          <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-red-500/[0.07] border border-red-500/20 cursor-pointer hover:bg-red-500/[0.12] transition-colors">
+          <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white/[0.03] border border-white/5 cursor-pointer hover:bg-white/[0.06] transition-colors">
             <input
               type="checkbox"
               checked={openGmailOnSend}
               onChange={(e) => setOpenGmailOnSend(e.target.checked)}
-              className="w-4 h-4 rounded border-white/20 text-red-500 focus:ring-0 cursor-pointer accent-red-500"
+              className="w-4 h-4 rounded border-white/20 text-coral-500 focus:ring-0 cursor-pointer accent-coral-500"
             />
-            <div className="flex items-center gap-1.5 text-xs text-red-300 font-medium select-none">
-              <Mail className="w-3.5 h-3.5 text-red-400" />
-              <span>Open invitation draft in Gmail after sending</span>
+            <div className="flex items-center gap-1.5 text-xs text-slate-300 font-medium select-none">
+              <Mail className="w-3.5 h-3.5 text-slate-400" />
+              <span>Also open pre-filled draft in Gmail Web</span>
             </div>
           </label>
 
@@ -2545,17 +2545,8 @@ const AddMemberModal = ({ trip, isOpen, onClose, onCreated }) => {
               disabled={loading}
               className="px-5 py-2 rounded-xl bg-gradient-to-r from-coral-500 to-rose-600 hover:from-coral-600 text-white text-xs font-bold shadow-glow flex items-center gap-1.5 disabled:opacity-50 transition-all"
             >
-              {openGmailOnSend ? (
-                <>
-                  <Mail className="w-3.5 h-3.5" />
-                  <span>{loading ? 'Sending...' : 'Invite & Open Gmail'}</span>
-                </>
-              ) : (
-                <>
-                  <Send className="w-3.5 h-3.5" />
-                  <span>{loading ? 'Sending...' : 'Send Request'}</span>
-                </>
-              )}
+              <Send className="w-3.5 h-3.5" />
+              <span>{loading ? 'Sending...' : openGmailOnSend ? 'Send & Open Gmail' : 'Send Invitation'}</span>
             </button>
           </div>
         </form>
