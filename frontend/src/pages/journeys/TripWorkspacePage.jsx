@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
@@ -44,6 +44,8 @@ import {
   Compass,
   Send,
   Mail,
+  Route,
+  Navigation,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -383,7 +385,7 @@ export const TripWorkspacePage = () => {
                 <span>{trip.destination}</span>
                 {trip.additionalDestinations?.length > 0 && (
                   <span className="text-slate-400 font-normal">
-                    • {trip.additionalDestinations.join(' • ')}
+                    â€¢ {trip.additionalDestinations.join(' â€¢ ')}
                   </span>
                 )}
               </div>
@@ -393,9 +395,9 @@ export const TripWorkspacePage = () => {
               <p className="text-xs sm:text-sm text-slate-300 flex items-center gap-2 mt-1">
                 <CalendarIcon className="w-3.5 h-3.5 text-teal-400" />
                 <span>
-                  {formatDate(trip.startDate)} — {formatDate(trip.endDate)}
+                  {formatDate(trip.startDate)} â€” {formatDate(trip.endDate)}
                 </span>
-                <span>•</span>
+                <span>â€¢</span>
                 <span className="text-slate-400">{trip.itemsCount || 0} activities</span>
               </p>
             </div>
@@ -633,6 +635,26 @@ const ItineraryView = ({
     }
   };
 
+  const openDayRouteOnMaps = (dayItems = []) => {
+    const stops = dayItems
+      .map((it) => {
+        let addr = it.location?.address || it.location?.name || it.title || '';
+        if (trip.destination && !addr.toLowerCase().includes(trip.destination.toLowerCase())) {
+          addr = `${addr}, ${trip.destination}`;
+        }
+        return addr.trim();
+      })
+      .filter(Boolean);
+
+    if (stops.length === 0) return;
+    if (stops.length === 1) {
+      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stops[0])}`, '_blank');
+      return;
+    }
+    const path = stops.slice(0, 10).map((s) => encodeURIComponent(s)).join('/');
+    window.open(`https://www.google.com/maps/dir/${path}`, '_blank');
+  };
+
   return (
     <div className="space-y-6">
       {/* Scheduling Warnings Banner */}
@@ -707,7 +729,7 @@ const ItineraryView = ({
                 className="rounded-3xl bg-ink-900/60 border border-white/5 overflow-hidden"
               >
                 {/* Day Header */}
-                <div className="bg-ink-950/80 px-6 py-3.5 border-b border-white/5 flex items-center justify-between">
+                <div className="bg-ink-950/80 px-6 py-3.5 border-b border-white/5 flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <span className="w-7 h-7 rounded-xl bg-coral-500/10 text-coral-400 border border-coral-500/20 font-bold text-xs flex items-center justify-center font-mono">
                       {dayIndex + 1}
@@ -723,9 +745,23 @@ const ItineraryView = ({
                       </h4>
                     </div>
                   </div>
-                  <span className="text-[11px] text-slate-400 font-semibold">
-                    {items.length} {items.length === 1 ? 'event' : 'events'}
-                  </span>
+
+                  <div className="flex items-center gap-2.5">
+                    {items.length > 0 && (
+                      <button
+                        onClick={() => openDayRouteOnMaps(items)}
+                        className="px-3 py-1.5 rounded-xl bg-ink-900 hover:bg-ink-850 border border-white/10 hover:border-coral-500/40 text-coral-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
+                        title="Open turn-by-turn route with all stops for this day in Google Maps"
+                      >
+                        <Route className="w-3.5 h-3.5 text-coral-400" />
+                        <span>Day Route ({items.length} Stops)</span>
+                        <ExternalLink className="w-3 h-3 text-coral-400/80" />
+                      </button>
+                    )}
+                    <span className="text-[11px] text-slate-400 font-semibold">
+                      {items.length} {items.length === 1 ? 'event' : 'events'}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Day Activities */}
@@ -793,7 +829,7 @@ const ItineraryView = ({
                                 </span>
                               )}
                               <span>
-                                {item.startTime} — {item.endTime}
+                                {item.startTime} â€” {item.endTime}
                               </span>
                               {item.bookingReference && (
                                 <span className="font-mono text-slate-300 bg-ink-950 px-1.5 py-0.5 rounded border border-white/5">
@@ -1310,6 +1346,7 @@ const SplittingView = ({ trip, settlement, onRefresh }) => {
 // SUB-COMPONENT: TRIP MAP VIEW
 // =========================================================
 const TripMapView = ({ trip, itinerary }) => {
+  const [selectedDayFilter, setSelectedDayFilter] = useState('all');
   const allStops = [];
 
   // Add primary destination
@@ -1317,6 +1354,7 @@ const TripMapView = ({ trip, itinerary }) => {
     title: trip.destination,
     type: 'Primary Destination',
     address: trip.destination,
+    dayIndex: 0,
   });
 
   // Add additional destinations
@@ -1325,48 +1363,170 @@ const TripMapView = ({ trip, itinerary }) => {
       title: dest,
       type: 'Stop',
       address: dest,
+      dayIndex: 0,
     });
   });
 
-  // Add itinerary locations
-  (itinerary.data || []).forEach((it) => {
-    if (it.location?.name) {
-      allStops.push({
-        title: it.title,
-        type: it.category,
-        address: it.location.address || it.location.name,
+  // Add itinerary locations with day mapping
+  const dayKeys = Object.keys(itinerary.groupedByDay || {}).sort();
+
+  if (dayKeys.length > 0) {
+    dayKeys.forEach((dateKey, dayIdx) => {
+      const items = itinerary.groupedByDay[dateKey] || [];
+      items.forEach((it) => {
+        if (it.location?.name || it.title) {
+          allStops.push({
+            title: it.title,
+            type: it.category || 'Sightseeing',
+            address: it.location?.address || it.location?.name || `${it.title}, ${trip.destination}`,
+            dayIndex: dayIdx + 1,
+            time: it.startTime,
+            dateKey,
+          });
+        }
       });
-    }
-  });
+    });
+  } else {
+    (itinerary.data || []).forEach((it) => {
+      if (it.location?.name || it.title) {
+        allStops.push({
+          title: it.title,
+          type: it.category || 'Sightseeing',
+          address: it.location?.address || it.location?.name || `${it.title}, ${trip.destination}`,
+          dayIndex: it.dayNumber || 1,
+          time: it.startTime,
+        });
+      }
+    });
+  }
 
   const openGoogleMapsDirections = (destinationAddress) => {
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destinationAddress)}`;
+    let clean = destinationAddress;
+    if (trip.destination && !clean.toLowerCase().includes(trip.destination.toLowerCase())) {
+      clean = `${clean}, ${trip.destination}`;
+    }
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(clean)}`;
     window.open(url, '_blank');
   };
 
+  const openMultiStopGoogleMapsRoute = (stopsList) => {
+    const list = stopsList || (selectedDayFilter === 'all' ? allStops : allStops.filter((s) => s.dayIndex === Number(selectedDayFilter)));
+    const raw = list
+      .map((s) => {
+        let addr = s.address || s.title || '';
+        if (trip.destination && !addr.toLowerCase().includes(trip.destination.toLowerCase())) {
+          addr = `${addr}, ${trip.destination}`;
+        }
+        return addr.trim();
+      })
+      .filter(Boolean);
+
+    // Deduplicate consecutive identical addresses
+    const unique = raw.filter((item, idx, arr) => idx === 0 || item !== arr[idx - 1]);
+
+    if (unique.length === 0) return;
+    if (unique.length === 1) {
+      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(unique[0])}`, '_blank');
+      return;
+    }
+
+    // Google Maps handles up to 10 stops chained in one directions URL
+    const topStops = unique.slice(0, 10);
+    const path = topStops.map((s) => encodeURIComponent(s)).join('/');
+    window.open(`https://www.google.com/maps/dir/${path}`, '_blank');
+  };
+
+  const displayedStops = selectedDayFilter === 'all'
+    ? allStops
+    : allStops.filter((s) => s.dayIndex === Number(selectedDayFilter) || s.dayIndex === 0);
+
   return (
     <div className="space-y-6">
-      <div className="bg-ink-900/60 p-5 rounded-2xl border border-white/5 flex items-center justify-between">
-        <div>
-          <h3 className="text-base font-bold text-white font-display">Route Map & Stop Sequence</h3>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Geographic overview of destinations, transit legs, and sightseeing locations.
+      {/* Top Route Banner with Full Multi-Stop Button */}
+      <div className="bg-ink-900/80 p-6 rounded-3xl border border-white/10 flex flex-wrap items-center justify-between gap-4 shadow-xl">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-coral-500 animate-pulse"></span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-teal-400">
+              Interactive Route Navigation
+            </span>
+          </div>
+          <h3 className="text-xl font-extrabold text-white font-display">Route Map & Stop Sequence</h3>
+          <p className="text-xs text-slate-400">
+            {allStops.length} verified stops across {trip.destination}. Open turn-by-turn driving & transit directions in Google Maps.
           </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={() => openMultiStopGoogleMapsRoute(displayedStops)}
+            className="px-5 py-3 rounded-2xl bg-gradient-to-r from-coral-500 via-coral-600 to-amber-500 hover:from-coral-600 hover:to-amber-600 text-white text-xs font-bold flex items-center gap-2.5 shadow-glow transition-all"
+            title="Open Google Maps with all stops connected in turn-by-turn order"
+          >
+            <Route className="w-4 h-4" />
+            <span>
+              {selectedDayFilter === 'all'
+                ? `Open All ${displayedStops.length} Stops in Google Maps`
+                : `Open Day ${selectedDayFilter} Route (${displayedStops.length} Stops)`}
+            </span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </button>
         </div>
       </div>
 
+      {/* Day Filter Pills (if multiple days) */}
+      {dayKeys.length > 1 && (
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          <button
+            onClick={() => setSelectedDayFilter('all')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+              selectedDayFilter === 'all'
+                ? 'bg-coral-500 text-white shadow-glow'
+                : 'bg-ink-900 border border-white/5 text-slate-400 hover:text-white'
+            }`}
+          >
+            All Stops ({allStops.length})
+          </button>
+          {dayKeys.map((dateKey, idx) => {
+            const count = (itinerary.groupedByDay[dateKey] || []).length;
+            const dayNum = idx + 1;
+            return (
+              <button
+                key={dateKey}
+                onClick={() => setSelectedDayFilter(String(dayNum))}
+                className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                  selectedDayFilter === String(dayNum)
+                    ? 'bg-coral-500 text-white shadow-glow'
+                    : 'bg-ink-900 border border-white/5 text-slate-400 hover:text-white'
+                }`}
+              >
+                <span>Day ${dayNum} (${count} Stops)</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Grid of Stops */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {allStops.map((stop, idx) => (
+        {displayedStops.map((stop, idx) => (
           <div
             key={idx}
-            className="p-5 rounded-2xl bg-ink-900/80 border border-white/10 hover:border-coral-500/40 transition-all flex flex-col justify-between space-y-3"
+            className="p-5 rounded-2xl bg-ink-900/80 border border-white/10 hover:border-coral-500/40 transition-all flex flex-col justify-between space-y-4"
           >
             <div className="flex items-start gap-3">
               <span className="w-8 h-8 rounded-xl bg-coral-500/10 text-coral-400 border border-coral-500/20 font-bold text-xs flex items-center justify-center font-mono shrink-0">
                 #{idx + 1}
               </span>
-              <div>
-                <span className="text-[10px] uppercase font-bold text-teal-400">{stop.type}</span>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] uppercase font-bold text-teal-400">{stop.type}</span>
+                  {stop.time && (
+                    <span className="text-[10px] font-mono text-slate-400 bg-white/5 px-1.5 py-0.5 rounded">
+                      {stop.time}
+                    </span>
+                  )}
+                </div>
                 <h4 className="text-sm font-bold text-white leading-tight">{stop.title}</h4>
                 <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
                   <MapPin className="w-3 h-3 text-coral-400 shrink-0" />
@@ -1380,7 +1540,7 @@ const TripMapView = ({ trip, itinerary }) => {
               className="w-full py-2 px-3 rounded-xl bg-ink-950 hover:bg-ink-850 text-slate-200 border border-white/5 hover:border-coral-500/40 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all"
             >
               <ExternalLink className="w-3.5 h-3.5 text-coral-400" />
-              Open in Google Maps Directions
+              <span>Open in Google Maps Directions</span>
             </button>
           </div>
         ))}
@@ -1591,7 +1751,7 @@ const MembersView = ({ trip, participants, isOwner, onRefresh, onOpenAddMember }
                     </div>
                     <p className="text-xs text-slate-400">{p.email}</p>
                     <p className="text-[11px] text-slate-500 mt-0.5">
-                      Invited as <span className="text-slate-300 font-semibold capitalize">{p.role}</span> • Awaiting acceptance
+                      Invited as <span className="text-slate-300 font-semibold capitalize">{p.role}</span> â€¢ Awaiting acceptance
                     </p>
                   </div>
                 </div>
@@ -2326,3 +2486,4 @@ const UploadDocModal = ({ trip, isOpen, onClose, onUploaded }) => {
 
   return typeof document !== 'undefined' ? createPortal(modal, document.body) : modal;
 };
+

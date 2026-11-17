@@ -1011,7 +1011,7 @@ export const exportToJourney = async (req, res) => {
             sourceType: 'unbooked_activity',
             location: {
               name: act.location || destination,
-              address: act.location || destination,
+              address: act.googleMapsQuery || (act.location ? `${act.location}, ${destination}` : destination),
             },
             date: activityDate,
             startTime: act.time || '10:00',
