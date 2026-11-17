@@ -9,6 +9,7 @@ import { User } from '../models/User.js';
 import { convertCurrency, getExchangeRate } from '../utils/currencyRates.js';
 import { calculateTripSettlement } from '../utils/settlementCalculator.js';
 import { analyzeItineraryWarnings } from '../utils/itineraryWarnings.js';
+import { sendTripInvitationEmail, buildTripInviteEmailData } from '../services/emailService.js';
 
 // Helper to log trip activity
 const logActivity = async (tripId, user, action, details) => {
@@ -1141,10 +1142,25 @@ export const addTripParticipant = async (req, res) => {
       `Sent collaboration request to ${newParticipant.name} (${newParticipant.email}) as ${newParticipant.role.toUpperCase()}`
     );
 
+    // Dispatch email if configured, and always generate Gmail web compose details
+    const emailResult = await sendTripInvitationEmail({
+      trip,
+      inviter: req.user,
+      inviteeName: newParticipant.name,
+      inviteeEmail: newParticipant.email,
+      role: newParticipant.role,
+    });
+
     return res.status(201).json({
       success: true,
-      message: `Collaboration invitation request sent to ${newParticipant.email}.`,
+      message: emailResult.sent
+        ? `Collaboration invitation email sent to ${newParticipant.email}.`
+        : `Collaboration invitation request created for ${newParticipant.email}.`,
       data: trip.participants,
+      emailStatus: {
+        sent: emailResult.sent,
+        gmailComposeUrl: emailResult.gmailComposeUrl,
+      },
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -1171,10 +1187,25 @@ export const resendTripInvitation = async (req, res) => {
       `Resent invitation request to ${participant.name} (${participant.email})`
     );
 
+    // Re-dispatch email if configured, and generate Gmail web compose details
+    const emailResult = await sendTripInvitationEmail({
+      trip,
+      inviter: req.user,
+      inviteeName: participant.name,
+      inviteeEmail: participant.email,
+      role: participant.role,
+    });
+
     return res.status(200).json({
       success: true,
-      message: `Invitation request re-sent to ${participant.email}!`,
+      message: emailResult.sent
+        ? `Invitation email re-sent to ${participant.email}!`
+        : `Invitation request refreshed for ${participant.email}!`,
       data: trip.participants,
+      emailStatus: {
+        sent: emailResult.sent,
+        gmailComposeUrl: emailResult.gmailComposeUrl,
+      },
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
