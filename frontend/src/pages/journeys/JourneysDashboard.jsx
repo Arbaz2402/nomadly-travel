@@ -45,6 +45,29 @@ export const JourneysDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('date_asc');
+  const [respondingInviteId, setRespondingInviteId] = useState(null);
+
+  const handleRespondInvite = async (tripId, action) => {
+    try {
+      setRespondingInviteId(tripId);
+      const res = await ApiClient.respondToTripInvitation(tripId, action);
+      if (res.success) {
+        showToast(
+          action === 'accept'
+            ? 'Invitation accepted! You have joined the journey.'
+            : 'Invitation declined.',
+          'success'
+        );
+        fetchTrips();
+      }
+    } catch (err) {
+      showToast(err.message || 'Failed to update invitation response', 'error');
+    } finally {
+      setRespondingInviteId(null);
+    }
+  };
+
+  const pendingInvitations = trips.filter((t) => t.participantStatus === 'pending');
 
   const fetchTrips = async () => {
     try {
@@ -206,6 +229,65 @@ export const JourneysDashboard = () => {
         </div>
       </div>
 
+      {/* Pending Journey Invitations Banner Section */}
+      {pendingInvitations.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 px-1">
+            <Clock className="w-4 h-4 text-amber-400 animate-pulse" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400">
+              Pending Journey Invitations ({pendingInvitations.length})
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {pendingInvitations.map((inviteTrip) => (
+              <div
+                key={inviteTrip._id}
+                className="p-5 rounded-3xl bg-gradient-to-r from-amber-500/15 via-coral-500/10 to-ink-900 border border-amber-500/30 shadow-xl flex flex-col justify-between gap-4"
+              >
+                <div className="flex items-start gap-4">
+                  <img
+                    src={inviteTrip.coverImage || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=400&q=80'}
+                    alt={inviteTrip.title}
+                    className="w-16 h-16 rounded-2xl object-cover border border-white/10 shrink-0"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                      Invited by {inviteTrip.inviterName || 'Traveler'}
+                    </span>
+                    <h4 className="text-base font-bold text-white mt-1 truncate">{inviteTrip.title}</h4>
+                    <p className="text-xs text-slate-300 flex items-center gap-1.5 mt-0.5">
+                      <Map className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+                      <span className="truncate">{inviteTrip.destination}</span>
+                      <span className="text-slate-500">&bull;</span>
+                      <span className="capitalize font-semibold text-coral-400">{inviteTrip.userRole || 'Editor'}</span>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/5">
+                  <button
+                    onClick={() => handleRespondInvite(inviteTrip._id, 'decline')}
+                    disabled={respondingInviteId === inviteTrip._id}
+                    className="px-4 py-2 rounded-xl bg-white/5 hover:bg-rose-500/10 text-slate-400 hover:text-rose-400 text-xs font-semibold border border-white/10 hover:border-rose-500/20 transition-colors disabled:opacity-50"
+                  >
+                    Decline
+                  </button>
+                  <button
+                    onClick={() => handleRespondInvite(inviteTrip._id, 'accept')}
+                    disabled={respondingInviteId === inviteTrip._id}
+                    className="px-5 py-2 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 text-white text-xs font-bold shadow-glow flex items-center gap-1.5 transition-all disabled:opacity-50"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>{respondingInviteId === inviteTrip._id ? 'Joining...' : 'Accept & Join Trip'}</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-ink-900/60 p-2.5 rounded-2xl border border-white/10">
         {/* Status Filter Tabs */}
@@ -323,12 +405,19 @@ export const JourneysDashboard = () => {
 
                   {/* Status & Category Badges */}
                   <div className="absolute top-4 left-4 right-4 flex items-center justify-between gap-2">
-                    <span
-                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border backdrop-blur-md ${statusConfig.bg}`}
-                    >
-                      <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`} />
-                      {statusConfig.label}
-                    </span>
+                    {trip.participantStatus === 'pending' ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border backdrop-blur-md bg-amber-500/25 text-amber-300 border-amber-500/40 shadow-sm">
+                        <Clock className="w-3 h-3 animate-pulse text-amber-400" />
+                        Invite Pending
+                      </span>
+                    ) : (
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border backdrop-blur-md ${statusConfig.bg}`}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`} />
+                        {statusConfig.label}
+                      </span>
+                    )}
 
                     <span className="px-2.5 py-1 rounded-full bg-ink-950/80 backdrop-blur-md text-slate-300 border border-white/10 text-[11px] font-semibold flex items-center gap-1.5">
                       <Users className="w-3.5 h-3.5 text-coral-400" />
@@ -379,6 +468,33 @@ export const JourneysDashboard = () => {
                             +{trip.additionalDestinations.length - 3} more
                           </span>
                         )}
+                      </div>
+                    )}
+                    {/* Pending Invitation Alert in Card */}
+                    {trip.participantStatus === 'pending' && (
+                      <div
+                        className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-2 mt-3"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <span className="text-[11px] font-semibold text-amber-300">
+                          Invited as <strong className="capitalize text-white">{trip.userRole || 'Editor'}</strong>
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => handleRespondInvite(trip._id, 'decline')}
+                            disabled={respondingInviteId === trip._id}
+                            className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 text-[11px] font-semibold transition-colors disabled:opacity-50"
+                          >
+                            Decline
+                          </button>
+                          <button
+                            onClick={() => handleRespondInvite(trip._id, 'accept')}
+                            disabled={respondingInviteId === trip._id}
+                            className="px-3 py-1 rounded-lg bg-gradient-to-r from-teal-500 to-emerald-600 text-white text-[11px] font-bold shadow-sm transition-all disabled:opacity-50"
+                          >
+                            Accept
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>

@@ -97,15 +97,25 @@ export const sendTripInvitationEmail = async ({ trip, inviter, inviteeName, invi
   }
 
   try {
-    const transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: smtpPort,
-      secure: smtpPort === 465,
-      auth: {
-        user: smtpUser,
-        pass: smtpPass,
-      },
-    });
+    const transporter = nodemailer.createTransport(
+      smtpHost && smtpHost !== 'smtp.gmail.com'
+        ? {
+            host: smtpHost,
+            port: smtpPort,
+            secure: smtpPort === 465,
+            auth: {
+              user: smtpUser,
+              pass: smtpPass,
+            },
+          }
+        : {
+            service: 'gmail',
+            auth: {
+              user: smtpUser,
+              pass: smtpPass,
+            },
+          }
+    );
 
     const info = await transporter.sendMail({
       from: `"Nomadly Travel" <${smtpUser}>`,

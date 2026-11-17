@@ -106,6 +106,7 @@ export const getMyTrips = async (req, res) => {
     let ongoingCount = 0;
     let completedCount = 0;
     let draftCount = 0;
+    let pendingInvitationsCount = 0;
 
     const enrichedTrips = await Promise.all(
       trips.map(async (trip) => {
@@ -127,9 +128,33 @@ export const getMyTrips = async (req, res) => {
         else if (dynamicStatus === 'completed') completedCount++;
         else if (dynamicStatus === 'draft') draftCount++;
 
+        // Determine logged-in user's role and collaboration status
+        const isOwner = trip.user?._id?.toString() === currentUserId.toString();
+        const myParticipant = !isOwner
+          ? trip.participants?.find(
+              (p) =>
+                (p.user && p.user.toString() === currentUserId.toString()) ||
+                (p.email && p.email.toLowerCase() === currentUserEmail)
+            )
+          : null;
+
+        const userRole = isOwner ? 'owner' : (myParticipant?.role || 'viewer');
+        const participantStatus = isOwner ? 'accepted' : (myParticipant?.status || 'accepted');
+        const inviterName = trip.user?.displayName || trip.user?.name || trip.user?.email || 'A fellow traveler';
+        const inviterPhoto = trip.user?.photoURL || null;
+
+        if (participantStatus === 'pending') {
+          pendingInvitationsCount++;
+        }
+
         return {
           ...trip.toObject(),
           dynamicStatus,
+          isOwner,
+          userRole,
+          participantStatus,
+          inviterName,
+          inviterPhoto,
           actualSpend: Number(tripActualSpend.toFixed(2)),
           budgetUtilization: tripBudget > 0 ? Number(((tripActualSpend / tripBudget) * 100).toFixed(1)) : 0,
           itemsCount,
@@ -146,6 +171,7 @@ export const getMyTrips = async (req, res) => {
         ongoingCount,
         completedCount,
         draftCount,
+        pendingInvitationsCount,
         totalPlannedBudget: Number(totalPlannedBudget.toFixed(2)),
         totalActualSpend: Number(totalActualSpend.toFixed(2)),
       },
