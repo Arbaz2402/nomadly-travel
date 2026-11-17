@@ -1108,6 +1108,7 @@ export const modifyActivity = async (req, res) => {
       currentActivity = {},
       userPrompt,
       dayTitle,
+      stayLocation,
     } = req.body;
 
     if (!destination || !userPrompt) {
@@ -1119,11 +1120,16 @@ export const modifyActivity = async (req, res) => {
 
     const cleanDest = destination.trim();
     const cleanPrompt = userPrompt.trim();
+    const cleanStay = stayLocation ? String(stayLocation).trim() : '';
     const actTitle = currentActivity.title || 'Current Activity';
     const actCategory = currentActivity.category || 'sightseeing';
     const actTime = currentActivity.startTime || currentActivity.time || '14:00';
     const actLocation = currentActivity.location?.name || currentActivity.location || '';
     const actDesc = currentActivity.description || '';
+
+    const stayClause = cleanStay
+      ? `\nTRAVELER'S STAY / RESORT BASE:\n"${cleanStay}" (The traveler is staying here!)\n-> CRITICAL PROXIMITY RULE: If the traveler mentions "our stay", "our hotel", "too far", "closer to stay", "near hotel", or distance, you MUST strictly pick a replacement located either right at or in the very close vicinity (short 5-15 min drive) of "${cleanStay}"!\n`
+      : '';
 
     const geminiApiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
 
@@ -1139,13 +1145,13 @@ CURRENT ACTIVITY TO REPLACE:
 - Scheduled Time: "${actTime}"
 - Location: "${actLocation}"
 - Description: "${actDesc}"
-${dayTitle ? `- Day Context: "${dayTitle}"` : ''}
+${dayTitle ? `- Day Context: "${dayTitle}"` : ''}${stayClause}
 
 TRAVELER'S EXACT INSTRUCTION / WHAT THEY WANT INSTEAD:
 "${cleanPrompt}"
 
 CRITICAL REQUIREMENTS:
-- Strictly obey the traveler's request (e.g., if they say "I don't want rafting, give me a coffee tasting", give them a real coffee tasting; if they say "give me a pure vegetarian restaurant", provide a genuine pure vegetarian restaurant).
+- Strictly obey the traveler's request (e.g., if they say "I don't want rafting, give me a coffee tasting", give them a real coffee tasting; if they say "this is too far from our stay", find an alternative directly near their stay base).
 - The replacement MUST be a REAL, genuine venue/attraction in or near "${cleanDest}".
 - EXACT VENUE LOCATION: "location" MUST include the specific exact venue/restaurant name along with its area/neighborhood (e.g. "Big Cup Cafe, Stuart Hill, Madikeri"). NEVER return just a city name alone!
 - "googleMapsQuery" MUST be the full exact searchable venue name for Google Maps navigation (e.g. "Big Cup Cafe, Madikeri, Coorg, Karnataka, India").

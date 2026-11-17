@@ -662,6 +662,7 @@ export const TripWorkspacePage = () => {
         <AIModifyActivityModal
           trip={trip}
           item={aiModifyTargetItem}
+          itinerary={itinerary}
           isOpen={aiModifyModalOpen}
           onClose={() => {
             setAiModifyModalOpen(false);
@@ -2606,12 +2607,31 @@ const UploadDocModal = ({ trip, isOpen, onClose, onUploaded }) => {
 // MODAL: AI MODIFY / SWAP ACTIVITY ("I don't want this, give this")
 // =========================================================
 
-const AIModifyActivityModal = ({ trip, item, isOpen, onClose, onUpdated }) => {
+const detectTripStay = (trip = {}, items = []) => {
+  // 1. From trip segments (booked hotels)
+  const hotelSegment = (trip.segments || []).find((s) => s.segmentType === 'hotel');
+  if (hotelSegment) return hotelSegment.title || hotelSegment.toLocation;
+
+  // 2. From itinerary items with category hotel or check-in
+  const hotelItem = (items || []).find(
+    (it) => it.category === 'hotel' || /check-in|stay\s+at|resort|hotel/i.test(it.title)
+  );
+  if (hotelItem) {
+    return hotelItem.location?.name || hotelItem.location?.address || hotelItem.title;
+  }
+
+  // 3. From trip stay or destination
+  return trip.stayLocation || trip.recommendedStayArea || null;
+};
+
+const AIModifyActivityModal = ({ trip, item, itinerary, isOpen, onClose, onUpdated }) => {
   const { showToast } = useToast();
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
   const [applying, setApplying] = useState(false);
   const [replacement, setReplacement] = useState(null);
+  const detectedStay = detectTripStay(trip, itinerary?.data || []);
+  const [stayLocation, setStayLocation] = useState(detectedStay || '');
 
   if (!isOpen || !item) return null;
 
@@ -2643,6 +2663,7 @@ const AIModifyActivityModal = ({ trip, item, isOpen, onClose, onUpdated }) => {
         },
         userPrompt: prompt.trim(),
         dayTitle: item.date ? formatDate(item.date) : '',
+        stayLocation: stayLocation ? stayLocation.trim() : null,
       });
 
       if (res.success && res.data) {
@@ -2739,6 +2760,21 @@ const AIModifyActivityModal = ({ trip, item, isOpen, onClose, onUpdated }) => {
             </div>
           </div>
         </div>
+
+        {/* Base Stay Context (so AI knows distance/proximity) */}
+        {stayLocation && (
+          <div className="flex items-center justify-between gap-2 px-3.5 py-2 rounded-xl bg-ink-950/70 border border-teal-500/20 text-xs text-slate-300">
+            <div className="flex items-center gap-2 min-w-0">
+              <Building2 className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+              <span className="truncate">
+                Base Stay: <strong className="text-white font-semibold">{stayLocation}</strong>
+              </span>
+            </div>
+            <span className="text-[10px] font-mono text-teal-400 bg-teal-500/10 px-2 py-0.5 rounded border border-teal-500/20 shrink-0">
+              Active in AI Context
+            </span>
+          </div>
+        )}
 
         {/* Prompt Input Form */}
         <form onSubmit={handleGenerate} className="space-y-4">
