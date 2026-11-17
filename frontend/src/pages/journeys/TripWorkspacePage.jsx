@@ -1851,7 +1851,7 @@ Looking forward to traveling together!`;
       if (res.success) {
         showToast(
           res.message || `Invitation email successfully re-sent to ${name} (${email})!`,
-          'success'
+          res.emailSent === false ? 'warning' : 'success'
         );
         onRefresh();
       }
@@ -2425,7 +2425,7 @@ const AddMemberModal = ({ trip, isOpen, onClose, onCreated }) => {
         onCreated();
         showToast(
           res.message || `Invitation email successfully sent to ${name} (${email})!`,
-          'success'
+          res.emailSent === false ? 'warning' : 'success'
         );
       }
     } catch (err) {

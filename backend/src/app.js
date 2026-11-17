@@ -93,11 +93,17 @@ app.use('/api/', generalLimiter);
 
 // Health Check Endpoint
 app.get('/api/health', (req, res) => {
+  const emailUser = (process.env.EMAIL_USER || process.env.SMTP_USER || '').trim();
+  const emailPass = (process.env.EMAIL_PASS || process.env.SMTP_PASS || '').trim();
   res.status(200).json({
     status: 'online',
     platform: 'NOMADLY Travel Reservation Platform',
     version: '1.0.0',
     timestamp: new Date().toISOString(),
+    emailService: {
+      configured: Boolean(emailUser && emailPass),
+      sender: emailUser ? `${emailUser.slice(0, 3)}***@${emailUser.split('@')[1] || ''}` : null,
+    },
   });
 });
 

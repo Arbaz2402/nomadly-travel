@@ -9,7 +9,7 @@ import { User } from '../models/User.js';
 import { convertCurrency, getExchangeRate } from '../utils/currencyRates.js';
 import { calculateTripSettlement } from '../utils/settlementCalculator.js';
 import { analyzeItineraryWarnings } from '../utils/itineraryWarnings.js';
-import { sendTripInvitationEmail, buildTripInviteEmailData } from '../services/emailService.js';
+import { sendTripInvitationEmail, buildTripInviteEmailData, isEmailConfigured } from '../services/emailService.js';
 
 // Helper to log trip activity
 const logActivity = async (tripId, user, action, details) => {
@@ -1168,18 +1168,35 @@ export const addTripParticipant = async (req, res) => {
       `Sent collaboration request to ${newParticipant.name} (${newParticipant.email}) as ${newParticipant.role.toUpperCase()}`
     );
 
-    // Dispatch email asynchronously in background so client receives instant response (<100ms)
-    sendTripInvitationEmail({
-      trip,
-      inviter: req.user,
-      inviteeName: newParticipant.name,
-      inviteeEmail: newParticipant.email,
-      role: newParticipant.role,
-    }).catch((err) => console.warn('[EmailService] Async dispatch error:', err.message));
+    const emailConfigured = isEmailConfigured();
+
+    if (emailConfigured) {
+      // Dispatch email asynchronously in background so client receives instant response (<100ms)
+      sendTripInvitationEmail({
+        trip,
+        inviter: req.user,
+        inviteeName: newParticipant.name,
+        inviteeEmail: newParticipant.email,
+        role: newParticipant.role,
+      })
+        .then((result) => {
+          if (!result.sent) {
+            console.warn(`[EmailService] SMTP delivery failed for ${newParticipant.email}:`, result.reason);
+          } else {
+            console.info(`[EmailService] SMTP successfully sent invitation to ${newParticipant.email} (id: ${result.messageId})`);
+          }
+        })
+        .catch((err) => console.warn('[EmailService] Async dispatch error:', err.message));
+    } else {
+      console.warn(`[EmailService] EMAIL_PASS is missing in server environment. Email dispatch skipped for ${newParticipant.email}.`);
+    }
 
     return res.status(201).json({
       success: true,
-      message: `Invitation email successfully sent to ${newParticipant.name} (${newParticipant.email})!`,
+      emailSent: emailConfigured,
+      message: emailConfigured
+        ? `Invitation email successfully sent to ${newParticipant.name} (${newParticipant.email})!`
+        : `Invitation request created for ${newParticipant.name}! (Email skipped: EMAIL_PASS is not configured in server environment).`,
       data: trip.participants,
     });
   } catch (error) {
@@ -1207,18 +1224,35 @@ export const resendTripInvitation = async (req, res) => {
       `Resent invitation request to ${participant.name} (${participant.email})`
     );
 
-    // Re-dispatch email asynchronously in background so response is immediate
-    sendTripInvitationEmail({
-      trip,
-      inviter: req.user,
-      inviteeName: participant.name,
-      inviteeEmail: participant.email,
-      role: participant.role,
-    }).catch((err) => console.warn('[EmailService] Async resend error:', err.message));
+    const emailConfigured = isEmailConfigured();
+
+    if (emailConfigured) {
+      // Re-dispatch email asynchronously in background so response is immediate
+      sendTripInvitationEmail({
+        trip,
+        inviter: req.user,
+        inviteeName: participant.name,
+        inviteeEmail: participant.email,
+        role: participant.role,
+      })
+        .then((result) => {
+          if (!result.sent) {
+            console.warn(`[EmailService] SMTP resend failed for ${participant.email}:`, result.reason);
+          } else {
+            console.info(`[EmailService] SMTP successfully resent invitation to ${participant.email} (id: ${result.messageId})`);
+          }
+        })
+        .catch((err) => console.warn('[EmailService] Async resend error:', err.message));
+    } else {
+      console.warn(`[EmailService] EMAIL_PASS is missing in server environment. Resend skipped for ${participant.email}.`);
+    }
 
     return res.status(200).json({
       success: true,
-      message: `Invitation email successfully re-sent to ${participant.name} (${participant.email})!`,
+      emailSent: emailConfigured,
+      message: emailConfigured
+        ? `Invitation email successfully re-sent to ${participant.name} (${participant.email})!`
+        : `Invitation updated for ${participant.name}! (Email skipped: EMAIL_PASS is not configured in server environment).`,
       data: trip.participants,
     });
   } catch (error) {

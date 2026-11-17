@@ -131,19 +131,29 @@ ${clientBaseUrl}`;
 };
 
 /**
+ * Checks whether SMTP credentials are fully provided in the server environment.
+ */
+export const isEmailConfigured = () => {
+  const user = (process.env.EMAIL_USER || process.env.SMTP_USER || '').trim();
+  const pass = (process.env.EMAIL_PASS || process.env.SMTP_PASS || '').trim();
+  return Boolean(user && pass);
+};
+
+/**
  * Sends trip invitation email via configured SMTP (e.g. Gmail App Password, Sendgrid, etc.)
  * Configured with anti-spam headers and deliverability standards.
  */
 export const sendTripInvitationEmail = async ({ trip, inviter, inviteeName, inviteeEmail, role }) => {
   const emailData = buildTripInviteEmailData({ trip, inviter, inviteeName, inviteeEmail, role });
 
-  const smtpUser = process.env.EMAIL_USER || process.env.SMTP_USER;
-  const smtpPass = process.env.EMAIL_PASS || process.env.SMTP_PASS;
+  const smtpUser = (process.env.EMAIL_USER || process.env.SMTP_USER || '').trim();
+  const rawPass = (process.env.EMAIL_PASS || process.env.SMTP_PASS || '').trim();
+  const cleanPass = rawPass.replace(/\s+/g, ''); // automatically strip spaces from 16-character Google App Passwords
   const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
-  const smtpPort = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 465;
+  const smtpPort = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 587;
 
-  if (!smtpUser || !smtpPass) {
-    console.info(`[EmailService] SMTP credentials not set. Invitation URL generated for Gmail compose: ${emailData.gmailComposeUrl}`);
+  if (!smtpUser || !cleanPass) {
+    console.warn(`[EmailService] SMTP credentials not set on server. EMAIL_USER=${smtpUser ? 'SET' : 'MISSING'}, EMAIL_PASS=${cleanPass ? 'SET' : 'MISSING'}.`);
     return {
       sent: false,
       reason: 'SMTP_NOT_CONFIGURED',
@@ -160,15 +170,21 @@ export const sendTripInvitationEmail = async ({ trip, inviter, inviteeName, invi
             secure: smtpPort === 465,
             auth: {
               user: smtpUser,
-              pass: smtpPass,
+              pass: cleanPass,
             },
           }
         : {
-            service: 'gmail',
+            host: 'smtp.gmail.com',
+            port: 587,
+            secure: false, // Use STARTTLS on port 587 for maximum cloud provider deliverability
             auth: {
               user: smtpUser,
-              pass: smtpPass,
+              pass: cleanPass,
             },
+            tls: {
+              rejectUnauthorized: true,
+            },
+            connectionTimeout: 12000,
           }
     );
 
@@ -187,14 +203,14 @@ export const sendTripInvitationEmail = async ({ trip, inviter, inviteeName, invi
       },
     });
 
-    console.info(`[EmailService] Collaboration invitation sent to ${inviteeEmail}: ${info.messageId}`);
+    console.info(`[EmailService] Collaboration invitation successfully sent to ${inviteeEmail}: ${info.messageId}`);
     return {
       sent: true,
       messageId: info.messageId,
       ...emailData,
     };
   } catch (error) {
-    console.warn(`[EmailService] Failed to dispatch email via SMTP: ${error.message}`);
+    console.error(`[EmailService] Failed to dispatch email via SMTP: ${error.message}`);
     return {
       sent: false,
       reason: error.message,
