@@ -391,4 +391,12 @@ export class ApiClient {
   static exportAIItineraryToJourney(payload) {
     return this.request('/ai/export-to-journey', { method: 'POST', body: JSON.stringify(payload) });
   }
+
+  static modifyActivityWithAI(payload) {
+    return this.request('/ai/modify-activity', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      timeout: 30000,
+    });
+  }
 }

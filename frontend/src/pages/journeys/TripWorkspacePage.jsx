@@ -13,6 +13,8 @@ import {
   Share2,
   Trash2,
   Edit3,
+  Sparkles,
+  RefreshCw,
   CheckCircle2,
   AlertTriangle,
   Info,
@@ -84,7 +86,7 @@ const CATEGORY_ICONS = {
 const cleanVenueTitle = (rawTitle = '') => {
   if (!rawTitle) return '';
   return String(rawTitle)
-    .replace(/^(lunch at|dinner at|breakfast at|brunch at|evening snacks at|tea and snacks at|coffee at|visit to|explore|tour of|guided tour of|morning walk at|sunset at|sunrise at|trek to|hike to|stop at|relax at)\s+/i, '')
+    .replace(/^(authentic\s+[\w-]+\s+(lunch|dinner|breakfast|food)\s+at|authentic\s+(lunch|dinner|breakfast)\s+at|scenic\s+drive\s+to|check-in\s+and\s+[\w\s]+at|guided\s+|leisurely\s+lunch\s+at|leisurely\s+dinner\s+at|lunch\s+at|dinner\s+at|breakfast\s+at|brunch\s+at|evening\s+snacks\s+at|tea\s+and\s+snacks\s+at|coffee\s+at|visit\s+to|explore\s+|tour\s+of|guided\s+tour\s+of|morning\s+walk\s+at|sunset\s+at|sunrise\s+at|trek\s+to|hike\s+to|stop\s+at|relax\s+at)\s+/i, '')
     .trim();
 };
 
@@ -148,6 +150,10 @@ export const TripWorkspacePage = () => {
   const [addExpenseOpen, setAddExpenseOpen] = useState(false);
   const [addMemberOpen, setAddMemberOpen] = useState(false);
   const [uploadDocOpen, setUploadDocOpen] = useState(false);
+  const [aiModifyModalOpen, setAiModifyModalOpen] = useState(false);
+  const [aiModifyTargetItem, setAiModifyTargetItem] = useState(null);
+  const [editActivityModalOpen, setEditActivityModalOpen] = useState(false);
+  const [editTargetItem, setEditTargetItem] = useState(null);
 
   // Tab data states
   const [itinerary, setItinerary] = useState({ groupedByDay: {}, warnings: [], data: [] });
@@ -509,6 +515,14 @@ export const TripWorkspacePage = () => {
           onRefresh={() => loadTabData('itinerary')}
           onOpenAddActivity={() => setAddActivityOpen(true)}
           onOpenAttachBooking={() => setAttachModalOpen(true)}
+          onOpenAiModify={(item) => {
+            setAiModifyTargetItem(item);
+            setAiModifyModalOpen(true);
+          }}
+          onOpenEditActivity={(item) => {
+            setEditTargetItem(item);
+            setEditActivityModalOpen(true);
+          }}
         />
       )}
 
@@ -642,6 +656,42 @@ export const TripWorkspacePage = () => {
           }}
         />
       )}
+
+      {/* AI Modify / Swap Activity Modal */}
+      {aiModifyModalOpen && aiModifyTargetItem && (
+        <AIModifyActivityModal
+          trip={trip}
+          item={aiModifyTargetItem}
+          isOpen={aiModifyModalOpen}
+          onClose={() => {
+            setAiModifyModalOpen(false);
+            setAiModifyTargetItem(null);
+          }}
+          onUpdated={() => {
+            fetchTripData();
+            loadTabData('itinerary');
+            loadTabData('map');
+          }}
+        />
+      )}
+
+      {/* Edit Activity Modal */}
+      {editActivityModalOpen && editTargetItem && (
+        <EditActivityModal
+          trip={trip}
+          item={editTargetItem}
+          isOpen={editActivityModalOpen}
+          onClose={() => {
+            setEditActivityModalOpen(false);
+            setEditTargetItem(null);
+          }}
+          onUpdated={() => {
+            fetchTripData();
+            loadTabData('itinerary');
+            loadTabData('map');
+          }}
+        />
+      )}
     </div>
   );
 };
@@ -656,6 +706,8 @@ const ItineraryView = ({
   onRefresh,
   onOpenAddActivity,
   onOpenAttachBooking,
+  onOpenAiModify,
+  onOpenEditActivity,
 }) => {
   const { showToast } = useToast();
   const dayKeys = Object.keys(itinerary.groupedByDay || {}).sort();
@@ -898,13 +950,33 @@ const ItineraryView = ({
                           )}
 
                           {canEdit && (
-                            <button
-                              onClick={() => handleDeleteItem(item._id, item.title)}
-                              className="p-2 rounded-xl text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
-                              title="Delete Activity"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <button
+                                onClick={() => onOpenAiModify && onOpenAiModify(item)}
+                                className="px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-coral-500/15 via-coral-500/10 to-amber-500/15 hover:from-coral-500/25 hover:to-amber-500/25 text-coral-400 hover:text-coral-300 border border-coral-500/30 flex items-center gap-1.5 transition-all shadow-sm group"
+                                title="Tell AI: 'I don't want this, give this' to swap or modify"
+                              >
+                                <Sparkles className="w-3.5 h-3.5 text-coral-400 group-hover:rotate-12 transition-transform" />
+                                <span className="hidden sm:inline">Change with AI</span>
+                                <span className="sm:hidden">AI</span>
+                              </button>
+
+                              <button
+                                onClick={() => onOpenEditActivity && onOpenEditActivity(item)}
+                                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+                                title="Edit Activity Manually"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+
+                              <button
+                                onClick={() => handleDeleteItem(item._id, item.title)}
+                                className="p-2 rounded-xl text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                                title="Delete Activity"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           )}
                         </div>
                       </div>
@@ -1418,9 +1490,11 @@ const TripMapView = ({ trip, itinerary }) => {
       items.forEach((it) => {
         if (it.location?.name || it.title) {
           const exactAddr = buildExactVenueQuery(it.title, it.location?.address || it.location?.name, trip.destination);
+          const cleanLoc = (it.location?.name || it.location?.address || '').trim();
           allStops.push({
             title: it.title,
             type: it.category || 'Sightseeing',
+            displayAddress: cleanLoc || trip.destination,
             address: exactAddr,
             dayIndex: dayIdx + 1,
             time: it.startTime,
@@ -1433,9 +1507,11 @@ const TripMapView = ({ trip, itinerary }) => {
     (itinerary.data || []).forEach((it) => {
       if (it.location?.name || it.title) {
         const exactAddr = buildExactVenueQuery(it.title, it.location?.address || it.location?.name, trip.destination);
+        const cleanLoc = (it.location?.name || it.location?.address || '').trim();
         allStops.push({
           title: it.title,
           type: it.category || 'Sightseeing',
+          displayAddress: cleanLoc || trip.destination,
           address: exactAddr,
           dayIndex: it.dayNumber || 1,
           time: it.startTime,
@@ -1537,7 +1613,7 @@ const TripMapView = ({ trip, itinerary }) => {
                     : 'bg-ink-900 border border-white/5 text-slate-400 hover:text-white'
                 }`}
               >
-                <span>Day ${dayNum} (${count} Stops)</span>
+                <span>Day {dayNum} ({count} Stops)</span>
               </button>
             );
           })}
@@ -1549,13 +1625,13 @@ const TripMapView = ({ trip, itinerary }) => {
         {displayedStops.map((stop, idx) => (
           <div
             key={idx}
-            className="p-5 rounded-2xl bg-ink-900/80 border border-white/10 hover:border-coral-500/40 transition-all flex flex-col justify-between space-y-4"
+            className="p-5 rounded-2xl bg-ink-900/80 border border-white/10 hover:border-coral-500/40 transition-all flex flex-col justify-between space-y-4 overflow-hidden"
           >
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-3 min-w-0 w-full overflow-hidden">
               <span className="w-8 h-8 rounded-xl bg-coral-500/10 text-coral-400 border border-coral-500/20 font-bold text-xs flex items-center justify-center font-mono shrink-0">
                 #{idx + 1}
               </span>
-              <div className="space-y-1">
+              <div className="space-y-1 min-w-0 flex-1 overflow-hidden">
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] uppercase font-bold text-teal-400">{stop.type}</span>
                   {stop.time && (
@@ -1564,10 +1640,12 @@ const TripMapView = ({ trip, itinerary }) => {
                     </span>
                   )}
                 </div>
-                <h4 className="text-sm font-bold text-white leading-tight">{stop.title}</h4>
-                <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
-                  <MapPin className="w-3 h-3 text-coral-400 shrink-0" />
-                  <span className="truncate">{stop.address}</span>
+                <h4 className="text-sm font-bold text-white leading-tight truncate" title={stop.title}>{stop.title}</h4>
+                <p className="text-xs text-slate-400 mt-1 flex items-center gap-1.5 min-w-0">
+                  <MapPin className="w-3.5 h-3.5 text-coral-400 shrink-0" />
+                  <span className="truncate block text-slate-300" title={stop.displayAddress || stop.address}>
+                    {stop.displayAddress || stop.address}
+                  </span>
                 </p>
               </div>
             </div>
@@ -2514,6 +2592,469 @@ const UploadDocModal = ({ trip, isOpen, onClose, onUploaded }) => {
               className="px-4 py-2 rounded-xl bg-coral-500 hover:bg-coral-600 text-white text-xs font-bold shadow-glow"
             >
               {loading ? 'Uploading...' : 'Upload Document'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+
+  return typeof document !== 'undefined' ? createPortal(modal, document.body) : modal;
+};
+
+// =========================================================
+// MODAL: AI MODIFY / SWAP ACTIVITY ("I don't want this, give this")
+// =========================================================
+
+const AIModifyActivityModal = ({ trip, item, isOpen, onClose, onUpdated }) => {
+  const { showToast } = useToast();
+  const [prompt, setPrompt] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [applying, setApplying] = useState(false);
+  const [replacement, setReplacement] = useState(null);
+
+  if (!isOpen || !item) return null;
+
+  const quickChips = [
+    '☕ Coffee estate tour or plantation tasting',
+    '🍛 Authentic local pure vegetarian restaurant',
+    '🌿 Serene nature viewpoint or waterfall walk',
+    '🏛️ Historic palace or ancient temple visit',
+    '🧘 Relaxing wellness, spa or indoor activity',
+    '💸 Scenic free photography spot or lake stroll',
+  ];
+
+  const handleGenerate = async (e) => {
+    if (e) e.preventDefault();
+    if (!prompt.trim()) {
+      showToast('Please describe what you would like to change or swap', 'error');
+      return;
+    }
+    try {
+      setLoading(true);
+      const res = await ApiClient.modifyActivityWithAI({
+        destination: trip.destination,
+        currentActivity: {
+          title: item.title,
+          category: item.category,
+          time: item.startTime,
+          location: item.location?.name || item.location?.address || trip.destination,
+          description: item.description,
+        },
+        userPrompt: prompt.trim(),
+        dayTitle: item.date ? formatDate(item.date) : '',
+      });
+
+      if (res.success && res.data) {
+        setReplacement(res.data);
+        showToast('AI found a great alternative!', 'success');
+      } else {
+        showToast(res.message || 'Failed to generate alternative', 'error');
+      }
+    } catch (err) {
+      showToast(err.message || 'AI generation failed', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApply = async () => {
+    if (!replacement) return;
+    try {
+      setApplying(true);
+      const payload = {
+        title: replacement.title,
+        description: replacement.description,
+        category: replacement.category || item.category || 'sightseeing',
+        location: {
+          name: replacement.location?.name || replacement.location || trip.destination,
+          address: replacement.location?.address || replacement.googleMapsQuery || trip.destination,
+        },
+        startTime: replacement.startTime || item.startTime,
+        endTime: replacement.endTime || item.endTime,
+        estimatedCost: Number(replacement.estimatedCost) || 0,
+      };
+
+      const res = await ApiClient.updateItineraryItem(trip._id, item._id, payload);
+      if (res.success) {
+        showToast('Activity swapped with AI replacement successfully!', 'success');
+        onUpdated();
+        onClose();
+      } else {
+        showToast(res.message || 'Failed to update activity', 'error');
+      }
+    } catch (err) {
+      showToast(err.message || 'Failed to apply replacement', 'error');
+    } finally {
+      setApplying(false);
+    }
+  };
+
+  const modal = (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+      <div className="bg-ink-900 border border-white/10 rounded-3xl w-full max-w-xl p-6 sm:p-7 space-y-6 shadow-2xl my-8">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="p-1.5 rounded-lg bg-coral-500/15 border border-coral-500/30 text-coral-400">
+                <Sparkles className="w-4 h-4" />
+              </span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-coral-400 font-mono">
+                AI Activity Assistant
+              </span>
+            </div>
+            <h3 className="text-xl font-extrabold text-white font-display">
+              Change or Swap Activity
+            </h3>
+            <p className="text-xs text-slate-400">
+              Tell AI what you don't like or what you'd prefer instead, and get an authentic local replacement in {trip.destination}.
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Current Activity Banner */}
+        <div className="p-4 rounded-2xl bg-ink-950/80 border border-white/5 space-y-2">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+            Current Activity to Replace
+          </span>
+          <div className="flex items-center justify-between gap-3">
+            <div className="space-y-0.5 min-w-0">
+              <h4 className="text-sm font-bold text-white truncate">{item.title}</h4>
+              <p className="text-xs text-slate-400 flex items-center gap-1.5 truncate">
+                <MapPin className="w-3 h-3 text-coral-400 shrink-0" />
+                <span className="truncate">{item.location?.name || trip.destination}</span>
+              </p>
+            </div>
+            <div className="text-right shrink-0">
+              <span className="text-xs font-mono font-bold text-teal-400 bg-teal-500/10 px-2 py-0.5 rounded border border-teal-500/20">
+                {item.startTime}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Prompt Input Form */}
+        <form onSubmit={handleGenerate} className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
+              <span>What would you like instead?</span>
+              <span className="text-[11px] font-normal text-slate-500">e.g. "I don't want this, give this"</span>
+            </label>
+            <textarea
+              rows={3}
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="e.g. I don't want rafting, give me a relaxing coffee estate tour or spice plantation walk instead"
+              className="w-full px-4 py-3 rounded-2xl bg-ink-950 border border-white/10 text-white placeholder-slate-500 text-xs focus:outline-none focus:border-coral-500/50 resize-none transition-colors"
+            />
+          </div>
+
+          {/* Quick inspiration chips */}
+          <div className="space-y-1.5">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              Quick Suggestions
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {quickChips.map((chip, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setPrompt(`I don't want ${item.title}, give me a ${chip.replace(/^[^\s]+\s*/, '')} instead.`)}
+                  className="px-2.5 py-1 rounded-xl text-[11px] font-medium bg-white/5 hover:bg-coral-500/15 text-slate-300 hover:text-coral-300 border border-white/5 hover:border-coral-500/30 transition-all text-left"
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-1">
+            <button
+              type="submit"
+              disabled={loading || !prompt.trim()}
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-coral-500 to-amber-500 hover:from-coral-600 hover:to-amber-600 text-white text-xs font-bold flex items-center gap-2 shadow-glow disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Consulting AI Concierge...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  <span>Generate AI Alternative</span>
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+
+        {/* AI Replacement Result Card */}
+        {replacement && (
+          <div className="p-5 rounded-2xl bg-gradient-to-br from-teal-500/10 via-ink-950 to-coral-500/10 border border-teal-500/30 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-teal-400 flex items-center gap-1 font-mono">
+                <Check className="w-3.5 h-3.5" />
+                AI Recommended Alternative
+              </span>
+              <span className="text-xs font-mono font-bold text-white bg-white/10 px-2 py-0.5 rounded">
+                {replacement.startTime || item.startTime}
+              </span>
+            </div>
+
+            <div className="space-y-1.5">
+              <h4 className="text-base font-extrabold text-white leading-tight">
+                {replacement.title}
+              </h4>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                {replacement.description}
+              </p>
+              <div className="flex flex-wrap items-center gap-3 pt-1 text-xs text-slate-400">
+                <span className="flex items-center gap-1 text-teal-300 font-medium">
+                  <MapPin className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+                  <span>{replacement.location?.name || replacement.location}</span>
+                </span>
+                {replacement.estimatedCost > 0 && (
+                  <span className="text-slate-300 font-mono">
+                    Est. {formatCurrency(replacement.estimatedCost, trip.currency)}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2 border-t border-white/10">
+              <button
+                type="button"
+                onClick={() => setReplacement(null)}
+                className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+              >
+                Try Another
+              </button>
+              <button
+                type="button"
+                disabled={applying}
+                onClick={handleApply}
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white text-xs font-bold flex items-center gap-2 shadow-glow transition-all"
+              >
+                {applying ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Applying...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4" />
+                    <span>Apply to My Itinerary</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  return typeof document !== 'undefined' ? createPortal(modal, document.body) : modal;
+};
+
+// =========================================================
+// MODAL: EDIT ACTIVITY MANUALLY
+// =========================================================
+
+const EditActivityModal = ({ trip, item, isOpen, onClose, onUpdated }) => {
+  const { showToast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({
+    title: item?.title || '',
+    category: item?.category || 'sightseeing',
+    startTime: item?.startTime || '10:00',
+    endTime: item?.endTime || '12:00',
+    locationName: item?.location?.name || '',
+    locationAddress: item?.location?.address || '',
+    estimatedCost: item?.estimatedCost || 0,
+    description: item?.description || '',
+    notes: item?.notes || '',
+  });
+
+  useEffect(() => {
+    if (item) {
+      setForm({
+        title: item.title || '',
+        category: item.category || 'sightseeing',
+        startTime: item.startTime || '10:00',
+        endTime: item.endTime || '12:00',
+        locationName: item.location?.name || '',
+        locationAddress: item.location?.address || '',
+        estimatedCost: item.estimatedCost || 0,
+        description: item.description || '',
+        notes: item.notes || '',
+      });
+    }
+  }, [item]);
+
+  if (!isOpen || !item) return null;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.title.trim()) {
+      showToast('Activity title is required', 'error');
+      return;
+    }
+    try {
+      setLoading(true);
+      const payload = {
+        title: form.title.trim(),
+        category: form.category,
+        startTime: form.startTime,
+        endTime: form.endTime,
+        location: {
+          name: form.locationName.trim() || trip.destination,
+          address: form.locationAddress.trim() || form.locationName.trim() || trip.destination,
+        },
+        estimatedCost: Number(form.estimatedCost) || 0,
+        description: form.description.trim(),
+        notes: form.notes.trim(),
+      };
+
+      const res = await ApiClient.updateItineraryItem(trip._id, item._id, payload);
+      if (res.success) {
+        showToast('Activity updated successfully', 'success');
+        onUpdated();
+        onClose();
+      } else {
+        showToast(res.message || 'Failed to update activity', 'error');
+      }
+    } catch (err) {
+      showToast(err.message || 'Failed to update activity', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const modal = (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+      <div className="bg-ink-900 border border-white/10 rounded-3xl w-full max-w-lg p-6 space-y-6 shadow-2xl my-8">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="p-2 rounded-xl bg-teal-500/10 text-teal-400">
+              <Edit3 className="w-4 h-4" />
+            </span>
+            <h3 className="text-lg font-bold text-white font-display">Edit Activity</h3>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+          <div className="space-y-1.5">
+            <label className="font-bold text-slate-300">Activity Title *</label>
+            <input
+              type="text"
+              required
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              className="w-full px-4 py-2.5 rounded-xl bg-ink-950 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-teal-500/50"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label className="font-bold text-slate-300">Category</label>
+              <select
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                className="w-full px-3 py-2.5 rounded-xl bg-ink-950 border border-white/10 text-white focus:outline-none focus:border-teal-500/50"
+              >
+                <option value="sightseeing">Sightseeing</option>
+                <option value="restaurant">Dining / Food</option>
+                <option value="activities">Adventure / Activity</option>
+                <option value="culture">Culture / Heritage</option>
+                <option value="shopping">Shopping</option>
+                <option value="hotel">Stay / Resort</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="font-bold text-slate-300">Estimated Cost (INR)</label>
+              <input
+                type="number"
+                min="0"
+                value={form.estimatedCost}
+                onChange={(e) => setForm({ ...form, estimatedCost: e.target.value })}
+                className="w-full px-3 py-2.5 rounded-xl bg-ink-950 border border-white/10 text-white focus:outline-none focus:border-teal-500/50"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label className="font-bold text-slate-300">Start Time</label>
+              <input
+                type="time"
+                value={form.startTime}
+                onChange={(e) => setForm({ ...form, startTime: e.target.value })}
+                className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-white/10 text-white focus:outline-none"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="font-bold text-slate-300">End Time</label>
+              <input
+                type="time"
+                value={form.endTime}
+                onChange={(e) => setForm({ ...form, endTime: e.target.value })}
+                className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-white/10 text-white focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="font-bold text-slate-300">Location / Venue Name</label>
+            <input
+              type="text"
+              value={form.locationName}
+              onChange={(e) => setForm({ ...form, locationName: e.target.value })}
+              placeholder="e.g. Raintree Restaurant, Madikeri"
+              className="w-full px-4 py-2.5 rounded-xl bg-ink-950 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-teal-500/50"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="font-bold text-slate-300">Description / Tips</label>
+            <textarea
+              rows={2}
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              className="w-full px-4 py-2.5 rounded-xl bg-ink-950 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-teal-500/50 resize-none"
+            />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-xl text-slate-400 hover:text-white"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-5 py-2 rounded-xl bg-coral-500 hover:bg-coral-600 text-white font-bold shadow-glow"
+            >
+              {loading ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
         </form>

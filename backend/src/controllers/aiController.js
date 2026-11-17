@@ -1098,6 +1098,148 @@ export const exportToJourney = async (req, res) => {
   }
 };
 
+/**
+ * Modify / Swap an Activity using AI ("I don't want this, give me this")
+ */
+export const modifyActivity = async (req, res) => {
+  try {
+    const {
+      destination,
+      currentActivity = {},
+      userPrompt,
+      dayTitle,
+    } = req.body;
+
+    if (!destination || !userPrompt) {
+      return res.status(400).json({
+        success: false,
+        message: 'Destination and your change request (userPrompt) are required.',
+      });
+    }
+
+    const cleanDest = destination.trim();
+    const cleanPrompt = userPrompt.trim();
+    const actTitle = currentActivity.title || 'Current Activity';
+    const actCategory = currentActivity.category || 'sightseeing';
+    const actTime = currentActivity.startTime || currentActivity.time || '14:00';
+    const actLocation = currentActivity.location?.name || currentActivity.location || '';
+    const actDesc = currentActivity.description || '';
+
+    const geminiApiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+
+    let replacement = null;
+
+    if (geminiApiKey) {
+      const prompt = `You are Nomadly's world-class AI travel concierge. A traveler is customizing their itinerary for "${cleanDest}".
+They want to REPLACE or MODIFY the following scheduled activity:
+
+CURRENT ACTIVITY TO REPLACE:
+- Title: "${actTitle}"
+- Category: "${actCategory}"
+- Scheduled Time: "${actTime}"
+- Location: "${actLocation}"
+- Description: "${actDesc}"
+${dayTitle ? `- Day Context: "${dayTitle}"` : ''}
+
+TRAVELER'S EXACT INSTRUCTION / WHAT THEY WANT INSTEAD:
+"${cleanPrompt}"
+
+CRITICAL REQUIREMENTS:
+- Strictly obey the traveler's request (e.g., if they say "I don't want rafting, give me a coffee tasting", give them a real coffee tasting; if they say "give me a pure vegetarian restaurant", provide a genuine pure vegetarian restaurant).
+- The replacement MUST be a REAL, genuine venue/attraction in or near "${cleanDest}".
+- EXACT VENUE LOCATION: "location" MUST include the specific exact venue/restaurant name along with its area/neighborhood (e.g. "Big Cup Cafe, Stuart Hill, Madikeri"). NEVER return just a city name alone!
+- "googleMapsQuery" MUST be the full exact searchable venue name for Google Maps navigation (e.g. "Big Cup Cafe, Madikeri, Coorg, Karnataka, India").
+- Keep or logically adapt the scheduled time ("${actTime}").
+- Provide realistic estimated cost in INR.
+
+Return ONLY a valid JSON object without markdown or prose:
+{
+  "title": "Specific replacement activity name",
+  "category": "sightseeing",
+  "location": "Exact Venue Name, Area",
+  "googleMapsQuery": "Exact Venue Name, Area, ${cleanDest}, India",
+  "startTime": "${actTime}",
+  "endTime": "16:00",
+  "estimatedCost": 500,
+  "description": "Engaging description explaining why this is a fantastic alternative matching their preference"
+}`;
+
+      const modelsToTry = [
+        'gemini-3.1-flash-lite',
+        'gemini-3.8-flash',
+        'gemini-3.1-flash-lite-preview',
+        'gemini-flash-latest',
+      ];
+
+      for (const model of modelsToTry) {
+        try {
+          const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiApiKey}`;
+          const response = await fetch(apiEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal: AbortSignal.timeout(9000),
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: {
+                temperature: 0.4,
+                maxOutputTokens: 1200,
+                responseMimeType: 'application/json',
+              },
+            }),
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            let rawText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (rawText) {
+              rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+              replacement = JSON.parse(rawText);
+              break;
+            }
+          }
+        } catch (err) {
+          console.warn(`[Gemini API] modifyActivity ${model} attempt error:`, err.message);
+        }
+      }
+    }
+
+    // Fallback if AI was offline
+    if (!replacement) {
+      replacement = {
+        title: `Curated Alternative in ${cleanDest}`,
+        category: 'sightseeing',
+        location: `${cleanDest} City Center`,
+        googleMapsQuery: `${cleanDest}, India`,
+        startTime: actTime,
+        endTime: '16:00',
+        estimatedCost: 300,
+        description: `Customized experience in ${cleanDest} based on your preference: "${cleanPrompt}".`,
+      };
+    }
+
+    // Enrich replacement venue query
+    const exactQuery = buildExactVenueQuery(replacement.title, replacement.googleMapsQuery || replacement.location, cleanDest);
+    const cleanVenue = cleanVenueTitle(replacement.title);
+    let displayLoc = (replacement.location || cleanDest).trim();
+    if (cleanVenue && !displayLoc.toLowerCase().includes(cleanVenue.toLowerCase()) && displayLoc.toLowerCase() !== cleanVenue.toLowerCase()) {
+      displayLoc = `${cleanVenue}, ${displayLoc}`;
+    }
+
+    replacement.location = {
+      name: displayLoc,
+      address: exactQuery,
+    };
+    replacement.googleMapsQuery = exactQuery;
+
+    return res.status(200).json({
+      success: true,
+      data: replacement,
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 
 
 
