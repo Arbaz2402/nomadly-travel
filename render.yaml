@@ -27,4 +27,8 @@ services:
         value: 90892622famshe5b6efc68aebcf4p1eaa28jsn369d2ce96e82
       - key: FIREBASE_SERVICE_ACCOUNT
         sync: false
+      - key: EMAIL_USER
+        value: arbazkaladiya1@gmail.com
+      - key: EMAIL_PASS
+        sync: false
 
