@@ -26,10 +26,11 @@ import { swaggerSpec } from './docs/swagger.js';
 
 const app = express();
 
-// Security Headers (configured to allow interactive Swagger UI assets)
+// Security Headers (configured to allow interactive Swagger UI assets and cross-origin authentication popups)
 app.use(
   helmet({
     contentSecurityPolicy: false,
+    crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
   })
 );
 
