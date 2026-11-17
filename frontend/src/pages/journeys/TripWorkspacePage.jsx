@@ -734,11 +734,11 @@ const ItineraryView = ({
 
     if (stops.length === 0) return;
     if (stops.length === 1) {
-      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stops[0])}`, '_blank');
+      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stops[0])}`, '_blank', 'noopener,noreferrer');
       return;
     }
     const path = stops.slice(0, 10).map((s) => encodeURIComponent(s)).join('/');
-    window.open(`https://www.google.com/maps/dir/${path}`, '_blank');
+    window.open(`https://www.google.com/maps/dir/${path}`, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -1527,7 +1527,7 @@ const TripMapView = ({ trip, itinerary }) => {
       ? buildExactVenueQuery('', stop, trip.destination)
       : buildExactVenueQuery(stop?.title, stop?.address, trip.destination);
     const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(clean)}`;
-    window.open(url, '_blank');
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   const openMultiStopGoogleMapsRoute = (stopsList) => {
@@ -1541,14 +1541,14 @@ const TripMapView = ({ trip, itinerary }) => {
 
     if (unique.length === 0) return;
     if (unique.length === 1) {
-      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(unique[0])}`, '_blank');
+      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(unique[0])}`, '_blank', 'noopener,noreferrer');
       return;
     }
 
     // Google Maps handles up to 10 stops chained in one directions URL
     const topStops = unique.slice(0, 10);
     const path = topStops.map((s) => encodeURIComponent(s)).join('/');
-    window.open(`https://www.google.com/maps/dir/${path}`, '_blank');
+    window.open(`https://www.google.com/maps/dir/${path}`, '_blank', 'noopener,noreferrer');
   };
 
   const displayedStops = selectedDayFilter === 'all'
@@ -2433,7 +2433,7 @@ const AddMemberModal = ({ trip, isOpen, onClose, onCreated }) => {
           const subject = `Join my trip to ${destination}: "${tripTitle}" on Nomadly`;
           const body = `Hi ${name || 'there'},\n\nI've invited you to collaborate with me on "${tripTitle}" (${destination}) as an ${roleName} on Nomadly!\n\nTrip Details:\n📍 Destination: ${destination}\n📅 Dates: ${formattedDates}\n👥 Role: ${roleName} (${role === 'editor' ? 'Can add, edit, and organize activities & split expenses' : 'Read-only access to itinerary & map stops'})\n\nAccept the invitation and view our interactive itinerary here:\n${tripUrl}\n\nLooking forward to traveling together!`;
           const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-          window.open(gmailUrl, '_blank');
+          window.open(gmailUrl, '_blank', 'noopener,noreferrer');
         }
 
         setName('');
