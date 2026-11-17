@@ -83,6 +83,10 @@ export class ApiClient {
     return this.request('/flights/airports');
   }
 
+  static getPopularFlightRoutes() {
+    return this.request('/flights/popular-routes');
+  }
+
   // Hotels
   static searchHotels(params = {}) {
     const query = new URLSearchParams(params).toString();

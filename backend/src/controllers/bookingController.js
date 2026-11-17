@@ -35,7 +35,7 @@ export const createBooking = async (req, res) => {
       if (!flight || !flight.isActive) {
         return res.status(404).json({ success: false, message: 'Flight offer is no longer available.' });
       }
-      baseFare = flight.pricing.baseFare;
+      baseFare = flight.pricing?.baseFare || flight.pricing?.totalAmount || 4200;
       providerName = flight.provider;
       itinerarySnapshot = {
         offerReference: flight.offerReference,

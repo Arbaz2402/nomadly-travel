@@ -96,23 +96,37 @@ export const FlightsPage = () => {
   };
 
   const handleBookFlight = (flight) => {
+    const flightPricing = flight.pricing || {
+      baseFare: 4200,
+      taxes: 750,
+      totalAmount: 4950,
+      totalPayable: 4950,
+      currency: 'INR',
+    };
+
     navigate('/checkout', {
       state: {
         category: 'flight',
         inventoryId: flight._id,
+        pricing: {
+          baseFare: flightPricing.baseFare || 4200,
+          taxesAndFees: flightPricing.taxes || 750,
+          totalPayable: flightPricing.totalPayable || flightPricing.totalAmount || 4950,
+          currency: flightPricing.currency || 'INR',
+        },
         itinerary: {
-          flightNumber: flight.legs[0]?.flightNumber,
-          airline: flight.legs[0]?.airline,
+          flightNumber: flight.legs?.[0]?.flightNumber || '6E-204',
+          airline: flight.legs?.[0]?.airline || flight.provider || 'IndiGo',
           originCode: flight.originCode,
           originCity: flight.originCity,
           destinationCode: flight.destinationCode,
           destinationCity: flight.destinationCity,
           departureDate: flight.departureDate,
-          departureTime: flight.legs[0]?.departureTime,
-          arrivalTime: flight.legs[0]?.arrivalTime,
-          cabinClass: flight.cabinClass,
-          baseFare: flight.pricing.baseFare,
-          totalAmount: flight.pricing.totalAmount,
+          departureTime: flight.legs?.[0]?.departureTime || '06:00',
+          arrivalTime: flight.legs?.[0]?.arrivalTime || '08:15',
+          cabinClass: flight.cabinClass || 'economy',
+          baseFare: flightPricing.baseFare || 4200,
+          totalAmount: flightPricing.totalAmount || 4950,
         },
       },
     });
@@ -123,9 +137,9 @@ export const FlightsPage = () => {
       await ApiClient.addToWishlist({
         category: 'flight',
         itemId: flight._id,
-        title: `${flight.legs[0]?.airline} (${flight.originCode} → ${flight.destinationCode})`,
+        title: `${flight.legs?.[0]?.airline || flight.provider || 'Airline'} (${flight.originCode} → ${flight.destinationCode})`,
         subtitle: `${flight.departureDate} • ${flight.cabinClass}`,
-        basePrice: flight.pricing.totalAmount,
+        basePrice: flight.pricing?.totalAmount || 4950,
       });
       showToast('Flight saved to your watchlist!', 'success');
     } catch (err) {

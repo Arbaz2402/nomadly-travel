@@ -100,7 +100,7 @@ export const BusCard = ({ bus, onCheckoutWithSeats }) => {
         <div>
           <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Starts from</span>
           <span className="text-xl font-extrabold text-white tracking-tight font-display">
-            {formatCurrency(bus.baseFare)}
+            {formatCurrency(bus?.baseFare || bus?.pricing?.baseFare || 850)}
           </span>
           <span className="text-[10px] text-slate-400 ml-1">/ seat</span>
         </div>

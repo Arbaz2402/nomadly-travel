@@ -160,12 +160,7 @@ export const AdminDashboard = () => {
 
   const kpis = overviewData?.kpis || {};
   const monthlyTrends = overviewData?.monthlyTrends || [];
-  const categoryDistribution = overviewData?.categoryDistribution || [
-    { _id: 'flight', count: 18, totalRevenue: 125000 },
-    { _id: 'hotel', count: 12, totalRevenue: 98000 },
-    { _id: 'train', count: 24, totalRevenue: 45000 },
-    { _id: 'bus', count: 32, totalRevenue: 38000 },
-  ];
+  const categoryDistribution = overviewData?.categoryDistribution || [];
 
   const pieColors = ['#ff5a36', '#14b8a6', '#f59e0b', '#3b82f6'];
 
@@ -224,22 +219,22 @@ export const AdminDashboard = () => {
                 Gross Booking Value (GBV)
               </span>
               <p className="text-2xl font-extrabold text-white font-display">
-                {formatCurrency(kpis.grossBookingValue || 3450000)}
+                {formatCurrency(kpis.grossBookingValue ?? 0)}
               </p>
               <span className="text-[11px] text-teal-400 font-semibold block mt-1">
-                ↑ 18.4% vs last period
+                Real-time confirmed booking volume
               </span>
             </div>
 
             <div className="glass-card rounded-2xl p-5 border border-white/10">
               <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
-                Platform Commission (8%)
+                Platform Service Revenue
               </span>
               <p className="text-2xl font-extrabold text-coral-400 font-display">
-                {formatCurrency(kpis.platformRevenue || 276000)}
+                {formatCurrency(kpis.platformRevenue ?? 0)}
               </p>
               <span className="text-[11px] text-slate-400 font-medium block mt-1">
-                Net operational revenue
+                Collected platform service fees
               </span>
             </div>
 
@@ -248,7 +243,7 @@ export const AdminDashboard = () => {
                 Confirmed Reservations
               </span>
               <p className="text-2xl font-extrabold text-white font-display">
-                {kpis.confirmedBookings || 48}
+                {kpis.confirmedBookings ?? 0}
               </p>
               <span className="text-[11px] text-teal-400 font-semibold block mt-1">
                 Zero double-booking rate
@@ -260,10 +255,10 @@ export const AdminDashboard = () => {
                 Cancellation Rate
               </span>
               <p className="text-2xl font-extrabold text-amber-400 font-display">
-                {kpis.cancellationRate || 4.2}%
+                {kpis.cancellationRate ?? 0}%
               </p>
               <span className="text-[11px] text-slate-400 block mt-1">
-                Refunds: {formatCurrency(kpis.refundVolume || 18500)}
+                Refunds: {formatCurrency(kpis.refundVolume ?? 0)}
               </span>
             </div>
           </div>
@@ -489,28 +484,55 @@ export const AdminDashboard = () => {
       {/* Tab 4: Supplier GDS Health */}
       {activeTab === 'inventory' && (
         <div className="glass-panel rounded-3xl p-6 border border-white/10 space-y-6">
-          <h2 className="text-base font-bold text-white tracking-tight">Travel Provider Integration Mesh</h2>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold text-white tracking-tight">Travel Provider Integration Mesh</h2>
+              <p className="text-xs text-slate-400">Live operational status of connected reservation channels</p>
+            </div>
+            <button
+              onClick={fetchInventory}
+              className="px-3 py-1.5 rounded-xl bg-ink-900 hover:bg-white/5 border border-white/10 text-xs font-semibold text-slate-300 flex items-center gap-1.5 transition-all"
+            >
+              <RefreshCw className="w-3.5 h-3.5 text-teal-400" />
+              <span>Refresh Status</span>
+            </button>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[
-              { name: 'Flight Distribution GDS', provider: 'Amadeus Self-Service Adapter', status: 'Healthy', items: '4 Scheduled Routes' },
-              { name: 'Hotel Channel CRS', provider: 'Direct Boutique Hotel API', status: 'Healthy', items: '3 Luxury Properties' },
-              { name: 'Indian Rail National Timetable', provider: 'IRCTC Express Timetable Sync', status: 'Healthy', items: '2 Superfast Express Lines' },
-              { name: 'Intercity Bus Inventory Hold', provider: 'Direct Seat Engine API', status: 'Healthy', items: '2 Multi-Axle Volvo Fleets' },
-            ].map((p, i) => (
-              <div key={i} className="p-5 rounded-2xl bg-ink-900/60 border border-white/5 flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="w-2 h-2 rounded-full bg-teal-400"></span>
-                    <h3 className="font-bold text-white text-sm">{p.name}</h3>
+            {inventoryStats && Object.keys(inventoryStats).length > 0 ? (
+              Object.entries(inventoryStats).map(([key, item]) => {
+                const displayName =
+                  key === 'flights'
+                    ? 'Global Flight Distribution'
+                    : key === 'hotels'
+                    ? 'Luxury Hotel Channel CRS'
+                    : key === 'experiences'
+                    ? 'Local Guides & Curated Tours'
+                    : key === 'packages'
+                    ? 'Dynamic Vacation Combos Engine'
+                    : key.toUpperCase();
+
+                return (
+                  <div key={key} className="p-5 rounded-2xl bg-ink-900/60 border border-white/5 flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="w-2 h-2 rounded-full bg-teal-400"></span>
+                        <h3 className="font-bold text-white text-sm">{displayName}</h3>
+                      </div>
+                      <p className="text-xs text-slate-400">{item.provider}</p>
+                      <p className="text-[11px] text-teal-400 mt-2 font-medium">{item.items || `${item.count} items active`}</p>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-full bg-teal-500/10 text-teal-400 text-[10px] font-bold uppercase">
+                      {item.status || 'Connected'}
+                    </span>
                   </div>
-                  <p className="text-xs text-slate-400">{p.provider}</p>
-                  <p className="text-[11px] text-teal-400 mt-2 font-medium">{p.items}</p>
-                </div>
-                <span className="px-2.5 py-1 rounded-full bg-teal-500/10 text-teal-400 text-[10px] font-bold uppercase">
-                  Connected
-                </span>
+                );
+              })
+            ) : (
+              <div className="col-span-2 py-8 text-center text-xs text-slate-400">
+                Loading live supplier telemetry...
               </div>
-            ))}
+            )}
           </div>
         </div>
       )}

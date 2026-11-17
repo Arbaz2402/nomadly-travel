@@ -97,11 +97,33 @@ export const HomePage = () => {
       }
     };
 
+    const fetchRoutes = async () => {
+      try {
+        const res = await ApiClient.getPopularFlightRoutes();
+        if (res.success && res.data && res.data.length > 0) {
+          setPopularRoutes(
+            res.data.map((r) => ({
+              from: r.from,
+              to: r.to,
+              mode: r.mode,
+              icon: Plane,
+              time: r.time,
+              fare: formatCurrency(r.fare),
+              link: r.link,
+            }))
+          );
+        }
+      } catch (e) {
+        console.warn('Could not fetch dynamic flight routes:', e.message);
+      }
+    };
+
     fetchHotels();
     fetchExp();
+    fetchRoutes();
   }, []);
 
-  const popularRoutes = [
+  const [popularRoutes, setPopularRoutes] = useState([
     {
       from: 'Mumbai (BOM)',
       to: 'Delhi (DEL)',
@@ -138,7 +160,7 @@ export const HomePage = () => {
       fare: '₹18,900',
       link: '/flights?origin=DEL&destination=DXB',
     },
-  ];
+  ]);
 
   const displayHotels = featuredHotels.length > 0 ? featuredHotels : fallbackCollections;
 
