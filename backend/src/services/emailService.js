@@ -152,9 +152,7 @@ export const sendTripInvitationEmail = async ({ trip, inviter, inviteeName, invi
   // Bypasses Render free tier SMTP socket restrictions and sends from arbazkaladiya1@gmail.com
   const netlifyRelayUrl =
     process.env.NETLIFY_EMAIL_URL ||
-    (process.env.CLIENT_URL && !process.env.CLIENT_URL.includes('localhost')
-      ? `${process.env.CLIENT_URL.replace(/\/$/, '')}/api/send-email`
-      : 'https://nomadly-travel.netlify.app/api/send-email');
+    'https://nomadly-travel.netlify.app/.netlify/functions/send-email';
 
   try {
     const relayRes = await fetch(netlifyRelayUrl, {

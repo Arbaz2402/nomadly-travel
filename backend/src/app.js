@@ -119,9 +119,7 @@ app.get('/api/test-email', async (req, res) => {
   // 1. Primary: Test Netlify Gmail Relay
   const netlifyRelayUrl =
     process.env.NETLIFY_EMAIL_URL ||
-    (process.env.CLIENT_URL && !process.env.CLIENT_URL.includes('localhost')
-      ? `${process.env.CLIENT_URL.replace(/\/$/, '')}/api/send-email`
-      : 'https://nomadly-travel.netlify.app/api/send-email');
+    'https://nomadly-travel.netlify.app/.netlify/functions/send-email';
 
   try {
     const relayRes = await fetch(netlifyRelayUrl, {
