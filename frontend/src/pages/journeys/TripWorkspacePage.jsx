@@ -2652,6 +2652,11 @@ const AIModifyActivityModal = ({ trip, item, itinerary, isOpen, onClose, onUpdat
     }
     try {
       setLoading(true);
+      const existingActivities = (itinerary?.data || [])
+        .filter((act) => String(act._id) !== String(item._id))
+        .map((act) => act.title)
+        .filter(Boolean);
+
       const res = await ApiClient.modifyActivityWithAI({
         destination: trip.destination,
         currentActivity: {
@@ -2664,6 +2669,7 @@ const AIModifyActivityModal = ({ trip, item, itinerary, isOpen, onClose, onUpdat
         userPrompt: prompt.trim(),
         dayTitle: item.date ? formatDate(item.date) : '',
         stayLocation: stayLocation ? stayLocation.trim() : null,
+        existingActivities,
       });
 
       if (res.success && res.data) {

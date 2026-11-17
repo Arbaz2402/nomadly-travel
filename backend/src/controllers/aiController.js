@@ -1109,6 +1109,7 @@ export const modifyActivity = async (req, res) => {
       userPrompt,
       dayTitle,
       stayLocation,
+      existingActivities = [],
     } = req.body;
 
     if (!destination || !userPrompt) {
@@ -1131,6 +1132,10 @@ export const modifyActivity = async (req, res) => {
       ? `\nTRAVELER'S STAY / RESORT BASE:\n"${cleanStay}" (The traveler is staying here!)\n-> CRITICAL PROXIMITY RULE: If the traveler mentions "our stay", "our hotel", "too far", "closer to stay", "near hotel", or distance, you MUST strictly pick a replacement located either right at or in the very close vicinity (short 5-15 min drive) of "${cleanStay}"!\n`
       : '';
 
+    const dedupeClause = Array.isArray(existingActivities) && existingActivities.length > 0
+      ? `\nALREADY SCHEDULED ACTIVITIES IN THIS ITINERARY ON OTHER DAYS (STRICTLY FORBIDDEN TO REPEAT/DUPLICATE):\n${existingActivities.map((t, i) => `${i + 1}. ${t}`).join('\n')}\n-> ABSOLUTE DEDUPLICATION RULE: You MUST NOT repeat, duplicate, or offer any attraction, venue, or activity type already planned in the trip listed above! If a Coffee Plantation Tour, Rainforest Walk, or Elephant Camp is already planned elsewhere in the trip, suggest something completely fresh and different (e.g. scenic sunset at Raja's Seat, Ayurvedic spa relaxation, Madikeri Fort heritage museum, Chelavara Falls, Mandalpatti viewpoint, or a local spice market tour).\n`
+      : '';
+
     const geminiApiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
 
     let replacement = null;
@@ -1145,13 +1150,14 @@ CURRENT ACTIVITY TO REPLACE:
 - Scheduled Time: "${actTime}"
 - Location: "${actLocation}"
 - Description: "${actDesc}"
-${dayTitle ? `- Day Context: "${dayTitle}"` : ''}${stayClause}
+${dayTitle ? `- Day Context: "${dayTitle}"` : ''}${stayClause}${dedupeClause}
 
 TRAVELER'S EXACT INSTRUCTION / WHAT THEY WANT INSTEAD:
 "${cleanPrompt}"
 
 CRITICAL REQUIREMENTS:
-- Strictly obey the traveler's request (e.g., if they say "I don't want rafting, give me a coffee tasting", give them a real coffee tasting; if they say "this is too far from our stay", find an alternative directly near their stay base).
+- Strictly obey the traveler's request (e.g., if they say "this is too far from our stay", find an alternative directly near their stay base).
+- ZERO DUPLICATION: Never suggest an activity, venue, or sight that is already on the traveler's itinerary on any other day (see list above).
 - The replacement MUST be a REAL, genuine venue/attraction in or near "${cleanDest}".
 - EXACT VENUE LOCATION: "location" MUST include the specific exact venue/restaurant name along with its area/neighborhood (e.g. "Big Cup Cafe, Stuart Hill, Madikeri"). NEVER return just a city name alone!
 - "googleMapsQuery" MUST be the full exact searchable venue name for Google Maps navigation (e.g. "Big Cup Cafe, Madikeri, Coorg, Karnataka, India").
