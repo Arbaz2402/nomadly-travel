@@ -18,6 +18,9 @@ import {
   ChevronRight,
   MessageSquare,
   ExternalLink,
+  Route,
+  Map,
+  Navigation,
 } from 'lucide-react';
 import { ApiClient } from '../../services/api';
 import { formatCurrency } from '../../utils/formatters';
@@ -67,6 +70,45 @@ export const AITripPlannerPage = () => {
     } else {
       setSelectedInterests([...selectedInterests, id]);
     }
+  };
+
+  /**
+   * Constructs a chained Google Maps directions link connecting all stops for a specific day
+   */
+  const getGoogleMapsRouteUrl = (activities = [], destination = '') => {
+    if (!activities || activities.length === 0) return null;
+    const stops = activities
+      .map((a) => a.googleMapsQuery || (a.location ? `${a.location}, ${destination}`.trim() : null))
+      .filter(Boolean);
+
+    if (stops.length === 0) return null;
+    if (stops.length === 1) {
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stops[0])}`;
+    }
+    const path = stops.map((s) => encodeURIComponent(s)).join('/');
+    return `https://www.google.com/maps/dir/${path}`;
+  };
+
+  /**
+   * Constructs a multi-stop Google Maps directions link covering all unique highlights across the trip
+   */
+  const getAllTripStopsRouteUrl = (days = [], destination = '') => {
+    if (!days || days.length === 0) return null;
+    const allStops = [];
+    days.forEach((d) => {
+      d.activities?.forEach((a) => {
+        const query = a.googleMapsQuery || (a.location ? `${a.location}, ${destination}`.trim() : null);
+        if (query && !allStops.includes(query)) {
+          allStops.push(query);
+        }
+      });
+    });
+    if (allStops.length === 0) return null;
+    if (allStops.length === 1) {
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(allStops[0])}`;
+    }
+    const topStops = allStops.slice(0, 10);
+    return `https://www.google.com/maps/dir/${topStops.map((s) => encodeURIComponent(s)).join('/')}`;
   };
 
   const handleGenerate = async (e) => {
@@ -418,30 +460,47 @@ export const AITripPlannerPage = () => {
                     {itinerary.overview}
                   </p>
 
-                  {/* 1-Click Export Banner */}
-                  <div className="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-white/5">
+                  {/* 1-Click Export & Multi-Stop Route Banner */}
+                  <div className="pt-3 flex flex-wrap items-center justify-between gap-3 border-t border-white/5">
                     <div className="flex items-center gap-2 text-xs text-slate-400">
                       <Layers className="w-4 h-4 text-coral-400" />
-                      <span>Ready to organize or invite travel companions?</span>
+                      <span>Ready to organize or navigate this itinerary?</span>
                     </div>
 
-                    <button
-                      onClick={handleExportToJourney}
-                      disabled={exporting}
-                      className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white text-xs font-bold shadow-glow-teal flex items-center gap-2 transition-all disabled:opacity-50"
-                    >
-                      {exporting ? (
-                        <>
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          <span>Exporting...</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>Save & Export to My Journeys</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </>
+                    <div className="flex flex-wrap items-center gap-2.5">
+                      {/* Entire Trip Multi-Stop Route Button */}
+                      {getAllTripStopsRouteUrl(itinerary.days, itinerary.destination) && (
+                        <a
+                          href={getAllTripStopsRouteUrl(itinerary.days, itinerary.destination)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-4 py-2.5 rounded-xl bg-ink-900 hover:bg-ink-850 border border-white/10 hover:border-coral-500/40 text-white text-xs font-bold flex items-center gap-2 transition-all shadow-sm group"
+                          title="Open all stops across the entire trip chained together in Google Maps"
+                        >
+                          <Map className="w-3.5 h-3.5 text-coral-400 group-hover:scale-110 transition-transform" />
+                          <span>Complete Trip Route (All Stops)</span>
+                          <ExternalLink className="w-3 h-3 text-slate-400 group-hover:text-white" />
+                        </a>
                       )}
-                    </button>
+
+                      <button
+                        onClick={handleExportToJourney}
+                        disabled={exporting}
+                        className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white text-xs font-bold shadow-glow-teal flex items-center gap-2 transition-all disabled:opacity-50"
+                      >
+                        {exporting ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <span>Exporting...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>Save & Export to My Journeys</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -465,9 +524,33 @@ export const AITripPlannerPage = () => {
                 {/* Active Day Activities List */}
                 {itinerary.days?.[activeDayIndex] && (
                   <div className="glass-panel rounded-3xl border border-white/10 p-6 space-y-4">
-                    <h3 className="text-base font-bold text-white font-display border-b border-white/5 pb-3">
-                      {itinerary.days[activeDayIndex].title}
-                    </h3>
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-3">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-teal-400 block mb-0.5">
+                          Day {itinerary.days[activeDayIndex].day} Stops & Navigation
+                        </span>
+                        <h3 className="text-base font-bold text-white font-display">
+                          {itinerary.days[activeDayIndex].title}
+                        </h3>
+                      </div>
+
+                      {/* Day Multi-Stop Route Button */}
+                      {getGoogleMapsRouteUrl(itinerary.days[activeDayIndex].activities, itinerary.destination) && (
+                        <a
+                          href={getGoogleMapsRouteUrl(itinerary.days[activeDayIndex].activities, itinerary.destination)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-coral-500/20 via-coral-500/10 to-amber-500/20 hover:from-coral-500/30 hover:to-amber-500/30 border border-coral-500/35 text-coral-300 hover:text-white text-xs font-bold transition-all shadow-glow group"
+                          title="Open Google Maps with all stops for this day in sequential driving order"
+                        >
+                          <Route className="w-3.5 h-3.5 text-coral-400 group-hover:scale-110 transition-transform" />
+                          <span>
+                            Open Day {itinerary.days[activeDayIndex].day} Route ({itinerary.days[activeDayIndex].activities?.length || 0} Stops)
+                          </span>
+                          <ExternalLink className="w-3 h-3 text-coral-400/80 group-hover:text-white" />
+                        </a>
+                      )}
+                    </div>
 
                     <div className="space-y-4">
                       {itinerary.days[activeDayIndex].activities?.map((act, i) => (
@@ -477,6 +560,9 @@ export const AITripPlannerPage = () => {
                         >
                           <div className="space-y-1">
                             <div className="flex items-center gap-2">
+                              <span className="w-5 h-5 rounded-full bg-coral-500/20 border border-coral-500/35 text-coral-400 text-[10px] font-bold flex items-center justify-center shrink-0">
+                                {i + 1}
+                              </span>
                               <span className="px-2 py-0.5 rounded-md bg-teal-500/10 text-teal-400 font-mono text-[10px] font-bold">
                                 {act.time}
                               </span>
