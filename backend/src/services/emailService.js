@@ -131,29 +131,71 @@ ${clientBaseUrl}`;
 };
 
 /**
- * Checks whether SMTP credentials are fully provided in the server environment.
+ * Checks whether automated email dispatch is configured in the server environment.
+ * Supports Resend HTTPS API (port 443) or standard SMTP (ports 587/465).
  */
 export const isEmailConfigured = () => {
+  const resendKey = (process.env.RESEND_API_KEY || '').trim();
+  if (resendKey) return true;
   const user = (process.env.EMAIL_USER || process.env.SMTP_USER || '').trim();
   const pass = (process.env.EMAIL_PASS || process.env.SMTP_PASS || '').trim();
   return Boolean(user && pass);
 };
 
 /**
- * Sends trip invitation email via configured SMTP (e.g. Gmail App Password, Sendgrid, etc.)
- * Configured with anti-spam headers and deliverability standards.
+ * Sends trip invitation email via configured provider:
+ * 1. Resend HTTPS API (Port 443 - Recommended for Render free tier where SMTP ports are blocked)
+ * 2. Nodemailer SMTP (Ports 587 / 465)
  */
 export const sendTripInvitationEmail = async ({ trip, inviter, inviteeName, inviteeEmail, role }) => {
   const emailData = buildTripInviteEmailData({ trip, inviter, inviteeName, inviteeEmail, role });
 
+  // 1. Try Resend HTTPS API if RESEND_API_KEY is configured (Port 443 is never blocked by cloud hosts)
+  const resendApiKey = (process.env.RESEND_API_KEY || '').trim();
+  if (resendApiKey) {
+    try {
+      const fromEmail = process.env.RESEND_FROM_EMAIL || 'Nomadly Travel <onboarding@resend.dev>';
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${resendApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: fromEmail,
+          to: [inviteeEmail],
+          reply_to: inviter?.email || undefined,
+          subject: emailData.subject,
+          text: emailData.plainText,
+          html: emailData.htmlContent,
+        }),
+      });
+
+      const resData = await res.json();
+      if (res.ok && resData.id) {
+        console.info(`[EmailService] Delivered invitation via Resend HTTPS to ${inviteeEmail}: ${resData.id}`);
+        return {
+          sent: true,
+          provider: 'resend',
+          messageId: resData.id,
+          ...emailData,
+        };
+      }
+      console.warn(`[EmailService] Resend HTTPS API returned error:`, resData);
+    } catch (err) {
+      console.warn(`[EmailService] Failed to dispatch via Resend HTTPS: ${err.message}`);
+    }
+  }
+
+  // 2. Fallback to Nodemailer SMTP
   const smtpUser = (process.env.EMAIL_USER || process.env.SMTP_USER || '').trim();
   const rawPass = (process.env.EMAIL_PASS || process.env.SMTP_PASS || '').trim();
-  const cleanPass = rawPass.replace(/\s+/g, ''); // automatically strip spaces from 16-character Google App Passwords
+  const cleanPass = rawPass.replace(/\s+/g, '');
   const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
   const smtpPort = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 587;
 
   if (!smtpUser || !cleanPass) {
-    console.warn(`[EmailService] SMTP credentials not set on server. EMAIL_USER=${smtpUser ? 'SET' : 'MISSING'}, EMAIL_PASS=${cleanPass ? 'SET' : 'MISSING'}.`);
+    console.warn(`[EmailService] SMTP credentials not set on server.`);
     return {
       sent: false,
       reason: 'SMTP_NOT_CONFIGURED',
@@ -172,11 +214,12 @@ export const sendTripInvitationEmail = async ({ trip, inviter, inviteeName, invi
               user: smtpUser,
               pass: cleanPass,
             },
+            connectionTimeout: 8000,
           }
         : {
             host: 'smtp.gmail.com',
             port: 587,
-            secure: false, // Use STARTTLS on port 587 for maximum cloud provider deliverability
+            secure: false, // STARTTLS
             auth: {
               user: smtpUser,
               pass: cleanPass,
@@ -184,7 +227,7 @@ export const sendTripInvitationEmail = async ({ trip, inviter, inviteeName, invi
             tls: {
               rejectUnauthorized: true,
             },
-            connectionTimeout: 12000,
+            connectionTimeout: 8000,
           }
     );
 
@@ -203,14 +246,21 @@ export const sendTripInvitationEmail = async ({ trip, inviter, inviteeName, invi
       },
     });
 
-    console.info(`[EmailService] Collaboration invitation successfully sent to ${inviteeEmail}: ${info.messageId}`);
+    console.info(`[EmailService] Collaboration invitation sent via SMTP to ${inviteeEmail}: ${info.messageId}`);
     return {
       sent: true,
+      provider: 'smtp',
       messageId: info.messageId,
       ...emailData,
     };
   } catch (error) {
-    console.error(`[EmailService] Failed to dispatch email via SMTP: ${error.message}`);
+    if (error.code === 'ETIMEDOUT') {
+      console.error(
+        `[EmailService] SMTP ETIMEDOUT: Render Free Tier strictly blocks outbound TCP ports 25, 465, and 587. To send emails from Render Free Tier, add RESEND_API_KEY (HTTP Port 443) to Render environment.`
+      );
+    } else {
+      console.error(`[EmailService] Failed to dispatch email via SMTP: ${error.message}`);
+    }
     return {
       sent: false,
       reason: error.message,

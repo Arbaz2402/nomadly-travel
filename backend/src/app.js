@@ -108,13 +108,41 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// SMTP Diagnostic Endpoint
+// SMTP & Email Diagnostic Endpoint
 app.get('/api/test-email', async (req, res) => {
+  const resendApiKey = (process.env.RESEND_API_KEY || '').trim();
   const smtpUser = (process.env.EMAIL_USER || process.env.SMTP_USER || '').trim();
   const rawPass = (process.env.EMAIL_PASS || process.env.SMTP_PASS || '').trim();
   const cleanPass = rawPass.replace(/\s+/g, '');
-  const testTo = req.query.to || smtpUser;
+  const testTo = req.query.to || smtpUser || 'test@example.com';
 
+  // 1. If Resend is configured, test HTTPS API
+  if (resendApiKey) {
+    try {
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${resendApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: process.env.RESEND_FROM_EMAIL || 'Nomadly Travel <onboarding@resend.dev>',
+          to: [testTo],
+          subject: 'Nomadly Resend HTTPS Live Verification',
+          text: 'Success! Your Nomadly email integration via Resend HTTPS (Port 443) is working perfectly on Render.',
+        }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        return res.json({ success: true, provider: 'resend-https', recipient: testTo, messageId: data.id });
+      }
+      return res.status(400).json({ success: false, provider: 'resend-https', error: data });
+    } catch (err) {
+      return res.status(500).json({ success: false, provider: 'resend-https', error: err.message });
+    }
+  }
+
+  // 2. Otherwise test SMTP
   if (!smtpUser || !cleanPass) {
     return res.status(400).json({
       success: false,
@@ -131,7 +159,7 @@ app.get('/api/test-email', async (req, res) => {
       secure: false,
       auth: { user: smtpUser, pass: cleanPass },
       tls: { rejectUnauthorized: true },
-      connectionTimeout: 12000,
+      connectionTimeout: 8000,
     });
 
     await transporter.verify();
@@ -143,11 +171,12 @@ app.get('/api/test-email', async (req, res) => {
         subject: 'Nomadly SMTP Live Verification',
         text: 'Success! Your Nomadly Gmail SMTP integration is live and successfully delivering emails from Render.',
       });
-      return res.json({ success: true, verified: true, sent: true, recipient: testTo, messageId: info.messageId });
+      return res.json({ success: true, provider: 'smtp', verified: true, sent: true, recipient: testTo, messageId: info.messageId });
     }
 
     return res.json({
       success: true,
+      provider: 'smtp',
       verified: true,
       sent: false,
       message: 'SMTP connection verified successfully with Google servers! Append ?send=true to send a test email.',
@@ -155,9 +184,13 @@ app.get('/api/test-email', async (req, res) => {
   } catch (err) {
     return res.status(500).json({
       success: false,
+      provider: 'smtp',
       error: err.message,
       code: err.code,
-      command: err.command,
+      renderFirewallNote:
+        err.code === 'ETIMEDOUT'
+          ? 'Render Free Tier strictly blocks outbound TCP traffic on ports 25, 465, and 587 to prevent spam. Switch to Resend HTTPS API (Port 443) by setting RESEND_API_KEY in Render.'
+          : undefined,
     });
   }
 });
