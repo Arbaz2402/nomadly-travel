@@ -797,13 +797,11 @@ Return ONLY a valid JSON object without Markdown backticks or prose, adhering to
   ]
 }`;
 
-        // Attempt multiple Gemini models with automatic fallback (ordered by quality)
+        // Attempt multiple Gemini models with automatic fallback (prioritizing ultra-fast flash-lite)
         const modelsToTry = [
-          'gemini-3.8-flash',
           'gemini-3.1-flash-lite',
+          'gemini-3.8-flash',
           'gemini-3.1-flash-lite-preview',
-          'gemini-3.5-flash',
-          'gemini-3.5-flash-lite',
           'gemini-flash-latest',
         ];
 
@@ -811,11 +809,13 @@ Return ONLY a valid JSON object without Markdown backticks or prose, adhering to
         let successfulModel = null;
 
         for (const model of modelsToTry) {
+          const modelStartTime = Date.now();
           try {
             const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiApiKey}`;
             const response = await fetch(apiEndpoint, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
+              signal: AbortSignal.timeout(9000), // 9s timeout per model attempt
               body: JSON.stringify({
                 contents: [{ parts: [{ text: prompt }] }],
                 generationConfig: {
@@ -833,13 +833,14 @@ Return ONLY a valid JSON object without Markdown backticks or prose, adhering to
                 rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
                 parsedItinerary = JSON.parse(rawText);
                 successfulModel = model;
+                console.log(`✨ Successfully generated AI itinerary via ${model} in ${Date.now() - modelStartTime}ms`);
                 break;
               }
             } else {
               console.warn(`[Gemini API] Model ${model} returned HTTP ${response.status}`);
             }
           } catch (modelErr) {
-            console.warn(`[Gemini API] Model ${model} failed:`, modelErr.message);
+            console.warn(`[Gemini API] Model ${model} failed (${Date.now() - modelStartTime}ms):`, modelErr.message);
           }
         }
 

@@ -15,9 +15,10 @@ export class ApiClient {
   static async request(endpoint, options = {}) {
     const url = `${API_BASE}${endpoint}`;
     
-    // 15-second timeout safeguard to prevent hanging requests
+    // Dynamic timeout safeguard: 60s for AI generation / complex tasks, 30s default
+    const timeoutMs = options.timeout || (endpoint.includes('/ai/') ? 60000 : 30000);
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
     const config = {
       ...options,
@@ -380,7 +381,11 @@ export class ApiClient {
 
   // AI Smart Trip Planner
   static generateAIItinerary(payload) {
-    return this.request('/ai/generate-itinerary', { method: 'POST', body: JSON.stringify(payload) });
+    return this.request('/ai/generate-itinerary', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      timeout: 60000,
+    });
   }
 
   static exportAIItineraryToJourney(payload) {
