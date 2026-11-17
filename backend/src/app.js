@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
+import nodemailer from 'nodemailer';
 
 // Route Imports
 import authRoutes from './routes/authRoutes.js';
@@ -105,6 +106,60 @@ app.get('/api/health', (req, res) => {
       sender: emailUser ? `${emailUser.slice(0, 3)}***@${emailUser.split('@')[1] || ''}` : null,
     },
   });
+});
+
+// SMTP Diagnostic Endpoint
+app.get('/api/test-email', async (req, res) => {
+  const smtpUser = (process.env.EMAIL_USER || process.env.SMTP_USER || '').trim();
+  const rawPass = (process.env.EMAIL_PASS || process.env.SMTP_PASS || '').trim();
+  const cleanPass = rawPass.replace(/\s+/g, '');
+  const testTo = req.query.to || smtpUser;
+
+  if (!smtpUser || !cleanPass) {
+    return res.status(400).json({
+      success: false,
+      message: 'SMTP credentials missing from environment',
+      user: smtpUser ? 'set' : 'missing',
+      pass: cleanPass ? 'set' : 'missing',
+    });
+  }
+
+  try {
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
+      auth: { user: smtpUser, pass: cleanPass },
+      tls: { rejectUnauthorized: true },
+      connectionTimeout: 12000,
+    });
+
+    await transporter.verify();
+
+    if (req.query.send === 'true') {
+      const info = await transporter.sendMail({
+        from: `"Nomadly Travel" <${smtpUser}>`,
+        to: testTo,
+        subject: 'Nomadly SMTP Live Verification',
+        text: 'Success! Your Nomadly Gmail SMTP integration is live and successfully delivering emails from Render.',
+      });
+      return res.json({ success: true, verified: true, sent: true, recipient: testTo, messageId: info.messageId });
+    }
+
+    return res.json({
+      success: true,
+      verified: true,
+      sent: false,
+      message: 'SMTP connection verified successfully with Google servers! Append ?send=true to send a test email.',
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      error: err.message,
+      code: err.code,
+      command: err.command,
+    });
+  }
 });
 
 // Mount V1 API Routes
