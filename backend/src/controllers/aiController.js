@@ -1,4 +1,4 @@
-import { Trip } from '../models/Trip.js';
+﻿import { Trip } from '../models/Trip.js';
 import { ItineraryItem } from '../models/ItineraryItem.js';
 import { Hotel } from '../models/Hotel.js';
 import { Experience } from '../models/Experience.js';
@@ -26,6 +26,7 @@ const CURATED_DESTINATIONS_DATA = {
             title: 'Madikeri Fort & Palace Museum Walk',
             category: 'culture',
             location: 'Madikeri Town',
+            googleMapsQuery: 'Madikeri Fort, Madikeri, Coorg, Karnataka, India',
             cost: 50,
             description:
               'Explore the 17th-century fort built by Mudduraja, featuring stone elephant sentinels and colonial artifacts.',
@@ -35,6 +36,7 @@ const CURATED_DESTINATIONS_DATA = {
             title: 'Authentic Kodava Lunch at Raintree Restaurant',
             category: 'restaurant',
             location: 'Pension Lane, Madikeri',
+            googleMapsQuery: 'Raintree Restaurant Madikeri Coorg',
             cost: 950,
             description:
               'Taste authentic Coorg delicacies including Kadambuttu (steamed rice dumplings) and flavorful vegetable or mushroom curry.',
@@ -44,6 +46,7 @@ const CURATED_DESTINATIONS_DATA = {
             title: 'Sunset Panorama at Raja Seat & Musical Fountains',
             category: 'sightseeing',
             location: 'Raja Seat Garden, Madikeri',
+            googleMapsQuery: 'Raja Seat Garden Madikeri Coorg Karnataka',
             cost: 40,
             description:
               'Golden hour view overlooking rolling mist-clad valleys where Kodagu kings once relaxed with their queens.',
@@ -58,7 +61,8 @@ const CURATED_DESTINATIONS_DATA = {
             time: '09:00',
             title: 'Abbey Falls Nature Walk & Hanging Bridge',
             category: 'sightseeing',
-            location: 'Abbey Falls Road',
+            location: 'Abbey Falls Road, Madikeri',
+            googleMapsQuery: 'Abbey Falls Madikeri Coorg Karnataka',
             cost: 50,
             description:
               'Walk through private spice groves to witness the Kaveri tributary plunging 70 feet down volcanic granite rocks.',
@@ -67,7 +71,8 @@ const CURATED_DESTINATIONS_DATA = {
             time: '12:00',
             title: 'Guided Coffee & Cardamom Plantation Tasting Walk',
             category: 'activities',
-            location: 'Suntikoppa Estate',
+            location: 'Suntikoppa Coffee Estate, Coorg',
+            googleMapsQuery: 'Suntikoppa Coffee Estate Coorg Karnataka',
             cost: 600,
             description:
               'Learn bean-to-cup harvesting of Arabica and Robusta, smell fresh wild vanilla pods, and enjoy fresh estate-brewed coffee.',
@@ -76,7 +81,8 @@ const CURATED_DESTINATIONS_DATA = {
             time: '15:30',
             title: 'Dubare Elephant Camp River Raft & Interaction',
             category: 'activities',
-            location: 'Kaveri River Bank, Dubare',
+            location: 'Kaveri River Bank, Dubare, Kushalnagar',
+            googleMapsQuery: 'Dubare Elephant Camp Kushalnagar Coorg Karnataka',
             cost: 400,
             description:
               'Cross the Kaveri river by boat to observe rescued elephants, interactive bathing, and conservation talks.',
@@ -91,7 +97,8 @@ const CURATED_DESTINATIONS_DATA = {
             time: '10:00',
             title: 'Namdroling Monastery (Golden Temple) Bylakuppe',
             category: 'culture',
-            location: 'Bylakuppe Settlement',
+            location: 'Namdroling Monastery, Bylakuppe',
+            googleMapsQuery: 'Namdroling Monastery Golden Temple Bylakuppe Karnataka',
             cost: 0,
             description:
               'Marvel at 40-foot gilded Buddha statues, intricate Tibetan thangka murals, and the tranquil sounds of chanting monks.',
@@ -100,7 +107,8 @@ const CURATED_DESTINATIONS_DATA = {
             time: '13:30',
             title: 'Tibetan Momos & Thukpa Feast at Camp 1',
             category: 'restaurant',
-            location: 'Golden Temple Market',
+            location: 'Golden Temple Market, Bylakuppe',
+            googleMapsQuery: 'Golden Temple Market Bylakuppe Karnataka',
             cost: 500,
             description:
               'Sample authentic hand-pinched steamed Tibetan momos, tingling chili sauce, and hot noodle broth.',
@@ -109,7 +117,8 @@ const CURATED_DESTINATIONS_DATA = {
             time: '15:30',
             title: 'Kaveri Nisargadhama Island & Deer Park',
             category: 'activities',
-            location: 'Kushalnagar',
+            location: 'Nisargadhama Island, Kushalnagar',
+            googleMapsQuery: 'Kaveri Nisargadhama Kushalnagar Coorg Karnataka',
             cost: 150,
             description:
               'Stroll across a hanging rope bridge to an ecological delta island surrounded by thick bamboo groves and teak trees.',
@@ -773,6 +782,7 @@ Return ONLY a valid JSON object without Markdown backticks or prose, adhering to
           "title": "Real Landmark / Attraction Name",
           "category": "sightseeing",
           "location": "Exact Area or Landmark in ${cleanDest}",
+          "googleMapsQuery": "Landmark Name, City, State, India",
           "cost": 500,
           "description": "Engaging description with practical traveler tips"
         }
@@ -781,9 +791,11 @@ Return ONLY a valid JSON object without Markdown backticks or prose, adhering to
   ]
 }`;
 
-        // Attempt multiple Gemini flash models with automatic fallback
+        // Attempt multiple Gemini models with automatic fallback (ordered by quality)
         const modelsToTry = [
+          'gemini-3.8-flash',
           'gemini-3.1-flash-lite',
+          'gemini-3.1-flash-lite-preview',
           'gemini-3.5-flash',
           'gemini-3.5-flash-lite',
           'gemini-flash-latest',
@@ -826,6 +838,20 @@ Return ONLY a valid JSON object without Markdown backticks or prose, adhering to
         }
 
         if (parsedItinerary) {
+          // Auto-enrich Gemini activities with googleMapsQuery if not returned
+          if (parsedItinerary.days) {
+            parsedItinerary = {
+              ...parsedItinerary,
+              days: parsedItinerary.days.map((day) => ({
+                ...day,
+                activities: day.activities.map((act) => ({
+                  ...act,
+                  googleMapsQuery: act.googleMapsQuery || `${act.location}, India`,
+                })),
+              })),
+            };
+          }
+
           return res.status(200).json({
             success: true,
             data: {
@@ -871,6 +897,20 @@ Return ONLY a valid JSON object without Markdown backticks or prose, adhering to
     // If still not found in curated list, generate diverse non-repeating multi-day fallback
     if (!curated) {
       curated = generateDynamicMultiDayFallback(cleanDest, days, travelersCount, budgetStyle);
+    }
+
+    // Auto-enrich all activities with googleMapsQuery if not already present
+    if (curated?.days) {
+      curated = {
+        ...curated,
+        days: curated.days.map((day) => ({
+          ...day,
+          activities: day.activities.map((act) => ({
+            ...act,
+            googleMapsQuery: act.googleMapsQuery || `${act.location}, India`,
+          })),
+        })),
+      };
     }
 
     return res.status(200).json({
@@ -992,3 +1032,6 @@ export const exportToJourney = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+
+

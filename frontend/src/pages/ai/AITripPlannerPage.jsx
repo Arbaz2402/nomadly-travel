@@ -17,6 +17,7 @@ import {
   Info,
   ChevronRight,
   MessageSquare,
+  ExternalLink,
 } from 'lucide-react';
 import { ApiClient } from '../../services/api';
 import { formatCurrency } from '../../utils/formatters';
@@ -485,8 +486,16 @@ export const AITripPlannerPage = () => {
                               {act.description}
                             </p>
                             <div className="flex items-center gap-1.5 text-[10px] text-slate-400 pt-1">
-                              <MapPin className="w-3 h-3 text-coral-400" />
-                              <span>{act.location}</span>
+                              <MapPin className="w-3 h-3 text-coral-400 shrink-0" />
+                              <a
+                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.googleMapsQuery || act.location || '')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="hover:text-coral-400 hover:underline transition-colors cursor-pointer"
+                                title="Open in Google Maps"
+                              >
+                                {act.location}
+                              </a>
                             </div>
                           </div>
 
