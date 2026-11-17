@@ -1,70 +1,125 @@
 import nodemailer from 'nodemailer';
 
 /**
- * Generates email content and Gmail Web Compose URL for trip collaboration invitations
+ * Generates email content and Gmail Web Compose URL for trip collaboration invitations.
+ * Uses high-deliverability email standards to prevent spam filtering.
  */
 export const buildTripInviteEmailData = ({ trip, inviter, inviteeName, inviteeEmail, role }) => {
-  const clientBaseUrl = process.env.CLIENT_URL || 'https://nomadly-travel.netlify.app';
+  // Never put http://localhost in emails because Google spam filters instantly flag localhost as phishing/spam
+  let clientBaseUrl = process.env.CLIENT_URL || 'https://nomadly-travel.netlify.app';
+  if (!clientBaseUrl.startsWith('https://') || clientBaseUrl.includes('localhost')) {
+    clientBaseUrl = 'https://nomadly-travel.netlify.app';
+  }
   const tripUrl = `${clientBaseUrl}/journeys/${trip._id}`;
 
-  const inviterName = inviter?.displayName || inviter?.name || inviter?.email || 'A fellow traveler';
+  const inviterName = inviter?.displayName || inviter?.name || 'A fellow traveler';
   const tripTitle = trip?.title || 'Trip Itinerary';
-  const destination = trip?.destination || 'Upcoming Destination';
-  const roleName = (role || 'editor').toUpperCase();
+  const destination = trip?.destination || 'our destination';
+  const roleName = (role || 'editor').toLowerCase();
 
   const formattedDates = trip?.startDate
-    ? `${new Date(trip.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} – ${trip?.endDate ? new Date(trip.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}`
-    : 'Upcoming Journey';
+    ? `${new Date(trip.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}${trip?.endDate ? ` – ${new Date(trip.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : ''}`
+    : 'Upcoming Travel';
 
-  const subject = `Invitation to collaborate on "${tripTitle}" (${destination}) on Nomadly`;
+  // Natural human subject line (reduces spam score)
+  const subject = `${inviterName} invited you to join a trip to ${destination}`;
 
   const plainText = `Hi ${inviteeName || 'there'},
 
-${inviterName} has invited you to collaborate on the trip "${tripTitle}" (${destination}) as an ${roleName} on Nomadly!
+${inviterName} invited you to collaborate on their upcoming trip to ${destination}: "${tripTitle}".
 
-Trip Summary:
+Trip Details:
 • Destination: ${destination}
 • Dates: ${formattedDates}
-• Your Role: ${roleName} (${role === 'editor' ? 'Can add, edit, and organize activities & split expenses' : 'Can view itinerary & maps'})
+• Role: ${roleName === 'editor' ? 'Editor (collaborate on itinerary and track expenses)' : 'Viewer (view itinerary and map stops)'}
 
-To accept this invitation and view the interactive itinerary, map stops, and expenses, open the link below:
+Accept your invitation and view the trip:
 ${tripUrl}
 
-We look forward to planning an amazing journey with you!
-
-Happy Travels,
-The Nomadly Team
+Happy travels,
+Nomadly Team
 ${clientBaseUrl}`;
 
   const gmailComposeUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(inviteeEmail)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(plainText)}`;
 
-  const htmlContent = `
-    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #070d1e; color: #f1f5f9; padding: 32px 24px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <span style="font-size: 24px; font-weight: 800; letter-spacing: -0.5px; color: #ff5e3a;">NOMADLY</span>
-        <span style="display: block; font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; margin-top: 4px;">Smart Travel & Collaboration</span>
-      </div>
-      <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 24px; margin-bottom: 24px;">
-        <h2 style="font-size: 20px; font-weight: 700; color: #ffffff; margin-top: 0; margin-bottom: 12px;">You've Been Invited to a Journey!</h2>
-        <p style="font-size: 14px; color: #cbd5e1; line-height: 1.6; margin-bottom: 20px;">
-          <strong>${inviterName}</strong> invited you to collaborate on <strong>"${tripTitle}"</strong> as an <strong>${roleName}</strong>.
-        </p>
-        <div style="background: #0b1528; border-radius: 8px; padding: 16px; margin-bottom: 24px; border-left: 4px solid #14b8a6;">
-          <p style="margin: 4px 0; font-size: 13px; color: #94a3b8;"><strong>📍 Destination:</strong> <span style="color: #f1f5f9;">${destination}</span></p>
-          <p style="margin: 4px 0; font-size: 13px; color: #94a3b8;"><strong>📅 Dates:</strong> <span style="color: #f1f5f9;">${formattedDates}</span></p>
-          <p style="margin: 4px 0; font-size: 13px; color: #94a3b8;"><strong>👥 Role:</strong> <span style="color: #14b8a6; font-weight: 600;">${roleName}</span> (${role === 'editor' ? 'Full editing & expense tracking' : 'Read-only viewer'})</p>
-        </div>
-        <div style="text-align: center; margin-top: 24px;">
-          <a href="${tripUrl}" style="display: inline-block; background: #ff5e3a; color: #ffffff; text-decoration: none; font-weight: 700; font-size: 14px; padding: 12px 28px; border-radius: 9999px; box-shadow: 0 4px 14px rgba(255, 94, 58, 0.4);">
-            Accept & View Journey
-          </a>
-        </div>
-      </div>
-      <p style="font-size: 11px; color: #64748b; text-align: center; margin: 0;">
-        If you did not expect this invitation, you can safely ignore this email.
-      </p>
-    </div>
-  `;
+  const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b;">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 32px 16px;">
+    <tr>
+      <td align="center">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 580px; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+          <!-- Header -->
+          <tr>
+            <td style="padding: 24px 32px; background: linear-gradient(135deg, #0b132b 0%, #1c2541 100%); text-align: left;">
+              <span style="font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff;">NOMADLY</span>
+              <span style="font-size: 11px; color: #94a3b8; margin-left: 8px; text-transform: uppercase; letter-spacing: 1.5px;">Trip Collaboration</span>
+            </td>
+          </tr>
+          <!-- Body Content -->
+          <tr>
+            <td style="padding: 32px;">
+              <h1 style="margin: 0 0 16px 0; font-size: 22px; font-weight: 700; color: #0f172a; line-height: 1.3;">
+                ${inviterName} invited you to join their trip!
+              </h1>
+              <p style="margin: 0 0 24px 0; font-size: 15px; line-height: 1.6; color: #475569;">
+                You have been invited to plan and collaborate on <strong>${tripTitle}</strong> as an <strong>${roleName === 'editor' ? 'Editor' : 'Viewer'}</strong>.
+              </p>
+
+              <!-- Trip Summary Card -->
+              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f1f5f9; border-radius: 12px; margin-bottom: 28px; border-left: 4px solid #0d9488;">
+                <tr>
+                  <td style="padding: 16px 20px;">
+                    <p style="margin: 0 0 8px 0; font-size: 14px; color: #334155;">
+                      <strong>📍 Destination:</strong> ${destination}
+                    </p>
+                    <p style="margin: 0 0 8px 0; font-size: 14px; color: #334155;">
+                      <strong>📅 Dates:</strong> ${formattedDates}
+                    </p>
+                    <p style="margin: 0; font-size: 14px; color: #334155;">
+                      <strong>👥 Permission:</strong> <span style="color: #0d9488; font-weight: 600;">${roleName === 'editor' ? 'Full editing & expense tracking' : 'View itinerary & maps'}</span>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- CTA Button -->
+              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 24px;">
+                <tr>
+                  <td align="center">
+                    <a href="${tripUrl}" target="_blank" style="display: inline-block; background-color: #ff5e3a; color: #ffffff; text-decoration: none; font-weight: 700; font-size: 15px; padding: 14px 32px; border-radius: 8px; box-shadow: 0 2px 4px rgba(255, 94, 58, 0.25);">
+                      Accept & View Journey
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin: 0; font-size: 12px; color: #94a3b8; text-align: center; line-height: 1.5;">
+                Or paste this URL in your browser: <br>
+                <a href="${tripUrl}" style="color: #0d9488; text-decoration: underline; word-break: break-all;">${tripUrl}</a>
+              </p>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 20px 32px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; text-align: center;">
+              <p style="margin: 0; font-size: 12px; color: #94a3b8; line-height: 1.5;">
+                This invitation was sent by ${inviterName} via <a href="${clientBaseUrl}" style="color: #64748b; text-decoration: none;">Nomadly Travel</a>.<br>
+                If you did not expect this invitation, you can safely ignore this email.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
 
   return {
     subject,
@@ -77,7 +132,7 @@ ${clientBaseUrl}`;
 
 /**
  * Sends trip invitation email via configured SMTP (e.g. Gmail App Password, Sendgrid, etc.)
- * If SMTP credentials are not configured, gracefully logs and returns Gmail compose URL.
+ * Configured with anti-spam headers and deliverability standards.
  */
 export const sendTripInvitationEmail = async ({ trip, inviter, inviteeName, inviteeEmail, role }) => {
   const emailData = buildTripInviteEmailData({ trip, inviter, inviteeName, inviteeEmail, role });
@@ -117,12 +172,19 @@ export const sendTripInvitationEmail = async ({ trip, inviter, inviteeName, invi
           }
     );
 
+    const senderDisplayName = inviter?.displayName || inviter?.name || 'Nomadly Travel';
+
     const info = await transporter.sendMail({
-      from: `"Nomadly Travel" <${smtpUser}>`,
+      from: `"${senderDisplayName} (via Nomadly)" <${smtpUser}>`,
+      replyTo: inviter?.email || smtpUser,
       to: inviteeEmail,
       subject: emailData.subject,
       text: emailData.plainText,
       html: emailData.htmlContent,
+      headers: {
+        'X-Entity-Ref-ID': `${trip._id}-${Date.now()}`,
+        'X-Auto-Response-Suppress': 'OOF, AutoReply',
+      },
     });
 
     console.info(`[EmailService] Collaboration invitation sent to ${inviteeEmail}: ${info.messageId}`);
