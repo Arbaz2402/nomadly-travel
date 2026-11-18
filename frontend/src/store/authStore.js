@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { ApiClient } from '../services/api';
+import { store } from './index.js';
+import { setAuth as setReduxAuth, setCurrency as setReduxCurrency } from './slices/authSlice.js';
 import {
   signInWithGoogle,
   signInWithEmail,
@@ -17,7 +19,10 @@ export const useAuthStore = create((set, get) => ({
   currency: 'INR',
   currencyRate: 1, // 1 INR = 1 INR, could expand to USD/EUR
 
-  setCurrency: (currency) => set({ currency }),
+  setCurrency: (currency) => {
+    store.dispatch(setReduxCurrency(currency));
+    set({ currency });
+  },
 
   setAuth: (user, token) => {
     if (token) {
@@ -25,6 +30,7 @@ export const useAuthStore = create((set, get) => ({
     } else {
       localStorage.removeItem('nomadly_token');
     }
+    store.dispatch(setReduxAuth({ user, token }));
     set({ user, token, isInitialized: true });
   },
 
@@ -35,6 +41,7 @@ export const useAuthStore = create((set, get) => ({
       // ignore
     }
     localStorage.removeItem('nomadly_token');
+    store.dispatch(setReduxAuth({ user: null, token: null }));
     set({ user: null, token: null });
   },
 
