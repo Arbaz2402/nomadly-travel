@@ -1,37 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import {
   ShieldCheck,
-  TrendingUp,
   Users,
   CreditCard,
-  Layers,
-  Search,
   Activity,
   Ticket,
-  AlertCircle,
-  CheckCircle2,
-  XCircle,
-  ToggleLeft,
-  ToggleRight,
   Database,
-  BarChart3,
-  Calendar,
+  RefreshCw,
 } from 'lucide-react';
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  PieChart,
-  Pie,
-  Cell,
-} from 'recharts';
 import { ApiClient } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import { useToast } from '../../context/ToastContext';
-import { formatCurrency, formatDate } from '../../utils/formatters';
+import { formatDate } from '../../utils/formatters';
+import { AdminKpiCards } from '../../components/admin/AdminKpiCards';
+import { AdminAnalyticsCharts } from '../../components/admin/AdminAnalyticsCharts';
+import { AdminBookingsTable } from '../../components/admin/AdminBookingsTable';
+import { AdminUsersTable } from '../../components/admin/AdminUsersTable';
+import { CreateCouponModal } from '../../components/admin/CreateCouponModal';
 
 export const AdminDashboard = () => {
   const { user } = useAuthStore();
@@ -212,137 +197,12 @@ export const AdminDashboard = () => {
       {/* Tab 1: Overview & Analytics */}
       {activeTab === 'overview' && (
         <div className="space-y-8">
-          {/* Top KPI Metric Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            <div className="glass-card rounded-2xl p-4 sm:p-5 border border-white/10 min-w-0">
-              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1 truncate">
-                Gross Booking Value (GBV)
-              </span>
-              <p className="text-xl sm:text-2xl font-extrabold text-white font-display truncate">
-                {formatCurrency(kpis.grossBookingValue ?? 0)}
-              </p>
-              <span className="text-[11px] text-teal-400 font-semibold block mt-1 truncate">
-                Real-time confirmed booking volume
-              </span>
-            </div>
-
-            <div className="glass-card rounded-2xl p-4 sm:p-5 border border-white/10 min-w-0">
-              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1 truncate">
-                Platform Service Revenue
-              </span>
-              <p className="text-xl sm:text-2xl font-extrabold text-coral-400 font-display truncate">
-                {formatCurrency(kpis.platformRevenue ?? 0)}
-              </p>
-              <span className="text-[11px] text-slate-400 font-medium block mt-1 truncate">
-                Collected platform service fees
-              </span>
-            </div>
-
-            <div className="glass-card rounded-2xl p-4 sm:p-5 border border-white/10 min-w-0">
-              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1 truncate">
-                Confirmed Reservations
-              </span>
-              <p className="text-xl sm:text-2xl font-extrabold text-white font-display truncate">
-                {kpis.confirmedBookings ?? 0}
-              </p>
-              <span className="text-[11px] text-teal-400 font-semibold block mt-1 truncate">
-                Zero double-booking rate
-              </span>
-            </div>
-
-            <div className="glass-card rounded-2xl p-4 sm:p-5 border border-white/10 min-w-0">
-              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1 truncate">
-                Cancellation Rate
-              </span>
-              <p className="text-xl sm:text-2xl font-extrabold text-amber-400 font-display truncate">
-                {kpis.cancellationRate ?? 0}%
-              </p>
-              <span className="text-[11px] text-slate-400 block mt-1 truncate">
-                Refunds: {formatCurrency(kpis.refundVolume ?? 0)}
-              </span>
-            </div>
-          </div>
-
-          {/* Charts Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Monthly Trend Area Chart */}
-            <div className="lg:col-span-8 glass-panel rounded-3xl p-6 border border-white/10">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-base font-bold text-white tracking-tight font-display">
-                    Gross Booking Volume Trends
-                  </h3>
-                  <p className="text-xs text-slate-400">Monthly booking transaction flow</p>
-                </div>
-                <span className="px-2.5 py-1 rounded-lg bg-coral-500/10 text-coral-400 border border-coral-500/20 text-xs font-bold">
-                  2026 Live Telemetry
-                </span>
-              </div>
-
-              <div className="h-64 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={monthlyTrends}>
-                    <defs>
-                      <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#ff5a36" stopOpacity={0.4} />
-                        <stop offset="95%" stopColor="#ff5a36" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <XAxis dataKey="month" stroke="#64748b" fontSize={11} />
-                    <YAxis stroke="#64748b" fontSize={11} />
-                    <Tooltip
-                      contentStyle={{ backgroundColor: '#0d1322', borderColor: '#223053', borderRadius: '12px' }}
-                      itemStyle={{ color: '#ff5a36' }}
-                    />
-                    <Area type="monotone" dataKey="revenue" stroke="#ff5a36" strokeWidth={2.5} fillOpacity={1} fill="url(#colorRevenue)" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* Category Breakdown Donut Chart */}
-            <div className="lg:col-span-4 glass-panel rounded-3xl p-6 border border-white/10 flex flex-col justify-between">
-              <div>
-                <h3 className="text-base font-bold text-white tracking-tight font-display mb-1">
-                  Category Distribution
-                </h3>
-                <p className="text-xs text-slate-400 mb-4">Share of multi-modal reservations</p>
-              </div>
-
-              <div className="h-44 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={categoryDistribution}
-                      dataKey="count"
-                      nameKey="_id"
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={45}
-                      outerRadius={65}
-                      paddingAngle={4}
-                    >
-                      {categoryDistribution.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{ backgroundColor: '#0d1322', borderColor: '#223053', borderRadius: '12px' }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/5 text-[11px]">
-                {categoryDistribution.map((c, i) => (
-                  <div key={c._id} className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: pieColors[i % pieColors.length] }}></span>
-                    <span className="capitalize text-slate-300 font-medium">{c._id}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          <AdminKpiCards kpis={kpis} />
+          <AdminAnalyticsCharts
+            monthlyTrends={monthlyTrends}
+            categoryDistribution={categoryDistribution}
+            pieColors={pieColors}
+          />
 
           {/* Quick Campaign Action Banner */}
           <div className="glass-panel rounded-3xl p-6 border border-white/10 flex flex-wrap items-center justify-between gap-4">
@@ -368,117 +228,20 @@ export const AdminDashboard = () => {
 
       {/* Tab 2: Bookings Management */}
       {activeTab === 'bookings' && (
-        <div className="glass-panel rounded-3xl p-6 border border-white/10 space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-white/5">
-            <div>
-              <h2 className="text-base font-bold text-white tracking-tight">System Bookings Ledger</h2>
-              <p className="text-xs text-slate-400">All real-time customer bookings across flights, stays, and rail</p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                placeholder="Search reference..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-ink-950 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white"
-              />
-              <button
-                onClick={fetchBookings}
-                className="px-3 py-1.5 rounded-xl bg-ink-900 border border-white/10 text-xs font-bold text-slate-200"
-              >
-                Filter
-              </button>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto scrollbar-none rounded-2xl border border-white/5">
-            <table className="w-full text-left text-xs min-w-[700px]">
-              <thead>
-                <tr className="border-b border-white/5 text-slate-400 font-bold uppercase tracking-wider text-[10px] bg-ink-950/40">
-                  <th className="py-3 px-3">Reference</th>
-                  <th className="py-3 px-3">Customer</th>
-                  <th className="py-3 px-3">Category</th>
-                  <th className="py-3 px-3">Provider</th>
-                  <th className="py-3 px-3">Amount</th>
-                  <th className="py-3 px-3">Status</th>
-                  <th className="py-3 px-3">Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5 text-slate-200">
-                {bookings.map((b) => (
-                  <tr key={b._id} className="hover:bg-white/5 transition-colors">
-                    <td className="py-3 px-3 font-mono font-bold text-coral-400">{b.bookingReference}</td>
-                    <td className="py-3 px-3 font-medium">{b.contactInfo?.email}</td>
-                    <td className="py-3 px-3 capitalize">{b.travelCategory}</td>
-                    <td className="py-3 px-3 text-slate-400">{b.providerName}</td>
-                    <td className="py-3 px-3 font-bold">{formatCurrency(b.pricing?.totalPayable)}</td>
-                    <td className="py-3 px-3">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-teal-500/10 text-teal-400">
-                        {b.bookingStatus}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3 text-slate-400">{formatDate(b.createdAt)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <AdminBookingsTable
+          bookings={bookings}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          onFilter={fetchBookings}
+        />
       )}
 
       {/* Tab 3: Users Management */}
       {activeTab === 'users' && (
-        <div className="glass-panel rounded-3xl p-6 border border-white/10 space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-white/5">
-            <div>
-              <h2 className="text-base font-bold text-white tracking-tight">User Governance & Access Control</h2>
-              <p className="text-xs text-slate-400">Suspend accounts, view profiles, and verify security roles</p>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto scrollbar-none rounded-2xl border border-white/5">
-            <table className="w-full text-left text-xs min-w-[700px]">
-              <thead>
-                <tr className="border-b border-white/5 text-slate-400 font-bold uppercase tracking-wider text-[10px] bg-ink-950/40">
-                  <th className="py-3 px-3">User</th>
-                  <th className="py-3 px-3">Email</th>
-                  <th className="py-3 px-3">Role</th>
-                  <th className="py-3 px-3">Status</th>
-                  <th className="py-3 px-3">Joined</th>
-                  <th className="py-3 px-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5 text-slate-200">
-                {users.map((u) => (
-                  <tr key={u._id} className="hover:bg-white/5 transition-colors">
-                    <td className="py-3 px-3 font-bold text-white">{u.displayName}</td>
-                    <td className="py-3 px-3">{u.email}</td>
-                    <td className="py-3 px-3">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${u.role === 'admin' ? 'bg-coral-500/10 text-coral-400' : 'bg-ink-800 text-slate-300'}`}>
-                        {u.role}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${u.isSuspended ? 'bg-rose-500/10 text-rose-400' : 'bg-teal-500/10 text-teal-400'}`}>
-                        {u.isSuspended ? 'Suspended' : 'Active'}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3 text-slate-400">{formatDate(u.createdAt)}</td>
-                    <td className="py-3 px-3 text-right">
-                      <button
-                        onClick={() => handleToggleSuspension(u._id)}
-                        className="px-2.5 py-1 rounded-lg bg-ink-900 border border-white/10 text-[11px] font-bold hover:text-coral-400 transition-colors"
-                      >
-                        {u.isSuspended ? 'Reactivate' : 'Suspend'}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <AdminUsersTable
+          users={users}
+          onToggleSuspension={handleToggleSuspension}
+        />
       )}
 
       {/* Tab 4: Supplier GDS Health */}
@@ -556,78 +319,13 @@ export const AdminDashboard = () => {
       )}
 
       {/* Create Coupon Modal */}
-      {showCouponModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-950/85 backdrop-blur-md overflow-y-auto">
-          <form onSubmit={handleCreateCoupon} className="glass-panel max-w-md w-full max-h-[90vh] overflow-y-auto scrollbar-none rounded-3xl p-5 sm:p-6 border border-white/10 space-y-4 my-auto">
-            <h3 className="text-base font-bold text-white tracking-tight">Create Promotional Campaign</h3>
-
-            <div>
-              <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Coupon Code</label>
-              <input
-                type="text"
-                required
-                value={couponForm.code}
-                onChange={(e) => setCouponForm({ ...couponForm, code: e.target.value.toUpperCase() })}
-                placeholder="e.g. SUMMER2026"
-                className="w-full bg-ink-950 border border-white/10 rounded-xl px-3 py-2 text-xs text-white uppercase font-mono"
-              />
-            </div>
-
-            <div>
-              <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Campaign Title</label>
-              <input
-                type="text"
-                required
-                value={couponForm.title}
-                onChange={(e) => setCouponForm({ ...couponForm, title: e.target.value })}
-                placeholder="e.g. Summer Vacation Flash Sale"
-                className="w-full bg-ink-950 border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Discount Type</label>
-                <select
-                  value={couponForm.discountType}
-                  onChange={(e) => setCouponForm({ ...couponForm, discountType: e.target.value })}
-                  className="w-full bg-ink-950 border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
-                >
-                  <option value="percentage">Percentage (%)</option>
-                  <option value="fixed">Fixed Amount (₹)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Discount Value</label>
-                <input
-                  type="number"
-                  required
-                  value={couponForm.discountValue}
-                  onChange={(e) => setCouponForm({ ...couponForm, discountValue: Number(e.target.value) })}
-                  className="w-full bg-ink-950 border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowCouponModal(false)}
-                className="px-4 py-2 rounded-xl bg-ink-900 text-slate-300 text-xs font-bold"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-5 py-2 rounded-xl bg-coral-500 text-white text-xs font-bold"
-              >
-                Publish Campaign
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
+      <CreateCouponModal
+        isOpen={showCouponModal}
+        couponForm={couponForm}
+        setCouponForm={setCouponForm}
+        onClose={() => setShowCouponModal(false)}
+        onSubmit={handleCreateCoupon}
+      />
     </div>
   );
 };

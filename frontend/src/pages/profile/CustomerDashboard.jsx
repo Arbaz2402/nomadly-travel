@@ -1,30 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import {
-  User,
-  Calendar,
-  Compass,
-  CreditCard,
-  Bookmark,
-  ShieldAlert,
-  Plus,
-  Trash2,
-  CheckCircle2,
-  XCircle,
-  AlertCircle,
-  Plane,
-  Building2,
-  Train,
-  Bus,
-  Map,
-  ExternalLink,
-  Loader2,
-  X,
-  RefreshCw,
-} from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { ApiClient } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import { useToast } from '../../context/ToastContext';
-import { formatCurrency, formatDate } from '../../utils/formatters';
+import { BookingsList } from '../../components/customer/BookingsList';
+import { SavedTravelersList } from '../../components/customer/SavedTravelersList';
+import { AttachBookingModal } from '../../components/customer/AttachBookingModal';
 
 export const CustomerDashboard = () => {
   const { user, checkSession } = useAuthStore();
@@ -146,13 +127,6 @@ export const CustomerDashboard = () => {
     }
   };
 
-  const getCategoryIcon = (cat) => {
-    if (cat === 'flight') return Plane;
-    if (cat === 'hotel') return Building2;
-    if (cat === 'train') return Train;
-    return Bus;
-  };
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       {/* Profile Header Banner */}
@@ -209,315 +183,38 @@ export const CustomerDashboard = () => {
 
       {/* Tab 1: Bookings List */}
       {activeTab === 'bookings' && (
-        <div className="space-y-4">
-          {loadingBookings ? (
-            <div className="space-y-4">
-              {[1, 2].map((i) => (
-                <div key={i} className="glass-card rounded-2xl p-6 h-36 animate-pulse bg-ink-900/40"></div>
-              ))}
-            </div>
-          ) : fetchError ? (
-            <div className="glass-panel rounded-3xl p-12 text-center border border-coral-500/20 bg-coral-500/[0.02]">
-              <AlertCircle className="w-12 h-12 text-coral-400 mx-auto mb-3" />
-              <h3 className="text-base font-bold text-white mb-1">Could not retrieve reservations</h3>
-              <p className="text-xs text-slate-400 max-w-sm mx-auto mb-5">
-                {fetchError}. The server may be warming up.
-              </p>
-              <button
-                onClick={fetchBookings}
-                className="px-5 py-2.5 rounded-xl bg-coral-500 hover:bg-coral-600 text-white text-xs font-bold inline-flex items-center gap-2 shadow-glow transition-all"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                <span>Try Again</span>
-              </button>
-            </div>
-          ) : bookings.length === 0 ? (
-            <div className="glass-panel rounded-3xl p-12 text-center border border-white/10">
-              <Compass className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-              <h3 className="text-base font-bold text-white mb-1">No reservations booked yet</h3>
-              <p className="text-xs text-slate-400 max-w-sm mx-auto mb-5">
-                Explore flights, hotels, express trains, or sleeper buses and complete your first reservation!
-              </p>
-              <div className="flex flex-wrap items-center justify-center gap-3">
-                <a
-                  href="/"
-                  className="px-5 py-2.5 rounded-xl bg-coral-500 text-white text-xs font-bold inline-block shadow-glow"
-                >
-                  Start Exploring
-                </a>
-                <button
-                  onClick={fetchBookings}
-                  className="px-4 py-2.5 rounded-xl bg-ink-900 hover:bg-ink-800 text-slate-300 text-xs font-semibold border border-white/10 inline-flex items-center gap-1.5 transition-all"
-                >
-                  <RefreshCw className="w-3.5 h-3.5 text-teal-400" />
-                  <span>Refresh</span>
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {bookings.map((booking) => {
-                const Icon = getCategoryIcon(booking.travelCategory);
-                const isCancelled = booking.bookingStatus === 'cancelled';
-
-                return (
-                  <div
-                    key={booking._id}
-                    className="glass-card rounded-2xl p-6 border border-white/10 hover:border-coral-500/30 transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-6"
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-2xl bg-ink-900 border border-white/10 flex items-center justify-center text-coral-500 flex-shrink-0">
-                        <Icon className="w-6 h-6" />
-                      </div>
-
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-mono font-bold text-coral-400 text-xs">
-                            {booking.bookingReference}
-                          </span>
-                          <span
-                            className={`text-[10px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider ${
-                              isCancelled
-                                ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-                                : 'bg-teal-500/10 text-teal-400 border border-teal-500/20'
-                            }`}
-                          >
-                            {booking.bookingStatus}
-                          </span>
-                        </div>
-
-                        <h3 className="text-base font-bold text-white font-display">
-                          {booking.providerName}
-                        </h3>
-
-                        <p className="text-xs text-slate-400 mt-1">
-                          Booked on: {formatDate(booking.createdAt)} • Travelers: {booking.passengers?.length || 1}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between md:justify-end w-full md:w-auto gap-3 sm:gap-6 border-t md:border-t-0 pt-4 md:pt-0 border-white/5">
-                      <div className="text-left md:text-right">
-                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">
-                          Total Amount
-                        </span>
-                        <span className="text-xl font-extrabold text-white font-display">
-                          {formatCurrency(booking.pricing?.totalPayable, booking.pricing?.currency)}
-                        </span>
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                        {!isCancelled && (
-                          <button
-                            onClick={() => handleOpenTripPicker(booking)}
-                            className="flex-1 sm:flex-none justify-center px-3.5 py-2 rounded-xl bg-ink-900 hover:bg-ink-800 text-teal-400 border border-teal-500/20 text-xs font-bold transition-all flex items-center gap-1.5"
-                          >
-                            <Map className="w-3.5 h-3.5 shrink-0" />
-                            <span>Add to Journey</span>
-                          </button>
-                        )}
-
-                        {!isCancelled && (
-                          <button
-                            onClick={() => handleCancelBooking(booking._id)}
-                            className="flex-1 sm:flex-none justify-center px-4 py-2 rounded-xl bg-ink-900 hover:bg-rose-500/10 text-slate-400 hover:text-rose-400 border border-white/10 hover:border-rose-500/30 text-xs font-bold transition-all"
-                          >
-                            Cancel Booking
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+        <BookingsList
+          bookings={bookings}
+          loadingBookings={loadingBookings}
+          fetchError={fetchError}
+          onRefresh={fetchBookings}
+          onOpenTripPicker={handleOpenTripPicker}
+          onCancelBooking={handleCancelBooking}
+        />
       )}
 
       {/* Tab 2: Saved Travelers */}
       {activeTab === 'travelers' && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold text-white tracking-tight">Saved Passengers & Family</h2>
-            <button
-              onClick={() => setShowAddTraveler(true)}
-              className="px-4 py-2 rounded-xl bg-coral-500 hover:bg-coral-600 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-glow"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add New Traveler</span>
-            </button>
-          </div>
-
-          {/* Modal / Form for adding traveler */}
-          {showAddTraveler && (
-            <form onSubmit={handleSaveTraveler} className="glass-panel rounded-3xl p-6 border border-coral-500/30 space-y-4">
-              <h3 className="text-sm font-bold text-white tracking-tight">Add Traveler Details</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-                <div className="sm:col-span-2">
-                  <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Title</label>
-                  <select
-                    value={travelerForm.title}
-                    onChange={(e) => setTravelerForm({ ...travelerForm, title: e.target.value })}
-                    className="w-full bg-ink-950 border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
-                  >
-                    <option value="Mr">Mr</option>
-                    <option value="Ms">Ms</option>
-                    <option value="Mrs">Mrs</option>
-                    <option value="Dr">Dr</option>
-                  </select>
-                </div>
-                <div className="sm:col-span-5">
-                  <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">First Name</label>
-                  <input
-                    type="text"
-                    value={travelerForm.firstName}
-                    onChange={(e) => setTravelerForm({ ...travelerForm, firstName: e.target.value })}
-                    placeholder="First Name"
-                    className="w-full bg-ink-950 border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
-                  />
-                </div>
-                <div className="sm:col-span-5">
-                  <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Last Name</label>
-                  <input
-                    type="text"
-                    value={travelerForm.lastName}
-                    onChange={(e) => setTravelerForm({ ...travelerForm, lastName: e.target.value })}
-                    placeholder="Last Name"
-                    className="w-full bg-ink-950 border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowAddTraveler(false)}
-                  className="px-4 py-2 rounded-xl bg-ink-900 text-slate-300 text-xs font-bold"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 rounded-xl bg-coral-500 text-white text-xs font-bold"
-                >
-                  Save Traveler
-                </button>
-              </div>
-            </form>
-          )}
-
-          {/* List */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {user?.savedTravelers?.map((saved) => (
-              <div
-                key={saved._id}
-                className="glass-card rounded-2xl p-5 border border-white/10 flex items-center justify-between"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-ink-900 border border-white/10 flex items-center justify-center font-bold text-coral-400">
-                    <User className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-white text-sm">
-                      {saved.title} {saved.firstName} {saved.lastName}
-                    </p>
-                    <p className="text-xs text-slate-400 capitalize">{saved.gender} • {saved.nationality || 'Indian'}</p>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => handleDeleteTraveler(saved._id)}
-                  className="p-2 rounded-lg text-slate-500 hover:text-rose-400 transition-colors"
-                  title="Remove traveler"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
+        <SavedTravelersList
+          travelers={user?.savedTravelers}
+          showAddTraveler={showAddTraveler}
+          setShowAddTraveler={setShowAddTraveler}
+          travelerForm={travelerForm}
+          setTravelerForm={setTravelerForm}
+          handleSaveTraveler={handleSaveTraveler}
+          handleDeleteTraveler={handleDeleteTraveler}
+        />
       )}
 
       {/* Trip Picker Modal */}
-      {selectedBookingForTrip && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-950/80 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-lg rounded-3xl bg-ink-900 border border-white/10 shadow-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-white/5 pb-3">
-              <div>
-                <span className="text-[10px] uppercase font-bold text-coral-400 tracking-wider">
-                  Independent Journey Hub
-                </span>
-                <h3 className="text-lg font-bold text-white font-display">Add Booking to Journey</h3>
-              </div>
-              <button
-                onClick={() => setSelectedBookingForTrip(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <p className="text-xs text-slate-300">
-              Select one of your journeys to add reservation{' '}
-              <span className="font-mono text-teal-400">{selectedBookingForTrip.bookingReference}</span>:
-            </p>
-
-            <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-              {loadingTrips ? (
-                <div className="py-8 flex flex-col items-center justify-center gap-2 text-slate-400">
-                  <Loader2 className="w-6 h-6 animate-spin text-coral-500" />
-                  <span className="text-xs">Loading your journeys...</span>
-                </div>
-              ) : userTrips.length === 0 ? (
-                <div className="p-4 rounded-2xl bg-ink-950 border border-white/5 text-center text-xs text-slate-400">
-                  No active journeys found. You can create one right now!
-                </div>
-              ) : (
-                userTrips.map((t) => (
-                  <div
-                    key={t._id}
-                    className="p-3 rounded-2xl bg-ink-950/80 hover:bg-ink-850 border border-white/5 hover:border-coral-500/30 flex items-center justify-between gap-3 transition-colors"
-                  >
-                    <div>
-                      <h4 className="text-xs font-bold text-white">{t.title}</h4>
-                      <p className="text-[11px] text-slate-400">
-                        {t.destination} • {formatDate(t.startDate)}
-                      </p>
-                    </div>
-
-                    <button
-                      onClick={() => handleAttachBooking(t._id)}
-                      disabled={attachingTripId === t._id}
-                      className="px-3.5 py-1.5 rounded-xl bg-coral-500 hover:bg-coral-600 text-white text-xs font-bold shadow-glow disabled:opacity-50 flex items-center gap-1 shrink-0"
-                    >
-                      {attachingTripId === t._id ? (
-                        <>
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                          Linking...
-                        </>
-                      ) : (
-                        'Add to Trip'
-                      )}
-                    </button>
-                  </div>
-                ))
-              )}
-            </div>
-
-            <div className="pt-3 border-t border-white/5 flex items-center justify-between">
-              <span className="text-xs text-slate-400">Or plan a new trip</span>
-              <a
-                href="/journeys/new"
-                className="px-4 py-2 rounded-xl bg-teal-500 hover:bg-teal-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-glow"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                Create New Journey
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
+      <AttachBookingModal
+        booking={selectedBookingForTrip}
+        userTrips={userTrips}
+        loadingTrips={loadingTrips}
+        attachingTripId={attachingTripId}
+        onClose={() => setSelectedBookingForTrip(null)}
+        onAttach={handleAttachBooking}
+      />
     </div>
   );
 };
