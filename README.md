@@ -146,7 +146,6 @@ npm run test:frontend
 reservation_app/
 ├── .github/
 │   ├── workflows/ci.yml           # Automated CI/CD test & build pipeline
-│   ├── dependabot.yml             # Dependency vulnerability scanning
 │   └── pull_request_template.md   # Standardized QA checklist for PRs
 ├── backend/
 │   ├── src/
