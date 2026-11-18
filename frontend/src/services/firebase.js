@@ -6,6 +6,8 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
+  onAuthStateChanged,
+  onIdTokenChanged,
 } from 'firebase/auth';
 
 const firebaseConfig = {
@@ -96,5 +98,27 @@ export const logOutFirebase = async () => {
   } catch (error) {
     console.warn('Firebase Sign-Out Warning:', error);
   }
+};
+
+/**
+ * Retrieves a fresh, unexpired Firebase ID token.
+ * Force refresh if requested.
+ */
+export const getFreshIdToken = async (forceRefresh = false) => {
+  try {
+    if (auth.currentUser) {
+      return await auth.currentUser.getIdToken(forceRefresh);
+    }
+  } catch (err) {
+    console.warn('Failed to retrieve fresh Firebase token:', err.message);
+  }
+  return null;
+};
+
+/**
+ * Listens to Firebase auth & ID token refresh events.
+ */
+export const subscribeToAuthChanges = (callback) => {
+  return onIdTokenChanged(auth, callback);
 };
 

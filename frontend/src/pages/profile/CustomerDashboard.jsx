@@ -19,6 +19,7 @@ import {
   ExternalLink,
   Loader2,
   X,
+  RefreshCw,
 } from 'lucide-react';
 import { ApiClient } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
@@ -32,6 +33,7 @@ export const CustomerDashboard = () => {
   const [activeTab, setActiveTab] = useState('bookings');
   const [bookings, setBookings] = useState([]);
   const [loadingBookings, setLoadingBookings] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
 
   // New Traveler Modal / State
   const [showAddTraveler, setShowAddTraveler] = useState(false);
@@ -85,12 +87,14 @@ export const CustomerDashboard = () => {
   const fetchBookings = async () => {
     try {
       setLoadingBookings(true);
+      setFetchError(null);
       const res = await ApiClient.getMyBookings();
       if (res.success) {
-        setBookings(res.data);
+        setBookings(res.data || []);
       }
     } catch (err) {
       console.error('Error fetching bookings:', err);
+      setFetchError(err.message || 'Could not load your reservations');
     } finally {
       setLoadingBookings(false);
     }
@@ -98,7 +102,7 @@ export const CustomerDashboard = () => {
 
   useEffect(() => {
     fetchBookings();
-  }, []);
+  }, [user?._id, user?.email]);
 
   const handleCancelBooking = async (bookingId) => {
     if (!window.confirm('Are you sure you want to cancel this booking? Eligible refunds will be processed.')) {
@@ -170,23 +174,35 @@ export const CustomerDashboard = () => {
           </div>
         </div>
 
-        {/* Dashboard Tabs */}
-        <div className="flex flex-wrap items-center gap-2 p-1 rounded-2xl bg-ink-900 border border-white/10">
+        {/* Dashboard Tabs & Actions */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-ink-900 border border-white/10">
+            <button
+              onClick={() => setActiveTab('bookings')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                activeTab === 'bookings' ? 'bg-coral-500 text-white shadow-glow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              My Bookings ({bookings.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('travelers')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                activeTab === 'travelers' ? 'bg-coral-500 text-white shadow-glow' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Saved Travelers ({user?.savedTravelers?.length || 0})
+            </button>
+          </div>
+
           <button
-            onClick={() => setActiveTab('bookings')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === 'bookings' ? 'bg-coral-500 text-white shadow-glow' : 'text-slate-400 hover:text-white'
-            }`}
+            onClick={fetchBookings}
+            disabled={loadingBookings}
+            className="p-2.5 rounded-2xl bg-ink-900 hover:bg-white/5 border border-white/10 text-slate-400 hover:text-white transition-all disabled:opacity-50"
+            title="Refresh bookings"
+            aria-label="Refresh bookings"
           >
-            My Bookings ({bookings.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('travelers')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === 'travelers' ? 'bg-coral-500 text-white shadow-glow' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Saved Travelers ({user?.savedTravelers?.length || 0})
+            <RefreshCw className={`w-4 h-4 text-teal-400 ${loadingBookings ? 'animate-spin' : ''}`} />
           </button>
         </div>
       </div>
@@ -200,6 +216,21 @@ export const CustomerDashboard = () => {
                 <div key={i} className="glass-card rounded-2xl p-6 h-36 animate-pulse bg-ink-900/40"></div>
               ))}
             </div>
+          ) : fetchError ? (
+            <div className="glass-panel rounded-3xl p-12 text-center border border-coral-500/20 bg-coral-500/[0.02]">
+              <AlertCircle className="w-12 h-12 text-coral-400 mx-auto mb-3" />
+              <h3 className="text-base font-bold text-white mb-1">Could not retrieve reservations</h3>
+              <p className="text-xs text-slate-400 max-w-sm mx-auto mb-5">
+                {fetchError}. The server may be warming up.
+              </p>
+              <button
+                onClick={fetchBookings}
+                className="px-5 py-2.5 rounded-xl bg-coral-500 hover:bg-coral-600 text-white text-xs font-bold inline-flex items-center gap-2 shadow-glow transition-all"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Try Again</span>
+              </button>
+            </div>
           ) : bookings.length === 0 ? (
             <div className="glass-panel rounded-3xl p-12 text-center border border-white/10">
               <Compass className="w-12 h-12 text-slate-600 mx-auto mb-3" />
@@ -207,12 +238,21 @@ export const CustomerDashboard = () => {
               <p className="text-xs text-slate-400 max-w-sm mx-auto mb-5">
                 Explore flights, hotels, express trains, or sleeper buses and complete your first reservation!
               </p>
-              <a
-                href="/"
-                className="px-5 py-2.5 rounded-xl bg-coral-500 text-white text-xs font-bold inline-block shadow-glow"
-              >
-                Start Exploring
-              </a>
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                <a
+                  href="/"
+                  className="px-5 py-2.5 rounded-xl bg-coral-500 text-white text-xs font-bold inline-block shadow-glow"
+                >
+                  Start Exploring
+                </a>
+                <button
+                  onClick={fetchBookings}
+                  className="px-4 py-2.5 rounded-xl bg-ink-900 hover:bg-ink-800 text-slate-300 text-xs font-semibold border border-white/10 inline-flex items-center gap-1.5 transition-all"
+                >
+                  <RefreshCw className="w-3.5 h-3.5 text-teal-400" />
+                  <span>Refresh</span>
+                </button>
+              </div>
             </div>
           ) : (
             <div className="space-y-4">

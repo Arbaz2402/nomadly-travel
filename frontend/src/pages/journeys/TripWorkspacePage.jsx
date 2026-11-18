@@ -210,7 +210,7 @@ export const TripWorkspacePage = () => {
     if (id) {
       fetchTripData();
     }
-  }, [id]);
+  }, [id, user?._id]);
 
   // Fetch Sub-tab specific data
   const loadTabData = async (tab) => {
@@ -249,7 +249,7 @@ export const TripWorkspacePage = () => {
 
   useEffect(() => {
     loadTabData(activeTab);
-  }, [activeTab, id]);
+  }, [activeTab, id, user?._id]);
 
   const handleDeleteTrip = async () => {
     if (!window.confirm(`Are you sure you want to permanently delete "${trip.title}" and all its records?`)) {

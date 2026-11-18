@@ -5,12 +5,15 @@ import {
   signInWithEmail,
   signUpWithEmail,
   logOutFirebase,
+  subscribeToAuthChanges,
+  auth,
 } from '../services/firebase';
 
 export const useAuthStore = create((set, get) => ({
   user: null,
   token: localStorage.getItem('nomadly_token') || null,
   isLoading: false,
+  isInitialized: false,
   currency: 'INR',
   currencyRate: 1, // 1 INR = 1 INR, could expand to USD/EUR
 
@@ -22,7 +25,7 @@ export const useAuthStore = create((set, get) => ({
     } else {
       localStorage.removeItem('nomadly_token');
     }
-    set({ user, token });
+    set({ user, token, isInitialized: true });
   },
 
   logout: async () => {
@@ -35,20 +38,66 @@ export const useAuthStore = create((set, get) => ({
     set({ user: null, token: null });
   },
 
+  initAuth: () => {
+    // 1. Subscribe to Firebase auth changes (handles page reloads & background token refresh)
+    subscribeToAuthChanges(async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          const idToken = await firebaseUser.getIdToken();
+          localStorage.setItem('nomadly_token', idToken);
+          set({ token: idToken });
+
+          // Sync with MongoDB backend user record
+          const meRes = await ApiClient.getMe();
+          if (meRes.success && meRes.data) {
+            set({ user: meRes.data, isInitialized: true });
+            return;
+          }
+        } catch (err) {
+          console.warn('[authStore] Error syncing Firebase user profile:', err.message);
+        }
+        // Fallback to basic Firebase user if backend sync is still pending
+        set({
+          user: {
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            displayName: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+            photoURL: firebaseUser.photoURL,
+          },
+          isInitialized: true,
+        });
+      } else {
+        // If not a Firebase user, check if this is a demo user session
+        const existingToken = localStorage.getItem('nomadly_token');
+        if (existingToken) {
+          get().checkSession();
+        } else {
+          set({ user: null, token: null, isInitialized: true });
+        }
+      }
+    });
+  },
+
   checkSession: async () => {
     const token = localStorage.getItem('nomadly_token');
-    if (!token) return;
+    if (!token && !auth?.currentUser) {
+      set({ isInitialized: true });
+      return;
+    }
 
     try {
       const res = await ApiClient.getMe();
       if (res.success && res.data) {
-        set({ user: res.data });
-      } else {
-        get().logout();
+        set({ user: res.data, isInitialized: true });
       }
     } catch (err) {
-      console.warn('Session check failed:', err.message);
-      get().logout();
+      console.warn('Session check transient error:', err.message);
+      // ONLY logout if explicitly unauthorized (401) AND not logged into Firebase
+      const isAuthError = err.message?.includes('401') || err.message?.includes('Invalid or expired');
+      if (isAuthError && !auth?.currentUser) {
+        get().logout();
+      }
+      set({ isInitialized: true });
     }
   },
 

@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Bookmark, Bell, Trash2, ArrowRight, TrendingDown, Plus, ShieldCheck } from 'lucide-react';
+import { Bookmark, Bell, Trash2, ArrowRight, TrendingDown, Plus, ShieldCheck, RefreshCw } from 'lucide-react';
 import { ApiClient } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
+import { useAuthStore } from '../../store/authStore';
 import { formatCurrency } from '../../utils/formatters';
 
 export const WishlistPage = () => {
+  const { user } = useAuthStore();
   const { showToast } = useToast();
 
   const [wishlist, setWishlist] = useState([]);
@@ -41,7 +43,7 @@ export const WishlistPage = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [user?._id]);
 
   const handleRemoveWishlist = async (id) => {
     try {

@@ -24,11 +24,14 @@ import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { useAuthStore } from './store/authStore';
 
 export const App = () => {
-  const { checkSession } = useAuthStore();
+  const { initAuth } = useAuthStore();
   const location = useLocation();
 
   useEffect(() => {
-    checkSession();
+    initAuth();
+  }, []);
+
+  useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
 

@@ -20,6 +20,7 @@ import {
   ShieldCheck,
   AlertCircle,
   Loader2,
+  RefreshCw,
 } from 'lucide-react';
 import { ApiClient } from '../../services/api';
 import { formatCurrency, formatDate } from '../../utils/formatters';
@@ -42,6 +43,7 @@ export const JourneysDashboard = () => {
     totalActualSpend: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('date_asc');
@@ -72,6 +74,7 @@ export const JourneysDashboard = () => {
   const fetchTrips = async () => {
     try {
       setLoading(true);
+      setFetchError(null);
       const params = {};
       if (statusFilter !== 'all') params.status = statusFilter;
       if (searchTerm.trim()) params.q = searchTerm.trim();
@@ -87,7 +90,7 @@ export const JourneysDashboard = () => {
       }
     } catch (err) {
       console.error('Failed to fetch journeys:', err);
-      showToast('Could not load journeys: ' + err.message, 'error');
+      setFetchError(err.message || 'Could not load journeys');
     } finally {
       setLoading(false);
     }
@@ -95,7 +98,7 @@ export const JourneysDashboard = () => {
 
   useEffect(() => {
     fetchTrips();
-  }, [statusFilter, sortBy]);
+  }, [statusFilter, sortBy, user?._id, user?.email]);
 
   // Handle live search submit
   const handleSearch = (e) => {
@@ -160,7 +163,17 @@ export const JourneysDashboard = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={fetchTrips}
+            disabled={loading}
+            className="p-3 rounded-2xl bg-ink-900 hover:bg-white/5 border border-white/10 text-slate-400 hover:text-white transition-all disabled:opacity-50"
+            title="Refresh journeys"
+            aria-label="Refresh journeys"
+          >
+            <RefreshCw className={`w-4 h-4 text-teal-400 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+
           <Link
             to="/journeys/new"
             className="px-5 py-3 rounded-2xl bg-gradient-to-r from-coral-500 to-coral-600 hover:from-coral-600 hover:to-coral-700 text-white font-bold text-xs tracking-wide shadow-glow flex items-center gap-2 transition-all hover:scale-[1.02]"
@@ -343,6 +356,27 @@ export const JourneysDashboard = () => {
         <div className="py-24 flex flex-col items-center justify-center gap-3 text-slate-400">
           <Loader2 className="w-10 h-10 text-coral-500 animate-spin" />
           <p className="text-sm font-semibold">Loading your journeys...</p>
+        </div>
+      ) : fetchError ? (
+        <div className="glass-panel p-12 text-center rounded-3xl border border-coral-500/20 bg-coral-500/[0.02] max-w-lg mx-auto space-y-4">
+          <div className="w-16 h-16 rounded-3xl bg-coral-500/10 text-coral-400 flex items-center justify-center mx-auto shadow-glow">
+            <AlertCircle className="w-8 h-8 stroke-[1.8]" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-white font-display">Could Not Load Journeys</h3>
+            <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+              {fetchError}. The server may be warming up or there was a brief network interruption.
+            </p>
+          </div>
+          <div className="pt-2 flex items-center justify-center gap-3">
+            <button
+              onClick={fetchTrips}
+              className="px-6 py-2.5 rounded-2xl bg-coral-500 hover:bg-coral-600 text-white text-xs font-bold shadow-glow flex items-center gap-2 transition-all"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Try Again</span>
+            </button>
+          </div>
         </div>
       ) : trips.length === 0 ? (
         <div className="glass-panel p-12 text-center rounded-3xl border border-white/10 max-w-lg mx-auto space-y-4">

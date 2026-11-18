@@ -1,30 +1,41 @@
+import { getFreshIdToken } from './firebase';
+
 const rawBase = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 // Automatically correct legacy or misspelled service domain if present
 const API_BASE = rawBase.replace('nomadly-api.onrender.com', 'nomadly-travel.onrender.com');
 
 export class ApiClient {
-  static getHeaders() {
+  static async getHeaders(forceRefresh = false) {
     const headers = { 'Content-Type': 'application/json' };
-    const token = localStorage.getItem('nomadly_token');
+    
+    // Attempt to retrieve or refresh live Firebase token
+    let token = await getFreshIdToken(forceRefresh);
+    if (token) {
+      localStorage.setItem('nomadly_token', token);
+    } else {
+      token = localStorage.getItem('nomadly_token');
+    }
+
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
     return headers;
   }
 
-  static async request(endpoint, options = {}) {
+  static async request(endpoint, options = {}, retryCount = 0) {
     const url = `${API_BASE}${endpoint}`;
     
-    // Dynamic timeout safeguard: 60s for AI generation / complex tasks, 30s default
-    const timeoutMs = options.timeout || (endpoint.includes('/ai/') ? 60000 : 30000);
+    // Dynamic timeout safeguard: 60s for AI generation / complex tasks, 35s default
+    const timeoutMs = options.timeout || (endpoint.includes('/ai/') ? 60000 : 35000);
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
+    const authHeaders = await this.getHeaders();
     const config = {
       ...options,
       signal: options.signal || controller.signal,
       headers: {
-        ...this.getHeaders(),
+        ...authHeaders,
         ...options.headers,
       },
     };
@@ -32,6 +43,22 @@ export class ApiClient {
     try {
       const response = await fetch(url, config);
       clearTimeout(timeoutId);
+
+      // Automatic 401 token refresh & seamless retry
+      if (response.status === 401 && retryCount < 1) {
+        console.info(`[ApiClient] Received 401 on ${endpoint}. Attempting silent token refresh & retry...`);
+        const freshHeaders = await this.getHeaders(true);
+        if (freshHeaders.Authorization) {
+          return await this.request(endpoint, {
+            ...options,
+            headers: {
+              ...freshHeaders,
+              ...options.headers,
+            },
+          }, retryCount + 1);
+        }
+      }
+
       const data = await response.json();
 
       if (!response.ok) {
@@ -41,8 +68,17 @@ export class ApiClient {
       return data;
     } catch (error) {
       clearTimeout(timeoutId);
+
+      // Auto-retry transient network or cold-start timeouts on GET requests once
+      const isGet = !options.method || options.method.toUpperCase() === 'GET';
+      if (isGet && retryCount < 1 && (error.name === 'AbortError' || error.message?.includes('Failed to fetch') || error.message?.includes('NetworkError'))) {
+        console.warn(`[ApiClient] Transient network hiccup on ${endpoint}. Retrying after 1.5s...`);
+        await new Promise((r) => setTimeout(r, 1500));
+        return await this.request(endpoint, options, retryCount + 1);
+      }
+
       if (error.name === 'AbortError') {
-        throw new Error('Connection timed out. Please verify your internet or try again.');
+        throw new Error('Connection timed out. The server may be waking up, please try again.');
       }
       console.error(`API Error on [${options.method || 'GET'} ${endpoint}]:`, error);
       throw error;

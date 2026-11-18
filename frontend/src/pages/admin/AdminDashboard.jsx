@@ -114,14 +114,14 @@ export const AdminDashboard = () => {
 
   useEffect(() => {
     fetchOverview();
-  }, []);
+  }, [user?._id]);
 
   useEffect(() => {
     if (activeTab === 'users') fetchUsers();
     if (activeTab === 'bookings') fetchBookings();
     if (activeTab === 'audit') fetchAuditLogs();
     if (activeTab === 'inventory') fetchInventory();
-  }, [activeTab]);
+  }, [activeTab, user?._id]);
 
   const handleToggleSuspension = async (userId) => {
     try {
