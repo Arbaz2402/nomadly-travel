@@ -8,6 +8,7 @@ import {
   MapPin,
   Calendar,
   CheckCircle2,
+  Clock,
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../../utils/formatters';
 import { CHART_COLORS } from '../helpers';

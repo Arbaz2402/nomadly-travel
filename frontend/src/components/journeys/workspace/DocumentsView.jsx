@@ -1,5 +1,5 @@
 import React from 'react';
-import { UploadCloud, FileText, Download, Trash2, Eye } from 'lucide-react';
+import { UploadCloud, Upload, FileText, Download, Trash2, Eye } from 'lucide-react';
 import { ApiClient } from '../../../services/api';
 import { useToast } from '../../../context/ToastContext';
 import { formatDate } from '../../../utils/formatters';

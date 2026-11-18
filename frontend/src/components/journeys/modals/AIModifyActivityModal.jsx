@@ -1,6 +1,6 @@
 import { createPortal } from 'react-dom';
 import React, { useState } from 'react';
-import { X, Sparkles, Loader2, Compass, AlertCircle } from 'lucide-react';
+import { X, Sparkles, Loader2, Compass, AlertCircle, MapPin, Building2, Check, ExternalLink } from 'lucide-react';
 import { ApiClient } from '../../../services/api';
 import { useToast } from '../../../context/ToastContext';
 import { formatCurrency } from '../../../utils/formatters';

@@ -7,6 +7,7 @@ import {
   Share2,
   Calendar,
   Layers,
+  Route,
 } from 'lucide-react';
 import {
   CATEGORY_ICONS,
