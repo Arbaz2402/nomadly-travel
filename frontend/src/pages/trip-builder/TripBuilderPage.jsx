@@ -168,7 +168,7 @@ export const TripBuilderPage = () => {
             Unified Multi-Segment Trip Builder
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Seamlessly combine flights, hotels, trains, and buses with timeline gap awareness and smart budget tracking.
+            Combine flights, hotels, trains, and buses with timeline scheduling and budget tracking.
           </p>
         </div>
 

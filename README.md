@@ -1,4 +1,4 @@
-# 🧭 NOMADLY — Unified Travel Booking & Intelligent Journey Platform
+# NOMADLY — Travel Reservation & Trip Management Platform
 
 [![Production App](https://img.shields.io/badge/Production-Live%20on%20Netlify-00C7B7?style=for-the-badge&logo=netlify)](https://nomadly-travel.netlify.app)
 [![API Server](https://img.shields.io/badge/Backend%20API-Live%20on%20Render-success?style=for-the-badge&logo=render)](https://nomadly-travel.onrender.com)
@@ -6,33 +6,32 @@
 [![Automated Tests](https://img.shields.io/badge/Tests-68%20Passing-blue?style=for-the-badge&logo=vitest)](https://github.com/Arbaz2402/nomadly-travel)
 [![Interactive Docs](https://img.shields.io/badge/Swagger-OpenAPI%203.0-85EA2D?style=for-the-badge&logo=swagger)](https://nomadly-travel.onrender.com/api-docs)
 
-> **"Everything you need to travel, in one beautiful workspace."**  
-> **NOMADLY** is a modern full-stack travel reservation platform and collaborative trip planner. Built with **React 18, Vite, Node.js, Express, and MongoDB**, it lets travelers discover, compare, hold, and book flights, boutique hotels, trains, buses, and curated vacation packages — complete with automated split expenses, team collaboration, and AI itinerary generation.
+NOMADLY is a full-stack travel reservation and collaborative trip planning platform built with **React 18, Redux Toolkit, Node.js, Express, and MongoDB**. It enables travelers to search and book flights, hotels, trains, and buses, manage collaborative group itineraries, track shared expenses, and generate customized trip plans.
 
 ---
 
 ## 🌐 Live Deployments
 
-| Component | Link | Status | What it does |
+| Component | URL | Status | Description |
 | :--- | :--- | :--- | :--- |
-| **Frontend Web App** | [nomadly-travel.netlify.app](https://nomadly-travel.netlify.app) | 🟢 Live | Responsive React client with dark theme, instant checkout, and interactive trip workspace. |
-| **Backend REST API** | [nomadly-travel.onrender.com](https://nomadly-travel.onrender.com) | 🟢 Live | Scalable Express API with rate limiting, secure authentication, and MongoDB Atlas database. |
-| **Interactive API Docs** | [nomadly-travel.onrender.com/api-docs](https://nomadly-travel.onrender.com/api-docs) | 🟢 Live | Live Swagger OpenAPI explorer to test all endpoints directly in the browser. |
-| **API Health Check** | [nomadly-travel.onrender.com/api/health](https://nomadly-travel.onrender.com/api/health) | 🟢 Live | Uptime monitoring endpoint reporting system status and email relay health. |
+| **Frontend Web App** | [nomadly-travel.netlify.app](https://nomadly-travel.netlify.app) | 🟢 Live | React SPA with responsive layout, instant checkout, and trip workspace. |
+| **Backend REST API** | [nomadly-travel.onrender.com](https://nomadly-travel.onrender.com) | 🟢 Live | Express API with rate limiting, JWT/Firebase authentication, and MongoDB Atlas. |
+| **API Documentation** | [nomadly-travel.onrender.com/api-docs](https://nomadly-travel.onrender.com/api-docs) | 🟢 Live | Interactive Swagger OpenAPI 3.0 documentation. |
+| **Health Check** | [nomadly-travel.onrender.com/api/health](https://nomadly-travel.onrender.com/api/health) | 🟢 Live | Uptime and service status monitoring endpoint. |
 
 ---
 
-## ✨ What NOMADLY Can Do
+## 🚀 Key Features
 
-* ✈️ **Flight Discovery:** Search domestic and international flights, compare fares, pick seats, and hold seats with real-time atomic timers.
-* 🏨 **Hotels & Resorts:** Live hotel searches powered by RapidAPI Booking.com with photo galleries, verified amenities, and instant room reservations.
-* 🚆 **Trains & Intercity Buses:** Integrated search for authentic IRCTC train schedules and regional bus services across Indian transit corridors.
-* 🌴 **Curated Vacation Packages:** Flight + Hotel combo packages with built-in 15–20% bundled savings and day-by-day itineraries.
-* 🧠 **AI Smart Concierge:** Synthesize personalized multi-day trip plans with authentic venues, timings, and Google Maps directions using Google Gemini AI.
-* 👥 **Collaborative Journeys:** Invite friends and family to your trip with Editor/Viewer roles. Everyone sees the same itinerary, tickets, and packing list.
-* 💸 **Split Expenses & Debt Settlement:** Track shared costs in multi-currency, split bills equally or custom, and calculate net payments with zero math needed.
-* 🎟️ **Instant Boarding Passes & E-Tickets:** QR-validated receipts with 1-click printable PDF invoices.
-* 🛡️ **Role-Based Admin Dashboard:** Real-time analytics, Gross Merchandise Volume (GMV) metrics, inventory seat locks, and user account governance.
+* **Flight Booking:** Search flights, compare fares, select seats, and lock inventory during checkout.
+* **Hotels & Accommodations:** Search accommodations with photo galleries, amenities, and room selection.
+* **Trains & Buses:** Authentic IRCTC train schedules and intercity bus seat reservation.
+* **Vacation Packages:** Bundled flight and hotel itineraries with scheduled activities.
+* **AI Trip Planner:** Generate personalized multi-day itineraries with daily schedules, locations, and Google Maps queries via Google Gemini.
+* **Collaborative Trips:** Invite group members with Editor or Viewer roles to collaborate on itineraries and packing lists.
+* **Split Expenses:** Multi-currency shared expense tracker with automatic balance settlement.
+* **Digital Passes & Receipts:** Boarding passes, QR-validated receipts, and printable PDF invoices.
+* **Admin Dashboard:** Booking metrics, revenue analytics, inventory locks, and user governance.
 
 ---
 
@@ -96,8 +95,8 @@ npm run dev
 * **Backend:** [http://localhost:5000](http://localhost:5000)
 * **API Documentation:** [http://localhost:5000/api-docs](http://localhost:5000/api-docs)
 
-> [!TIP]
-> **Zero-Config Database:** If no `MONGODB_URI` is provided in `.env`, the backend automatically spins up an ultra-fast in-memory database and pre-seeds it with demo flights, hotels, and trips!
+> [!NOTE]
+> **In-Memory Database:** If no `MONGODB_URI` is provided in `.env`, the backend automatically runs an in-memory database pre-seeded with catalog items for zero-config local testing.
 
 ---
 

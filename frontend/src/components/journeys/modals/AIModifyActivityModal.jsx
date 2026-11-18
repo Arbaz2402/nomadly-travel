@@ -224,7 +224,7 @@ export const AIModifyActivityModal = ({ trip, item, itinerary, isOpen, onClose, 
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Consulting AI Concierge...</span>
+                  <span>Generating recommendations...</span>
                 </>
               ) : (
                 <>
