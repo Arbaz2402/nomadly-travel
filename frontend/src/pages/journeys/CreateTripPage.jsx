@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { ApiClient } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
+import { CURRENCIES } from '../../constants/travel';
 
 const PRESET_COVERS = [
   {
@@ -38,17 +39,6 @@ const PRESET_COVERS = [
     title: 'European Historic Old Town',
     url: 'https://images.unsplash.com/photo-1467269204594-9661b134dd2b?auto=format&fit=crop&w=1200&q=80',
   },
-];
-
-const CURRENCIES = [
-  { code: 'INR', symbol: '₹', name: 'Indian Rupee' },
-  { code: 'USD', symbol: '$', name: 'US Dollar' },
-  { code: 'EUR', symbol: '€', name: 'Euro' },
-  { code: 'GBP', symbol: '£', name: 'British Pound' },
-  { code: 'AED', symbol: 'AED', name: 'UAE Dirham' },
-  { code: 'SGD', symbol: 'S$', name: 'Singapore Dollar' },
-  { code: 'THB', symbol: '฿', name: 'Thai Baht' },
-  { code: 'JPY', symbol: '¥', name: 'Japanese Yen' },
 ];
 
 export const CreateTripPage = () => {

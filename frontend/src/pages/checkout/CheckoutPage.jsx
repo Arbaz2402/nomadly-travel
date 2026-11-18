@@ -16,6 +16,7 @@ import { ApiClient } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import { useToast } from '../../context/ToastContext';
 import { formatCurrency } from '../../utils/formatters';
+import { TAX_RATES, SERVICE_FEES } from '../../constants/travel';
 
 export const CheckoutPage = () => {
   const location = useLocation();
@@ -94,8 +95,9 @@ export const CheckoutPage = () => {
   const baseFare = pricing?.baseFare || itinerary?.baseFare || 3000;
   const quantity = passengers.length;
   const rawBase = baseFare * quantity;
-  const taxes = Math.round(rawBase * (category === 'flight' || category === 'hotel' || category === 'experience' ? 0.18 : 0.12));
-  const serviceFee = category === 'bus' ? 40 : 150;
+  const taxRate = TAX_RATES[category] || TAX_RATES.default;
+  const taxes = Math.round(rawBase * taxRate);
+  const serviceFee = SERVICE_FEES[category] || SERVICE_FEES.default;
   const addOnsTotal = selectedAddOns.reduce((sum, item) => sum + item.price, 0);
   const discountAmount = appliedCoupon ? appliedCoupon.calculatedDiscount : 0;
   const estimatedPayable = Math.max(0, rawBase + taxes + serviceFee + addOnsTotal - discountAmount);

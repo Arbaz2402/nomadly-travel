@@ -10,13 +10,11 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
-    "@tanstack/react-query": "^5.29.2",
     "canvas-confetti": "^1.9.2",
     "clsx": "^2.1.0",
     "firebase": "^10.11.0",
     "framer-motion": "^11.1.7",
     "lucide-react": "^0.368.0",
-    "nodemailer": "^10.6.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.51.3",
