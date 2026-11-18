@@ -132,7 +132,7 @@ export const UnifiedSearchHero = () => {
           {/* Tab 1: Flights Form */}
           {activeTab === 'flights' && (
             <form onSubmit={handleFlightSearch} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2.5 sm:gap-3 items-center">
-              <div className="sm:col-span-1 lg:col-span-3 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
+              <div className="relative sm:col-span-1 lg:col-span-3 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
                 <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
                   From (Airport)
                 </label>
@@ -146,16 +146,14 @@ export const UnifiedSearchHero = () => {
                     className="bg-transparent text-sm text-white font-medium focus:outline-none w-full"
                   />
                 </div>
-              </div>
-
-              <div className="hidden lg:flex lg:col-span-1 items-center justify-center">
+                {/* Floating swap button between From & To on large screens */}
                 <button
                   type="button"
                   onClick={swapFlightAirports}
-                  className="w-10 h-10 rounded-full bg-ink-800 border border-white/10 hover:border-coral-500 text-slate-300 hover:text-white flex items-center justify-center transition-all shadow-md shrink-0"
+                  className="hidden lg:flex absolute -right-3.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 rounded-full bg-ink-800 border border-white/15 hover:border-coral-500 text-slate-300 hover:text-white items-center justify-center transition-all shadow-lg hover:scale-110"
                   title="Swap Origin & Destination"
                 >
-                  <ArrowRightLeft className="w-4 h-4" />
+                  <ArrowRightLeft className="w-3.5 h-3.5" />
                 </button>
               </div>
 
@@ -199,13 +197,13 @@ export const UnifiedSearchHero = () => {
                 </div>
               </div>
 
-              <div className="sm:col-span-1 lg:col-span-2">
+              <div className="sm:col-span-1 lg:col-span-3">
                 <button
                   type="submit"
-                  className="w-full py-3.5 sm:py-4 px-4 rounded-2xl bg-coral-500 hover:bg-coral-600 text-white font-bold text-xs sm:text-sm tracking-wide shadow-glow transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3.5 sm:py-4 px-4 rounded-2xl bg-coral-500 hover:bg-coral-600 text-white font-bold text-sm tracking-wide shadow-glow transition-all flex items-center justify-center gap-2 whitespace-nowrap"
                 >
                   <Search className="w-4 h-4 stroke-[2.5] shrink-0" />
-                  <span className="truncate">Search Flights</span>
+                  <span className="whitespace-nowrap font-bold">Search Flights</span>
                 </button>
               </div>
             </form>
@@ -214,7 +212,7 @@ export const UnifiedSearchHero = () => {
           {/* Tab 2: Hotels Form */}
           {activeTab === 'hotels' && (
             <form onSubmit={handleHotelSearch} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2.5 sm:gap-3 items-center">
-              <div className="sm:col-span-2 lg:col-span-4 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
+              <div className="sm:col-span-2 lg:col-span-3 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
                 <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
                   Destination City
                 </label>
@@ -260,13 +258,13 @@ export const UnifiedSearchHero = () => {
                 </div>
               </div>
 
-              <div className="sm:col-span-2 lg:col-span-2">
+              <div className="sm:col-span-2 lg:col-span-3">
                 <button
                   type="submit"
-                  className="w-full py-3.5 sm:py-4 px-4 rounded-2xl bg-coral-500 hover:bg-coral-600 text-white font-bold text-xs sm:text-sm tracking-wide shadow-glow transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3.5 sm:py-4 px-4 rounded-2xl bg-coral-500 hover:bg-coral-600 text-white font-bold text-sm tracking-wide shadow-glow transition-all flex items-center justify-center gap-2 whitespace-nowrap"
                 >
                   <Search className="w-4 h-4 stroke-[2.5] shrink-0" />
-                  <span className="truncate">Find Stays</span>
+                  <span className="whitespace-nowrap font-bold">Find Stays</span>
                 </button>
               </div>
             </form>
@@ -314,10 +312,10 @@ export const UnifiedSearchHero = () => {
               <div className="sm:col-span-1 lg:col-span-3">
                 <button
                   type="submit"
-                  className="w-full py-3.5 sm:py-4 px-4 rounded-2xl bg-coral-500 hover:bg-coral-600 text-white font-bold text-xs sm:text-sm tracking-wide shadow-glow transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3.5 sm:py-4 px-4 rounded-2xl bg-coral-500 hover:bg-coral-600 text-white font-bold text-sm tracking-wide shadow-glow transition-all flex items-center justify-center gap-2 whitespace-nowrap"
                 >
                   <Search className="w-4 h-4 stroke-[2.5] shrink-0" />
-                  <span className="truncate">Explore Tours</span>
+                  <span className="whitespace-nowrap font-bold">Explore Tours</span>
                 </button>
               </div>
             </form>

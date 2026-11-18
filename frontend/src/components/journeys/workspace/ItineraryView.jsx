@@ -5,9 +5,14 @@ import {
   Sparkles,
   ExternalLink,
   Edit2,
+  Edit3,
   Trash2,
   Calendar,
   Compass,
+  AlertTriangle,
+  ShieldCheck,
+  MapPin,
+  Route,
 } from 'lucide-react';
 import { ApiClient } from '../../../services/api';
 import { useToast } from '../../../context/ToastContext';

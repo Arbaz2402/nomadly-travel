@@ -1,6 +1,6 @@
 import { createPortal } from 'react-dom';
 import React, { useState } from 'react';
-import { X, Loader2 } from 'lucide-react';
+import { X, Loader2, Mail, Send } from 'lucide-react';
 import { ApiClient } from '../../../services/api';
 import { useToast } from '../../../context/ToastContext';
 
