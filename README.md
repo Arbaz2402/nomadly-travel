@@ -3,7 +3,7 @@
 [![Production Status](https://img.shields.io/badge/Production-Live-success?style=for-the-badge&logo=render)](https://nomadly-travel.onrender.com)
 [![Frontend Client](https://img.shields.io/badge/Frontend-Netlify-00C7B7?style=for-the-badge&logo=netlify)](https://nomadly-travel.netlify.app)
 [![API Documentation](https://img.shields.io/badge/Swagger-OpenAPI%203.0-85EA2D?style=for-the-badge&logo=swagger)](https://nomadly-travel.onrender.com/api-docs)
-[![Test Suite](https://img.shields.io/badge/Tests-39%20Passing-brightgreen?style=for-the-badge&logo=vitest)](https://github.com/Arbaz2402/nomadly-travel)
+[![Test Suite](https://img.shields.io/badge/Tests-68%20Passing-brightgreen?style=for-the-badge&logo=vitest)](https://github.com/Arbaz2402/nomadly-travel)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 
 > **"Your entire journey, intelligently organized."**  
@@ -301,20 +301,36 @@ Bearer <YOUR_JWT_OR_FIREBASE_TOKEN>
 
 ## 🧪 Automated Testing Suite
 
-The repository contains **6 comprehensive automated test suites** executed via **Vitest** and **Supertest** with an in-memory MongoDB server:
+The repository contains **12 comprehensive automated test suites (68 tests total)** spanning both backend and frontend, executed via **Vitest**, **React Testing Library**, **JSDOM**, and **Supertest** with an isolated in-memory MongoDB server:
 
 ```bash
-# Execute the full automated test suite
+# Execute the full automated test suite across backend and frontend
 npm test
+
+# Run backend test suite only (50 tests)
+npm run test:backend
+
+# Run frontend unit & component test suite only (18 tests)
+npm run test:frontend
 ```
 
-### Test Results: 39 / 39 Tests Passing (100%)
-- **`tests/api.test.js`** (12 tests): Health check, Swagger OpenAPI 3.0 spec verification, Swagger UI routes, discovery modules, server-side coupon calculations, and admin authorization guards.
-- **`tests/flights.test.js`** (8 tests): IATA airport resolution engine, airline registry, and dynamic flight generation.
-- **`tests/trains.test.js`** (4 tests): Express train timetable generator, class filters (`EC`, `CC`, `1A`), and stop inspections.
-- **`tests/buses.test.js`** (5 tests): Intercity routes, atomic 10-minute seat hold acquisition, double-booking rejection, and release.
-- **`tests/payments.test.js`** (3 tests): Order creation, signature verification, booking status confirmation, and audit logging.
-- **`tests/journeys.test.js`** (7 tests): Collaborative trip planner, budget allocation calculations, documents vault, and itinerary items.
+### Test Results: 68 / 68 Tests Passing (100%)
+
+#### Backend Test Suites (50 / 50 Passing)
+- **`backend/tests/api.test.js`** (15 tests): Health check, Swagger OpenAPI 3.0.3 spec, Swagger UI routes, discovery modules, server-side coupon calculations, and admin authorization guards.
+- **`backend/tests/diagnostics.test.js`** (2 tests): Health endpoint status, email service telemetry, and diagnostic query resilience.
+- **`backend/tests/flights.test.js`** (8 tests): IATA airport resolution engine, airline registry, and dynamic flight generation.
+- **`backend/tests/trains.test.js`** (4 tests): Express train timetable generator, class filters (`EC`, `CC`, `1A`), and stop inspections.
+- **`backend/tests/buses.test.js`** (5 tests): Intercity routes, atomic 10-minute seat hold acquisition, double-booking rejection, and release.
+- **`backend/tests/payments.test.js`** (5 tests): Order creation, signature verification, booking status confirmation, and audit logging.
+- **`backend/tests/journeys.test.js`** (7 tests): Collaborative trip planner, budget allocation calculations, documents vault, and itinerary items.
+- **`backend/tests/packages_e2e.test.js`** (4 tests): Multi-modal vacation package search, pricing bundling, and detail inspections.
+
+#### Frontend Test Suites (18 / 18 Passing)
+- **`frontend/src/tests/formatters.test.js`** (11 tests): Currency (`formatCurrency`), duration (`formatDuration`), dates (`formatDate`), and time strings formatting.
+- **`frontend/src/tests/AdminKpiCards.test.jsx`** (2 tests): Executive KPI telemetry metrics and revenue cards rendering.
+- **`frontend/src/tests/BookingsList.test.jsx`** (3 tests): Empty states, network error recovery with retry, and active booking cards with cancellation/linking triggers.
+- **`frontend/src/tests/SavedTravelersList.test.jsx`** (2 tests): Passenger cards rendering, delete action triggers, and new traveler form inputs.
 
 ---
 
@@ -348,6 +364,7 @@ npm run dev
 ## 🔐 Environment Variables Reference
 
 ### Backend (`backend/.env`)
+See `backend/.env.example` for the complete production template:
 ```env
 PORT=5000
 NODE_ENV=development
@@ -358,9 +375,11 @@ FIREBASE_PROJECT_ID=nomadly-app-fe5b9
 FIREBASE_CLIENT_EMAIL=firebase-adminsdk-...@nomadly-app-fe5b9.iam.gserviceaccount.com
 RAPIDAPI_KEY=your_rapidapi_booking_com_key
 GEMINI_API_KEY=your_free_google_gemini_api_key
+RESEND_API_KEY=re_...
 ```
 
 ### Frontend (`frontend/.env`)
+See `frontend/.env.example` for the complete client template:
 ```env
 VITE_API_URL=http://localhost:5000/api/v1
 VITE_FIREBASE_API_KEY=your_firebase_web_api_key
@@ -375,27 +394,28 @@ VITE_FIREBASE_PROJECT_ID=nomadly-app-fe5b9
 ```
 reservation_app/
 ├── README.md                      # Complete project documentation & system reference
-├── package.json                   # Root orchestrator scripts (dev, test, install-all)
+├── package.json                   # Root orchestrator scripts (dev, test, test:backend, test:frontend)
 │
 ├── backend/                       # Express ESM REST API
 │   ├── package.json
 │   ├── src/
 │   │   ├── server.js              # Server bootstrapper & port listener
 │   │   ├── app.js                 # Express application, CORS, Helmet, Swagger mount
-│   │   ├── config/                # Database (Mongoose) and Firebase Admin config
-│   │   ├── controllers/           # Route handler controllers (Auth, Flights, Hotels, etc.)
+│   │   ├── config/                # Database (Mongoose), Firebase Admin, and Travel Constants
+│   │   ├── controllers/           # Modular HTTP controllers (Auth, Flights, Hotels, Trips, etc.)
 │   │   ├── docs/
 │   │   │   └── swagger.js         # Complete OpenAPI 3.0.3 specification
 │   │   ├── middleware/            # Auth, RBAC, Rate limit, and Trip collaborator guards
 │   │   ├── models/                # 19 Mongoose Schemas (User, Booking, Trip, etc.)
-│   │   ├── routes/                # Express API router definitions (/api/v1/*)
-│   │   ├── services/              # Business logic (Inventory, Pricing, Payments, Holds)
-│   │   └── utils/                 # Seed scripts and formatters
-│   └── tests/                     # 6 Vitest integration test suites (39 tests)
+│   │   ├── routes/                # Express API router definitions (/api/v1/* and /api/health)
+│   │   ├── services/              # Business logic (Trip, AI destinations, Pricing, Payments, Holds)
+│   │   └── utils/                 # AsyncHandler, Seed scripts, and Formatters
+│   └── tests/                     # 8 Vitest integration test suites (50 tests passing)
 │
 └── frontend/                      # React 18 + Vite SPA
     ├── package.json
     ├── vite.config.js
+    ├── vitest.config.js           # Vitest + JSDOM frontend testing configuration
     ├── tailwind.config.js
     └── src/
         ├── App.jsx                # Router, navigation, error boundary wrappers
@@ -403,8 +423,15 @@ reservation_app/
         ├── components/
         │   ├── common/            # ErrorBoundary, AuthModal, PolicyModal
         │   ├── navigation/        # Navbar & Footer
-        │   └── search/            # UnifiedSearchHero (Flights, Hotels, Tours)
+        │   ├── search/            # UnifiedSearchHero (Flights, Hotels, Tours)
+        │   ├── customer/          # Modular Customer Dashboard (BookingsList, SavedTravelersList, AttachModal)
+        │   ├── admin/             # Modular Admin Dashboard (KPIs, Charts, BookingsTable, UsersTable)
+        │   └── journeys/          # Modular Journeys Architecture
+        │       ├── helpers.js     # Shared travel constants, venue normalizers & queries
+        │       ├── modals/        # AddActivity, AddExpense, AddMember, UploadDoc, AIModify, EditActivity
+        │       └── workspace/     # ItineraryView, OverviewView, CalendarView, ExpensesView, SplittingView, TripMapView, DocumentsView, MembersView
         ├── context/               # ToastContext notification manager
+        ├── constants/             # Centralized fee rates, taxes, currencies, and roles
         ├── pages/
         │   ├── home/              # Landing page with featured stays & tour showcases
         │   ├── flights/           # Flight search, filters, and airline offers
@@ -414,11 +441,13 @@ reservation_app/
         │   ├── ai/                # AI Smart Trip Planner wizard
         │   ├── checkout/          # Checkout stepper, seat hold timer, payment gateway
         │   ├── bookings/          # E-Ticket confirmation voucher with QR validation
-        │   ├── journeys/          # My Journeys workspace (Itinerary, Split expenses, Docs)
+        │   ├── journeys/          # Modularized Journeys Workspace & Trip Creation
         │   ├── wishlist/          # Bucket-list & price watch alerts
-        │   └── admin/             # Admin governance dashboard
+        │   ├── profile/           # Modularized Customer Profile & Reservations Hub
+        │   └── admin/             # Modularized Admin Governance Console
         ├── services/              # ApiClient singleton fetch wrapper
-        └── store/                 # Zustand authentication store
+        ├── store/                 # Zustand authentication store
+        └── tests/                 # 4 Vitest + React Testing Library suites (18 tests passing)
 ```
 
 ---
