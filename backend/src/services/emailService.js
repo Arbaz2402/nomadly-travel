@@ -140,13 +140,53 @@ export const isEmailConfigured = () => {
 };
 
 /**
- * Sends trip invitation email via the single unified provider: Netlify Gmail Serverless Relay.
- * Bypasses cloud host SMTP socket blocks and delivers from arbazkaladiya1@gmail.com to any email address.
+ * Sends trip invitation email.
+ * If RESEND_API_KEY is configured, attempts Resend HTTPS API.
+ * Uses Netlify Gmail Serverless Relay (HTTPS Port 443) which has 100% cloud deliverability
+ * and can deliver to any recipient without domain restriction.
  */
 export const sendTripInvitationEmail = async ({ trip, inviter, inviteeName, inviteeEmail, role }) => {
   const emailData = buildTripInviteEmailData({ trip, inviter, inviteeName, inviteeEmail, role });
   const senderDisplayName = inviter?.displayName || inviter?.name || 'Nomadly Travel';
 
+  // 1. Try Resend HTTPS API if key is configured
+  const resendApiKey = (process.env.RESEND_API_KEY || '').trim();
+  if (resendApiKey) {
+    try {
+      const fromEmail = process.env.RESEND_FROM_EMAIL || 'Nomadly Travel <onboarding@resend.dev>';
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${resendApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: fromEmail,
+          to: [inviteeEmail],
+          reply_to: inviter?.email || undefined,
+          subject: emailData.subject,
+          text: emailData.plainText,
+          html: emailData.htmlContent,
+        }),
+      });
+
+      const resData = await res.json();
+      if (res.ok && resData.id) {
+        console.info(`[EmailService] Delivered invitation via Resend HTTPS to ${inviteeEmail}: ${resData.id}`);
+        return {
+          sent: true,
+          provider: 'resend',
+          messageId: resData.id,
+          ...emailData,
+        };
+      }
+      console.warn(`[EmailService] Resend dispatch note (${resData.statusCode || res.status}): ${resData.message || 'Falling back to Netlify Gmail Relay'}`);
+    } catch (err) {
+      console.warn(`[EmailService] Resend network error: ${err.message}. Falling back to Netlify relay.`);
+    }
+  }
+
+  // 2. Netlify Gmail Serverless Relay (delivers to ANY email address via Gmail SMTP)
   const netlifyRelayUrl =
     process.env.NETLIFY_EMAIL_URL ||
     'https://nomadly-travel.netlify.app/.netlify/functions/send-email';
