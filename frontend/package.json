@@ -10,7 +10,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@hookform/resolvers": "^3.3.4",
+    "@hookform/resolvers": "^7.0.6",
     "canvas-confetti": "^1.9.2",
     "clsx": "^2.1.0",
     "firebase": "^10.11.0",
