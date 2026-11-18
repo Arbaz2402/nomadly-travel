@@ -42,7 +42,7 @@
 flowchart LR
     subgraph Client["Frontend Client (Netlify)"]
         UI["React 18 + Vite SPA"]
-        Store["Zustand Auth Store"]
+        Store["Redux Toolkit Store (RTK)"]
         Hooks["Custom Hooks Layer"]
         UI --> Hooks --> Store
     end
@@ -130,7 +130,7 @@ npm run test:frontend
 | Layer | Technologies Used |
 | :--- | :--- |
 | **Frontend UI** | React 18, Vite 5, Tailwind CSS, Lucide Icons, Recharts, Canvas Confetti |
-| **Frontend State & Router** | Zustand, React Router DOM 6, Custom React Hooks (SRP architecture) |
+| **Frontend State & Router** | Redux Toolkit (RTK), React-Redux, React Router DOM 6, Custom React Hooks (SRP architecture) |
 | **Backend Framework** | Node.js (ESM), Express 4.19, Zod Request Validation, Helmet Security, Rate Limiting |
 | **Database & ORM** | MongoDB Atlas, Mongoose 8, In-Memory Mongo Server (Local/CI) |
 | **Authentication** | Firebase Cloud Identity, Google OAuth 2.0, JWT Fallback |
@@ -163,7 +163,7 @@ reservation_app/
     │   ├── hooks/                 # Custom React hooks (checkout, trips, AI)
     │   ├── pages/                 # Clean page orchestrators (<250 lines)
     │   ├── services/              # Centralized singleton ApiClient
-    │   └── store/                 # Zustand authentication store
+    │   └── store/                 # Redux Toolkit store (slices, thunks, hooks)
     └── tests/                     # 18 Frontend unit test suites
 ```
 
