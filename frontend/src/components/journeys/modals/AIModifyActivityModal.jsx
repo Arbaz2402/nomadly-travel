@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import React, { useState } from 'react';
 import { X, Sparkles, Loader2, Compass, AlertCircle } from 'lucide-react';
 import { ApiClient } from '../../../services/api';

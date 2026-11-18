@@ -8,6 +8,10 @@ import {
   CheckCircle2,
   XCircle,
   Trash2,
+  Clock,
+  Check,
+  Send,
+  Users,
 } from 'lucide-react';
 import { ApiClient } from '../../../services/api';
 import { useToast } from '../../../context/ToastContext';
@@ -42,8 +46,7 @@ ${tripUrl}
 
 Looking forward to traveling together!`;
 
-    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(participant.email || '')}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    return { gmailUrl, body, tripUrl };
+    return { body, tripUrl, subject };
   };
 
   const handleCopyInvite = (participant) => {
