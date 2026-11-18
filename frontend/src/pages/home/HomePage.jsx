@@ -335,13 +335,13 @@ export const HomePage = () => {
             <div className="space-y-3">
               <span className="px-3 py-1 rounded-full bg-coral-500/20 text-coral-400 border border-coral-500/30 text-xs font-bold uppercase tracking-wider inline-flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5" />
-                AI Smart Planner
+                AI Trip Planner
               </span>
               <h3 className="text-2xl font-extrabold text-white font-display">
                 Create tailored multi-day itineraries in seconds.
               </h3>
               <p className="text-xs text-slate-300 leading-relaxed">
-                Powered by travel intelligence: automatic route sequencing, verified local hot spots, realistic timings, and 1-click export to your Journey Workspace.
+                Automatic route sequencing, verified local stops, realistic timings, and 1-click export to your Journey Workspace.
               </p>
             </div>
             <div>

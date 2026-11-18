@@ -66,7 +66,7 @@ export const synthesizeGeminiItinerary = async ({
     ? `\nSPECIAL TRAVELER INSTRUCTION / CUSTOM PROMPT:\n"${customPrompt}"\n-> You MUST heavily tailor the itinerary, activities, food choices, locations, and pace to strictly accommodate this specific traveler request!\n`
     : '';
 
-  const prompt = `You are Nomadly's world-class AI travel concierge. Create a detailed, realistic, and highly authentic ${days}-day travel itinerary for "${destination}" for ${travelersCount} traveler(s) with a ${budgetStyle} budget style.
+  const prompt = `You are Nomadly's travel itinerary planner. Create a realistic and practical ${days}-day travel itinerary for "${destination}" for ${travelersCount} traveler(s) with a ${budgetStyle} budget style.
 Traveler Interests: ${Array.isArray(interests) ? interests.join(', ') : interests}.${customPromptClause}
 
 CRITICAL REQUIREMENTS:
@@ -79,8 +79,8 @@ ${customPrompt ? `- Strictly prioritize the traveler's custom request: "${custom
 
 Return ONLY a valid JSON object without Markdown backticks or prose, adhering to this structure:
 {
-  "title": "Inspiring trip title",
-  "overview": "2-3 engaging sentences introducing the destination highlights",
+  "title": "Trip Title",
+  "overview": "2-sentence summary of the itinerary highlights",
   "estimatedTotalBudget": 45000,
   "currency": "INR",
   "recommendedStayArea": "Specific neighborhood name with explanation",
@@ -97,7 +97,7 @@ Return ONLY a valid JSON object without Markdown backticks or prose, adhering to
           "location": "Exact Venue Name, Area",
           "googleMapsQuery": "Exact Venue Name, Area, ${destination}, India",
           "cost": 500,
-          "description": "Engaging description with practical traveler tips"
+          "description": "Practical description and tips for the activity"
         }
       ]
     }

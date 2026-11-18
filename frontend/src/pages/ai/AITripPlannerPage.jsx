@@ -34,14 +34,13 @@ export const AITripPlannerPage = () => {
         <div className="max-w-4xl mx-auto text-center space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-coral-500/10 via-amber-500/10 to-teal-500/10 border border-coral-500/30 text-coral-400 text-xs font-bold uppercase tracking-wider">
             <Sparkles className="w-3.5 h-3.5 text-coral-400" />
-            AI-Powered Smart Trip Concierge
+            AI Trip Planner
           </div>
           <h1 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight font-display">
-            Plan Your Dream Journey in Seconds
+            Plan Your Journey in Seconds
           </h1>
           <p className="text-slate-300 text-sm sm:text-base max-w-2xl mx-auto">
-            Tell us where you want to go. Our travel intelligence creates a day-by-day plan with
-            authentic spots, timing, and direct 1-click export to your Journey Workspace.
+            Choose your destination and travel style to generate a day-by-day itinerary with verified stops, timings, and map routes.
           </p>
         </div>
       </div>
@@ -76,10 +75,10 @@ export const AITripPlannerPage = () => {
                   <Sparkles className="w-8 h-8" />
                 </div>
                 <h3 className="text-lg font-bold text-white font-display">
-                  Crafting Your {destination} Itinerary
+                  Building Your {destination} Itinerary
                 </h3>
                 <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                  Analyzing top-rated spots, calculating optimal driving routes, and pairing verified local stays...
+                  Generating daily schedule, route sequence, and venue recommendations...
                 </p>
               </div>
             ) : !itinerary ? (
