@@ -1,4 +1,5 @@
 import { Coupon } from '../../models/Coupon.js';
+import { TAX_RATES, SERVICE_FEES } from '../../config/constants.js';
 
 export class PricingService {
   /**
@@ -14,15 +15,12 @@ export class PricingService {
   }) {
     const rawBaseFare = Math.max(0, Number(baseFare) * quantity);
 
-    // Dynamic tax rate based on transport/hotel industry standard (GST 12% for budget/transport, 18% for luxury)
-    let taxRate = 0.12;
-    if (category === 'hotel' || category === 'flight') {
-      taxRate = 0.18;
-    }
+    // Dynamic tax rate based on transport/hotel industry standard
+    const taxRate = TAX_RATES[category] || TAX_RATES.default;
     const taxes = Math.round(rawBaseFare * taxRate);
 
     // Platform standard service fee
-    const serviceFee = category === 'bus' ? 40 : 150;
+    const serviceFee = SERVICE_FEES[category] || SERVICE_FEES.default;
 
     // Add-ons total (e.g. travel insurance, meals, extra luggage)
     const addOnsAmount = addOns.reduce((sum, item) => sum + (Number(item.price) || 0), 0);

@@ -6,32 +6,40 @@ import {
   updateTrip,
   deleteTrip,
   attachBookingToTrip,
+  getTripAnalytics,
+  getTripActivityLogs,
+  addSegmentToTrip,
+  updateTripBudget,
+} from '../controllers/tripController.js';
+import {
   getTripItinerary,
   addItineraryItem,
   updateItineraryItem,
   deleteItineraryItem,
   reorderItineraryItems,
+} from '../controllers/itineraryController.js';
+import {
   getTripExpenses,
   createTripExpense,
   updateTripExpense,
   deleteTripExpense,
   getTripSettlement,
   settleExpenseShare,
-  getTripAnalytics,
+} from '../controllers/expenseController.js';
+import {
   getTripParticipants,
   addTripParticipant,
-  updateTripParticipantRole,
-  removeTripParticipant,
   resendTripInvitation,
   respondToTripInvitation,
+  updateTripParticipantRole,
+  removeTripParticipant,
+} from '../controllers/participantController.js';
+import {
   getTripDocuments,
   uploadTripDocument,
   downloadTripDocument,
   deleteTripDocument,
-  getTripActivityLogs,
-  addSegmentToTrip,
-  updateTripBudget,
-} from '../controllers/tripController.js';
+} from '../controllers/documentController.js';
 import { verifyAuth } from '../middleware/auth.js';
 import { requireTripAccess } from '../middleware/tripAuth.js';
 

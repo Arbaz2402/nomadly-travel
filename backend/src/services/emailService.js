@@ -1,7 +1,11 @@
-import nodemailer from 'nodemailer';
+/**
+ * Unified Collaborator Email Service for NOMADLY
+ * Dispatches trip collaboration invitations via Netlify Serverless Relay
+ * (HTTPS Port 443 -> AWS Lambda Gmail SMTP -> ANY email address).
+ */
 
 /**
- * Generates email content and Gmail Web Compose URL for trip collaboration invitations.
+ * Generates email content and metadata for trip collaboration invitations.
  * Uses high-deliverability email standards to prevent spam filtering.
  */
 export const buildTripInviteEmailData = ({ trip, inviter, inviteeName, inviteeEmail, role }) => {
@@ -39,8 +43,6 @@ ${tripUrl}
 Happy travels,
 Nomadly Team
 ${clientBaseUrl}`;
-
-  const gmailComposeUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(inviteeEmail)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(plainText)}`;
 
   const htmlContent = `<!DOCTYPE html>
 <html lang="en">
@@ -125,7 +127,6 @@ ${clientBaseUrl}`;
     subject,
     plainText,
     htmlContent,
-    gmailComposeUrl,
     tripUrl,
   };
 };
@@ -139,53 +140,16 @@ export const isEmailConfigured = () => {
 };
 
 /**
- * Sends trip invitation email via configured provider:
- * 1. Netlify Gmail Serverless Relay (HTTPS Port 443 -> AWS Lambda Gmail SMTP -> ANY email address)
- * 2. Resend HTTPS API (Port 443)
- * 3. Direct Nodemailer SMTP (Ports 587 / 465)
+ * Sends trip invitation email.
+ * If RESEND_API_KEY is configured, attempts Resend HTTPS API.
+ * Uses Netlify Gmail Serverless Relay (HTTPS Port 443) which has 100% cloud deliverability
+ * and can deliver to any recipient without domain restriction.
  */
 export const sendTripInvitationEmail = async ({ trip, inviter, inviteeName, inviteeEmail, role }) => {
   const emailData = buildTripInviteEmailData({ trip, inviter, inviteeName, inviteeEmail, role });
   const senderDisplayName = inviter?.displayName || inviter?.name || 'Nomadly Travel';
 
-  // 1. Primary: Netlify Gmail Serverless Relay (HTTPS Port 443)
-  // Bypasses Render free tier SMTP socket restrictions and sends from arbazkaladiya1@gmail.com
-  const netlifyRelayUrl =
-    process.env.NETLIFY_EMAIL_URL ||
-    'https://nomadly-travel.netlify.app/.netlify/functions/send-email';
-
-  try {
-    const relayRes = await fetch(netlifyRelayUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        to: inviteeEmail,
-        subject: emailData.subject,
-        text: emailData.plainText,
-        html: emailData.htmlContent,
-        fromName: `${senderDisplayName} (via Nomadly)`,
-      }),
-    });
-
-    if (relayRes.ok) {
-      const relayData = await relayRes.json();
-      if (relayData.success) {
-        console.info(`[EmailService] Delivered invitation via Netlify Gmail relay to ${inviteeEmail}: ${relayData.messageId}`);
-        return {
-          sent: true,
-          provider: 'netlify-gmail-relay',
-          messageId: relayData.messageId,
-          ...emailData,
-        };
-      }
-    } else {
-      console.warn(`[EmailService] Netlify relay responded with status: ${relayRes.status}`);
-    }
-  } catch (relayErr) {
-    console.warn(`[EmailService] Netlify relay network error: ${relayErr.message}`);
-  }
-
-  // 2. Secondary Fallback: Resend HTTPS API (if RESEND_API_KEY is configured)
+  // 1. Try Resend HTTPS API if key is configured
   const resendApiKey = (process.env.RESEND_API_KEY || '').trim();
   if (resendApiKey) {
     try {
@@ -216,81 +180,60 @@ export const sendTripInvitationEmail = async ({ trip, inviter, inviteeName, invi
           ...emailData,
         };
       }
-      console.warn(`[EmailService] Resend HTTPS API error:`, resData);
+      console.warn(`[EmailService] Resend dispatch note (${resData.statusCode || res.status}): ${resData.message || 'Falling back to Netlify Gmail Relay'}`);
     } catch (err) {
-      console.warn(`[EmailService] Failed to dispatch via Resend HTTPS: ${err.message}`);
+      console.warn(`[EmailService] Resend network error: ${err.message}. Falling back to Netlify relay.`);
     }
   }
 
-  // 3. Fallback: Direct Nodemailer SMTP
-  const smtpUser = (process.env.EMAIL_USER || process.env.SMTP_USER || '').trim();
-  const rawPass = (process.env.EMAIL_PASS || process.env.SMTP_PASS || '').trim();
-  const cleanPass = rawPass.replace(/\s+/g, '');
-  const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
-  const smtpPort = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 587;
-
-  if (!smtpUser || !cleanPass) {
-    console.warn(`[EmailService] SMTP credentials not set on server.`);
-    return {
-      sent: false,
-      reason: 'SMTP_NOT_CONFIGURED',
-      ...emailData,
-    };
-  }
+  // 2. Netlify Gmail Serverless Relay (delivers to ANY email address via Gmail SMTP)
+  const netlifyRelayUrl =
+    process.env.NETLIFY_EMAIL_URL ||
+    'https://nomadly-travel.netlify.app/.netlify/functions/send-email';
 
   try {
-    const transporter = nodemailer.createTransport(
-      smtpHost && smtpHost !== 'smtp.gmail.com'
-        ? {
-            host: smtpHost,
-            port: smtpPort,
-            secure: smtpPort === 465,
-            auth: {
-              user: smtpUser,
-              pass: cleanPass,
-            },
-            connectionTimeout: 8000,
-          }
-        : {
-            host: 'smtp.gmail.com',
-            port: 587,
-            secure: false, // STARTTLS
-            auth: {
-              user: smtpUser,
-              pass: cleanPass,
-            },
-            tls: {
-              rejectUnauthorized: true,
-            },
-            connectionTimeout: 8000,
-          }
-    );
-
-    const info = await transporter.sendMail({
-      from: `"${senderDisplayName} (via Nomadly)" <${smtpUser}>`,
-      replyTo: inviter?.email || smtpUser,
-      to: inviteeEmail,
-      subject: emailData.subject,
-      text: emailData.plainText,
-      html: emailData.htmlContent,
-      headers: {
-        'X-Entity-Ref-ID': `${trip._id}-${Date.now()}`,
-        'X-Auto-Response-Suppress': 'OOF, AutoReply',
-      },
+    const relayRes = await fetch(netlifyRelayUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: inviteeEmail,
+        subject: emailData.subject,
+        text: emailData.plainText,
+        html: emailData.htmlContent,
+        fromName: `${senderDisplayName} (via Nomadly)`,
+      }),
     });
 
-    console.info(`[EmailService] Collaboration invitation sent via SMTP to ${inviteeEmail}: ${info.messageId}`);
-    return {
-      sent: true,
-      provider: 'smtp',
-      messageId: info.messageId,
-      ...emailData,
-    };
-  } catch (error) {
-    console.error(`[EmailService] Failed to dispatch email via SMTP: ${error.message}`);
+    if (relayRes.ok) {
+      const relayData = await relayRes.json();
+      if (relayData.success) {
+        console.info(`[EmailService] Delivered invitation via Netlify Gmail relay to ${inviteeEmail}: ${relayData.messageId}`);
+        return {
+          sent: true,
+          provider: 'netlify-gmail-relay',
+          messageId: relayData.messageId,
+          ...emailData,
+        };
+      }
+      console.warn(`[EmailService] Relay rejected: ${relayData.error}`);
+      return {
+        sent: false,
+        reason: relayData.error || 'RELAY_REJECTED',
+        ...emailData,
+      };
+    }
+
+    console.warn(`[EmailService] Netlify relay responded with HTTP ${relayRes.status}`);
     return {
       sent: false,
-      reason: error.message,
+      reason: `RELAY_HTTP_${relayRes.status}`,
+      ...emailData,
+    };
+  } catch (relayErr) {
+    console.warn(`[EmailService] Netlify relay network error: ${relayErr.message}`);
+    return {
+      sent: false,
+      reason: relayErr.message,
       ...emailData,
     };
   }

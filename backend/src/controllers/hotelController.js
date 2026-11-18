@@ -16,8 +16,8 @@ export const searchHotels = async (req, res) => {
       sortBy = 'recommended',
     } = req.query;
 
-    // 1. Try RapidAPI Booking.com Live API if credentials are configured
-    if (RapidApiService.isConfigured() && city && city.trim() !== '') {
+    // 1. Try RapidAPI Booking.com Live API if credentials are configured (bypassed in test environment)
+    if (RapidApiService.isConfigured() && process.env.NODE_ENV !== 'test' && city && city.trim() !== '') {
       try {
         console.log(`📡 Querying RapidAPI Booking.com Live API for hotels in ${city}...`);
         const bookingHotels = await RapidApiService.searchHotelsByCity(city);
