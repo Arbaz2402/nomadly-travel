@@ -10,54 +10,12 @@ import { convertCurrency, getExchangeRate } from '../utils/currencyRates.js';
 import { calculateTripSettlement } from '../utils/settlementCalculator.js';
 import { analyzeItineraryWarnings } from '../utils/itineraryWarnings.js';
 import { sendTripInvitationEmail, buildTripInviteEmailData, isEmailConfigured } from '../services/emailService.js';
-
-// Helper to log trip activity
-const logActivity = async (tripId, user, action, details) => {
-  try {
-    await TripActivityLog.create({
-      trip: tripId,
-      user: user?._id || null,
-      userName: user?.displayName || user?.email || 'Traveler',
-      action,
-      details,
-    });
-  } catch (err) {
-    console.warn('Activity log failure:', err.message);
-  }
-};
-
-// Helper to safely map itinerary/booking category to TripExpense enum
-const mapToExpenseCategory = (cat) => {
-  if (!cat) return 'activities';
-  const c = String(cat).toLowerCase().trim();
-  const mapping = {
-    flight: 'flights',
-    flights: 'flights',
-    hotel: 'hotels',
-    hotels: 'hotels',
-    train: 'trains',
-    trains: 'trains',
-    bus: 'buses',
-    buses: 'buses',
-    buss: 'buses',
-    package: 'hotels',
-    packages: 'hotels',
-    experience: 'activities',
-    experiences: 'activities',
-    car_rental: 'local_transportation',
-    local_transportation: 'local_transportation',
-    restaurant: 'food',
-    food: 'food',
-    sightseeing: 'activities',
-    activities: 'activities',
-    activity: 'activities',
-    activitiess: 'activities',
-    shopping: 'shopping',
-    insurance: 'insurance',
-    other: 'other',
-  };
-  return mapping[c] || 'activities';
-};
+import {
+  logTripActivity as logActivity,
+  mapToExpenseCategory,
+  enrichTripsWithMetrics,
+  groupItineraryByDay,
+} from '../services/trip/tripService.js';
 
 // ==========================================
 // 1. TRIP CRUD & DASHBOARD
@@ -99,82 +57,16 @@ export const getMyTrips = async (req, res) => {
       .populate('bookings', 'bookingReference travelCategory totalPayable bookingStatus')
       .sort(sortOption);
 
-    // Compute dynamic status & spending totals for dashboard KPIs
-    let totalPlannedBudget = 0;
-    let totalActualSpend = 0;
-    let upcomingCount = 0;
-    let ongoingCount = 0;
-    let completedCount = 0;
-    let draftCount = 0;
-    let pendingInvitationsCount = 0;
-
-    const enrichedTrips = await Promise.all(
-      trips.map(async (trip) => {
-        const dynamicStatus = trip.calculateDynamicStatus();
-
-        // Calculate actual spending from expenses
-        const expenses = await TripExpense.find({ trip: trip._id });
-        const tripActualSpend = expenses.reduce((sum, exp) => sum + (exp.convertedAmount || exp.amount || 0), 0);
-
-        // Count itinerary items
-        const itemsCount = await ItineraryItem.countDocuments({ trip: trip._id });
-
-        const tripBudget = trip.budget?.totalBudget || 50000;
-        totalPlannedBudget += tripBudget;
-        totalActualSpend += tripActualSpend;
-
-        if (dynamicStatus === 'upcoming') upcomingCount++;
-        else if (dynamicStatus === 'ongoing') ongoingCount++;
-        else if (dynamicStatus === 'completed') completedCount++;
-        else if (dynamicStatus === 'draft') draftCount++;
-
-        // Determine logged-in user's role and collaboration status
-        const isOwner = trip.user?._id?.toString() === currentUserId.toString();
-        const myParticipant = !isOwner
-          ? trip.participants?.find(
-              (p) =>
-                (p.user && p.user.toString() === currentUserId.toString()) ||
-                (p.email && p.email.toLowerCase() === currentUserEmail)
-            )
-          : null;
-
-        const userRole = isOwner ? 'owner' : (myParticipant?.role || 'viewer');
-        const participantStatus = isOwner ? 'accepted' : (myParticipant?.status || 'accepted');
-        const inviterName = trip.user?.displayName || trip.user?.name || trip.user?.email || 'A fellow traveler';
-        const inviterPhoto = trip.user?.photoURL || null;
-
-        if (participantStatus === 'pending') {
-          pendingInvitationsCount++;
-        }
-
-        return {
-          ...trip.toObject(),
-          dynamicStatus,
-          isOwner,
-          userRole,
-          participantStatus,
-          inviterName,
-          inviterPhoto,
-          actualSpend: Number(tripActualSpend.toFixed(2)),
-          budgetUtilization: tripBudget > 0 ? Number(((tripActualSpend / tripBudget) * 100).toFixed(1)) : 0,
-          itemsCount,
-        };
-      })
+    const { trips: enrichedTrips, metrics } = await enrichTripsWithMetrics(
+      trips,
+      currentUserId,
+      currentUserEmail
     );
 
     return res.status(200).json({
       success: true,
       count: enrichedTrips.length,
-      metrics: {
-        totalTrips: enrichedTrips.length,
-        upcomingCount,
-        ongoingCount,
-        completedCount,
-        draftCount,
-        pendingInvitationsCount,
-        totalPlannedBudget: Number(totalPlannedBudget.toFixed(2)),
-        totalActualSpend: Number(totalActualSpend.toFixed(2)),
-      },
+      metrics,
       data: enrichedTrips,
     });
   } catch (error) {
