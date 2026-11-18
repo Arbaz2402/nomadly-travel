@@ -59,26 +59,26 @@ export const Navbar = () => {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-white/5 bg-ink-950/80 backdrop-blur-xl transition-all">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo & Brand */}
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-coral-600 to-coral-400 flex items-center justify-center shadow-glow group-hover:scale-105 transition-transform duration-300">
-              <Compass className="w-6 h-6 text-white stroke-[2.2]" />
+          <Link to="/" className="flex items-center gap-2.5 sm:gap-3 group shrink-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-coral-600 to-coral-400 flex items-center justify-center shadow-glow group-hover:scale-105 transition-transform duration-300">
+              <Compass className="w-5 h-5 sm:w-6 sm:h-6 text-white stroke-[2.2]" />
             </div>
             <div>
-              <span className="text-xl font-bold tracking-tight text-white flex items-center gap-1.5 font-display">
+              <span className="text-lg sm:text-xl font-bold tracking-tight text-white flex items-center gap-1.5 font-display">
                 NOMADLY
                 <span className="w-1.5 h-1.5 rounded-full bg-coral-500 animate-pulse"></span>
               </span>
-              <span className="text-[10px] uppercase tracking-widest text-slate-400 block -mt-1 font-medium">
+              <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-slate-400 block -mt-1 font-medium">
                 Unified Travel
               </span>
             </div>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-1 bg-ink-900/60 p-1.5 rounded-full border border-white/5">
+          <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1 bg-ink-900/60 p-1 rounded-full border border-white/5">
             {navLinks.map((link) => {
               const Icon = link.icon;
               const isActive = location.pathname.startsWith(link.path);
@@ -86,16 +86,16 @@ export const Navbar = () => {
                 <Link
                   key={link.name}
                   to={link.path}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold tracking-wide transition-all ${
+                  className={`flex items-center gap-1.5 xl:gap-2 px-3 xl:px-4 py-2 rounded-full text-xs font-semibold tracking-wide transition-all ${
                     isActive
                       ? 'bg-coral-500 text-white shadow-glow'
                       : 'text-slate-300 hover:text-white hover:bg-white/5'
                   }`}
                 >
-                  <Icon className="w-4 h-4 stroke-[2]" />
-                  <span>{link.name}</span>
+                  <Icon className="w-4 h-4 stroke-[2] shrink-0" />
+                  <span className="whitespace-nowrap">{link.name}</span>
                   {link.badge && (
-                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-teal-500/20 text-teal-400 border border-teal-500/30 font-bold uppercase tracking-wider">
+                    <span className="hidden xl:inline-block text-[9px] px-1.5 py-0.5 rounded-full bg-teal-500/20 text-teal-400 border border-teal-500/30 font-bold uppercase tracking-wider">
                       {link.badge}
                     </span>
                   )}
@@ -105,21 +105,21 @@ export const Navbar = () => {
           </nav>
 
           {/* Right Action Bar */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-2 xl:gap-3 shrink-0">
             {/* Quick Demo Accounts Helper if not logged in */}
             {!user ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 xl:gap-2">
                 <button
                   onClick={() => setAuthModalOpen(true)}
-                  className="px-4 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-coral-500 to-rose-600 hover:from-coral-600 hover:to-rose-700 text-white shadow-glow transition-all flex items-center gap-1.5"
+                  className="px-3 xl:px-4 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-coral-500 to-rose-600 hover:from-coral-600 hover:to-rose-700 text-white shadow-glow transition-all flex items-center gap-1.5 whitespace-nowrap"
                 >
                   <User className="w-3.5 h-3.5" />
-                  Sign In / Register
+                  Sign In
                 </button>
-                <div className="h-4 w-px bg-white/10 mx-1"></div>
+                <div className="h-4 w-px bg-white/10 mx-0.5"></div>
                 <button
                   onClick={() => handleDemoLogin('customer')}
-                  className="px-3 py-1.5 text-xs font-medium rounded-xl bg-ink-900 text-slate-300 hover:text-white border border-white/10 hover:border-coral-500/40 transition-all flex items-center gap-1"
+                  className="px-2.5 xl:px-3 py-1.5 text-xs font-medium rounded-xl bg-ink-900 text-slate-300 hover:text-white border border-white/10 hover:border-coral-500/40 transition-all flex items-center gap-1 whitespace-nowrap"
                   title="Quick Demo Traveler Login"
                 >
                   <Sparkles className="w-3 h-3 text-coral-400" />
@@ -127,7 +127,7 @@ export const Navbar = () => {
                 </button>
                 <button
                   onClick={() => handleDemoLogin('admin')}
-                  className="px-3 py-1.5 text-xs font-medium rounded-xl bg-ink-900 text-slate-300 hover:text-white border border-white/10 hover:border-teal-500/40 transition-all flex items-center gap-1"
+                  className="px-2.5 xl:px-3 py-1.5 text-xs font-medium rounded-xl bg-ink-900 text-slate-300 hover:text-white border border-white/10 hover:border-teal-500/40 transition-all flex items-center gap-1 whitespace-nowrap"
                   title="Quick Demo Admin Console Login"
                 >
                   <ShieldCheck className="w-3 h-3 text-teal-400" />
@@ -214,13 +214,31 @@ export const Navbar = () => {
             )}
           </div>
 
-          {/* Mobile menu button */}
-          <div className="flex md:hidden items-center gap-2">
+          {/* Mobile menu button & Compact Tablet Auth */}
+          <div className="flex lg:hidden items-center gap-2">
+            {!user ? (
+              <button
+                onClick={() => setAuthModalOpen(true)}
+                className="px-2.5 py-1.5 text-xs font-bold rounded-xl bg-gradient-to-r from-coral-500 to-rose-600 text-white shadow-sm flex items-center gap-1"
+              >
+                <User className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Sign In</span>
+              </button>
+            ) : (
+              <Link
+                to="/dashboard"
+                className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-400 to-coral-500 text-white flex items-center justify-center font-bold text-xs shrink-0"
+              >
+                {user.displayName?.charAt(0) || 'U'}
+              </Link>
+            )}
+
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl bg-ink-900 text-slate-300 hover:text-white border border-white/5"
+              className="p-2 rounded-xl bg-ink-900 text-slate-300 hover:text-white border border-white/5 shrink-0"
+              aria-label="Toggle navigation menu"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
@@ -228,7 +246,7 @@ export const Navbar = () => {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-white/10 bg-ink-950 px-4 pt-3 pb-6 space-y-3">
+        <div className="lg:hidden border-b border-white/10 bg-ink-950/95 backdrop-blur-xl px-4 pt-3 pb-6 space-y-3 max-h-[calc(100vh-4rem)] overflow-y-auto">
           <div className="grid grid-cols-2 gap-2">
             {navLinks.map((link) => {
               const Icon = link.icon;

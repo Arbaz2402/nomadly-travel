@@ -51,6 +51,7 @@ export const HotelsPage = () => {
   const [freeCancellation, setFreeCancellation] = useState(false);
   const [breakfastIncluded, setBreakfastIncluded] = useState(false);
   const [sortBy, setSortBy] = useState('recommended');
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const fetchHotels = async () => {
     try {
@@ -157,12 +158,12 @@ export const HotelsPage = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 animate-fade-in">
       {/* 1. Interactive Hotel Search Bar */}
-      <div className="glass-panel rounded-3xl p-6 mb-8 border border-white/10 shadow-2xl bg-ink-900/90 space-y-4">
-        <form onSubmit={handleSearchSubmit} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+      <div className="glass-panel rounded-3xl p-4 sm:p-6 mb-8 border border-white/10 shadow-2xl bg-ink-900/90 space-y-4">
+        <form onSubmit={handleSearchSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2.5 sm:gap-3 items-end">
           {/* Location / City Input */}
-          <div className="md:col-span-4 space-y-1.5">
+          <div className="sm:col-span-1 lg:col-span-4 space-y-1.5">
             <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-coral-400" />
+              <MapPin className="w-3.5 h-3.5 text-coral-400 shrink-0" />
               City or Location
             </label>
             <div className="relative">
@@ -187,9 +188,9 @@ export const HotelsPage = () => {
           </div>
 
           {/* Hotel Name / Keyword Filter */}
-          <div className="md:col-span-3 space-y-1.5">
+          <div className="sm:col-span-1 lg:col-span-3 space-y-1.5">
             <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-              <Search className="w-3.5 h-3.5 text-teal-400" />
+              <Search className="w-3.5 h-3.5 text-teal-400 shrink-0" />
               Hotel Name / Keyword
             </label>
             <div className="relative">
@@ -214,10 +215,10 @@ export const HotelsPage = () => {
           </div>
 
           {/* Check-In & Check-Out Dates */}
-          <div className="md:col-span-3 grid grid-cols-2 gap-2">
+          <div className="sm:col-span-1 lg:col-span-3 grid grid-cols-2 gap-2">
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                <Calendar className="w-3 h-3 text-coral-400" /> Check-in
+                <Calendar className="w-3 h-3 text-coral-400 shrink-0" /> Check-in
               </label>
               <input
                 type="date"
@@ -228,7 +229,7 @@ export const HotelsPage = () => {
             </div>
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                <Calendar className="w-3 h-3 text-coral-400" /> Check-out
+                <Calendar className="w-3 h-3 text-coral-400 shrink-0" /> Check-out
               </label>
               <input
                 type="date"
@@ -240,13 +241,13 @@ export const HotelsPage = () => {
           </div>
 
           {/* Search Action Button */}
-          <div className="md:col-span-2">
+          <div className="sm:col-span-1 lg:col-span-2">
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-coral-500 to-coral-600 hover:from-coral-600 text-white font-bold text-xs shadow-glow transition-all flex items-center justify-center gap-2"
+              className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-coral-500 to-coral-600 hover:from-coral-600 text-white font-bold text-xs sm:text-sm shadow-glow transition-all flex items-center justify-center gap-2"
             >
-              <Search className="w-4 h-4" />
+              <Search className="w-4 h-4 shrink-0" />
               <span>Search Hotels</span>
             </button>
           </div>
@@ -254,7 +255,7 @@ export const HotelsPage = () => {
 
         {/* Quick Location Pills */}
         <div className="flex items-center gap-2 pt-2 border-t border-white/5 flex-wrap">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1 shrink-0">
             <Sparkles className="w-3 h-3 text-teal-400" />
             Quick Cities:
           </span>
@@ -285,16 +286,16 @@ export const HotelsPage = () => {
       </div>
 
       {/* Header Info & Sort Banner */}
-      <div className="glass-panel rounded-3xl p-5 mb-8 border border-white/10 flex flex-wrap items-center justify-between gap-4">
+      <div className="glass-panel rounded-3xl p-4 sm:p-5 mb-8 border border-white/10 flex flex-wrap items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-coral-400 uppercase tracking-wider mb-1">
-            <Building2 className="w-4 h-4" />
+            <Building2 className="w-4 h-4 shrink-0" />
             <span>Verified Travel Stays</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight font-display">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight font-display break-words">
             {city ? `Stays in ${city}` : 'All Verified Stays & Resorts'}
             {hotelNameFilter && (
-              <span className="text-teal-400 font-normal text-base ml-2">
+              <span className="text-teal-400 font-normal text-sm sm:text-base ml-2">
                 matching "{hotelNameFilter}"
               </span>
             )}
@@ -304,28 +305,39 @@ export const HotelsPage = () => {
           </p>
         </div>
 
-        {/* Quick Sort Dropdown */}
-        <div className="flex items-center gap-3">
-          <label className="text-xs text-slate-400 font-medium flex items-center gap-1.5">
-            <ArrowUpDown className="w-3.5 h-3.5" />
-            Sort By:
-          </label>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="bg-ink-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-coral-500 font-medium"
+        {/* Quick Sort Dropdown & Mobile Filter Button */}
+        <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
+            className="lg:hidden px-3.5 py-2 rounded-xl bg-ink-900 border border-white/10 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm"
           >
-            <option value="recommended">Featured & Recommended</option>
-            <option value="rating_desc">Highest Guest Rating</option>
-            <option value="price_asc">Price: Lowest First</option>
-            <option value="price_desc">Price: Highest First</option>
-          </select>
+            <SlidersHorizontal className="w-3.5 h-3.5 text-coral-500" />
+            <span>{mobileFiltersOpen ? 'Hide Filters' : 'Filters'}</span>
+          </button>
+
+          <div className="flex items-center gap-2">
+            <label className="text-xs text-slate-400 font-medium hidden sm:flex items-center gap-1.5 shrink-0">
+              <ArrowUpDown className="w-3.5 h-3.5" />
+              Sort By:
+            </label>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="bg-ink-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-coral-500 font-medium"
+            >
+              <option value="recommended">Featured & Recommended</option>
+              <option value="rating_desc">Highest Guest Rating</option>
+              <option value="price_asc">Price: Lowest First</option>
+              <option value="price_desc">Price: Highest First</option>
+            </select>
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
         {/* Left Filters Sidebar */}
-        <aside className="lg:col-span-3">
+        <aside className={`lg:col-span-3 ${mobileFiltersOpen ? 'block' : 'hidden lg:block'}`}>
           <div className="glass-panel rounded-3xl p-6 border border-white/10 sticky top-28 space-y-6">
             <div className="flex items-center justify-between pb-4 border-b border-white/5">
               <h2 className="text-sm font-bold text-white tracking-tight flex items-center gap-2">

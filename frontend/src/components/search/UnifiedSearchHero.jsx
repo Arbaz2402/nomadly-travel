@@ -131,8 +131,8 @@ export const UnifiedSearchHero = () => {
 
           {/* Tab 1: Flights Form */}
           {activeTab === 'flights' && (
-            <form onSubmit={handleFlightSearch} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
-              <div className="md:col-span-3 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
+            <form onSubmit={handleFlightSearch} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2.5 sm:gap-3 items-center">
+              <div className="sm:col-span-1 lg:col-span-3 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
                 <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
                   From (Airport)
                 </label>
@@ -148,21 +148,30 @@ export const UnifiedSearchHero = () => {
                 </div>
               </div>
 
-              <div className="md:col-span-1 flex items-center justify-center">
+              <div className="hidden lg:flex lg:col-span-1 items-center justify-center">
                 <button
                   type="button"
                   onClick={swapFlightAirports}
-                  className="w-10 h-10 rounded-full bg-ink-800 border border-white/10 hover:border-coral-500 text-slate-300 hover:text-white flex items-center justify-center transition-all shadow-md"
+                  className="w-10 h-10 rounded-full bg-ink-800 border border-white/10 hover:border-coral-500 text-slate-300 hover:text-white flex items-center justify-center transition-all shadow-md shrink-0"
                   title="Swap Origin & Destination"
                 >
                   <ArrowRightLeft className="w-4 h-4" />
                 </button>
               </div>
 
-              <div className="md:col-span-3 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
-                <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
-                  To (Airport)
-                </label>
+              <div className="sm:col-span-1 lg:col-span-3 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors relative">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
+                    To (Airport)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={swapFlightAirports}
+                    className="lg:hidden text-[10px] text-coral-400 hover:underline flex items-center gap-1 font-semibold"
+                  >
+                    <ArrowRightLeft className="w-3 h-3" /> Swap
+                  </button>
+                </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-teal-400 flex-shrink-0" />
                   <input
@@ -175,7 +184,7 @@ export const UnifiedSearchHero = () => {
                 </div>
               </div>
 
-              <div className="md:col-span-3 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
+              <div className="sm:col-span-1 lg:col-span-3 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
                 <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
                   Departure Date
                 </label>
@@ -190,13 +199,13 @@ export const UnifiedSearchHero = () => {
                 </div>
               </div>
 
-              <div className="md:col-span-2">
+              <div className="sm:col-span-1 lg:col-span-2">
                 <button
                   type="submit"
-                  className="w-full h-full py-4 px-6 rounded-2xl bg-coral-500 hover:bg-coral-600 text-white font-bold text-sm tracking-wide shadow-glow transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3.5 sm:py-4 px-4 rounded-2xl bg-coral-500 hover:bg-coral-600 text-white font-bold text-xs sm:text-sm tracking-wide shadow-glow transition-all flex items-center justify-center gap-2"
                 >
-                  <Search className="w-4 h-4 stroke-[2.5]" />
-                  <span>Search Flights</span>
+                  <Search className="w-4 h-4 stroke-[2.5] shrink-0" />
+                  <span className="truncate">Search Flights</span>
                 </button>
               </div>
             </form>
@@ -204,8 +213,8 @@ export const UnifiedSearchHero = () => {
 
           {/* Tab 2: Hotels Form */}
           {activeTab === 'hotels' && (
-            <form onSubmit={handleHotelSearch} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
-              <div className="md:col-span-4 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
+            <form onSubmit={handleHotelSearch} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2.5 sm:gap-3 items-center">
+              <div className="sm:col-span-2 lg:col-span-4 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
                 <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
                   Destination City
                 </label>
@@ -221,7 +230,7 @@ export const UnifiedSearchHero = () => {
                 </div>
               </div>
 
-              <div className="md:col-span-3 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
+              <div className="sm:col-span-1 lg:col-span-3 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
                 <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
                   Check-In
                 </label>
@@ -236,7 +245,7 @@ export const UnifiedSearchHero = () => {
                 </div>
               </div>
 
-              <div className="md:col-span-3 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
+              <div className="sm:col-span-1 lg:col-span-3 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
                 <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
                   Check-Out
                 </label>
@@ -251,13 +260,13 @@ export const UnifiedSearchHero = () => {
                 </div>
               </div>
 
-              <div className="md:col-span-2">
+              <div className="sm:col-span-2 lg:col-span-2">
                 <button
                   type="submit"
-                  className="w-full h-full py-4 px-6 rounded-2xl bg-coral-500 hover:bg-coral-600 text-white font-bold text-sm tracking-wide shadow-glow transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3.5 sm:py-4 px-4 rounded-2xl bg-coral-500 hover:bg-coral-600 text-white font-bold text-xs sm:text-sm tracking-wide shadow-glow transition-all flex items-center justify-center gap-2"
                 >
-                  <Search className="w-4 h-4 stroke-[2.5]" />
-                  <span>Find Stays</span>
+                  <Search className="w-4 h-4 stroke-[2.5] shrink-0" />
+                  <span className="truncate">Find Stays</span>
                 </button>
               </div>
             </form>
@@ -265,8 +274,8 @@ export const UnifiedSearchHero = () => {
 
           {/* Tab 3: Tours & Experiences Form */}
           {activeTab === 'tours' && (
-            <form onSubmit={handleTourSearch} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
-              <div className="md:col-span-5 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
+            <form onSubmit={handleTourSearch} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2.5 sm:gap-3 items-center">
+              <div className="sm:col-span-2 lg:col-span-5 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
                 <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
                   Destination City
                 </label>
@@ -282,7 +291,7 @@ export const UnifiedSearchHero = () => {
                 </div>
               </div>
 
-              <div className="md:col-span-4 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
+              <div className="sm:col-span-1 lg:col-span-4 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
                 <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
                   Experience Category
                 </label>
@@ -302,13 +311,13 @@ export const UnifiedSearchHero = () => {
                 </div>
               </div>
 
-              <div className="md:col-span-3">
+              <div className="sm:col-span-1 lg:col-span-3">
                 <button
                   type="submit"
-                  className="w-full h-full py-4 px-6 rounded-2xl bg-coral-500 hover:bg-coral-600 text-white font-bold text-sm tracking-wide shadow-glow transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3.5 sm:py-4 px-4 rounded-2xl bg-coral-500 hover:bg-coral-600 text-white font-bold text-xs sm:text-sm tracking-wide shadow-glow transition-all flex items-center justify-center gap-2"
                 >
-                  <Search className="w-4 h-4 stroke-[2.5]" />
-                  <span>Explore Tours</span>
+                  <Search className="w-4 h-4 stroke-[2.5] shrink-0" />
+                  <span className="truncate">Explore Tours</span>
                 </button>
               </div>
             </form>

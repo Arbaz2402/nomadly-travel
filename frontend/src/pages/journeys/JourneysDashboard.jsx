@@ -172,60 +172,60 @@ export const JourneysDashboard = () => {
       </div>
 
       {/* KPI Telemetry Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Total Trips */}
-        <div className="glass-panel p-5 rounded-3xl border border-white/10 bg-gradient-to-br from-ink-900/90 to-ink-900/40">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Total Journeys</span>
-            <div className="w-8 h-8 rounded-xl bg-coral-500/10 text-coral-400 flex items-center justify-center">
-              <Compass className="w-4 h-4" />
+        <div className="glass-panel p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-white/10 bg-gradient-to-br from-ink-900/90 to-ink-900/40 min-w-0">
+          <div className="flex items-center justify-between text-slate-400 mb-2 gap-1">
+            <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider truncate">Total Journeys</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-coral-500/10 text-coral-400 flex items-center justify-center shrink-0">
+              <Compass className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="text-2xl font-black text-white font-mono">{metrics.totalTrips}</div>
-          <p className="text-[11px] text-slate-400 mt-1 flex items-center gap-1.5">
+          <div className="text-xl sm:text-2xl font-black text-white font-mono truncate">{metrics.totalTrips}</div>
+          <p className="text-[10px] sm:text-[11px] text-slate-400 mt-1 flex items-center gap-1 sm:gap-1.5 truncate">
             <span className="text-teal-400 font-bold">{metrics.upcomingCount}</span> upcoming •{' '}
             <span className="text-emerald-400 font-bold">{metrics.ongoingCount}</span> ongoing
           </p>
         </div>
 
         {/* Planned Budget */}
-        <div className="glass-panel p-5 rounded-3xl border border-white/10 bg-gradient-to-br from-ink-900/90 to-ink-900/40">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Planned Budget</span>
-            <div className="w-8 h-8 rounded-xl bg-teal-500/10 text-teal-400 flex items-center justify-center">
-              <Wallet className="w-4 h-4" />
+        <div className="glass-panel p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-white/10 bg-gradient-to-br from-ink-900/90 to-ink-900/40 min-w-0">
+          <div className="flex items-center justify-between text-slate-400 mb-2 gap-1">
+            <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider truncate">Planned Budget</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-teal-500/10 text-teal-400 flex items-center justify-center shrink-0">
+              <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="text-2xl font-black text-white font-mono">
+          <div className="text-lg sm:text-2xl font-black text-white font-mono truncate">
             {formatCurrency(metrics.totalPlannedBudget, 'INR')}
           </div>
-          <p className="text-[11px] text-slate-400 mt-1">Sum of all trip targets</p>
+          <p className="text-[10px] sm:text-[11px] text-slate-400 mt-1 truncate">Sum of all trip targets</p>
         </div>
 
         {/* Actual Expenditure */}
-        <div className="glass-panel p-5 rounded-3xl border border-white/10 bg-gradient-to-br from-ink-900/90 to-ink-900/40">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Actual Spent</span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-              <TrendingUp className="w-4 h-4" />
+        <div className="glass-panel p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-white/10 bg-gradient-to-br from-ink-900/90 to-ink-900/40 min-w-0">
+          <div className="flex items-center justify-between text-slate-400 mb-2 gap-1">
+            <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider truncate">Actual Spent</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
+              <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="text-2xl font-black text-white font-mono">
+          <div className="text-lg sm:text-2xl font-black text-white font-mono truncate">
             {formatCurrency(metrics.totalActualSpend, 'INR')}
           </div>
-          <p className="text-[11px] text-slate-400 mt-1">Recorded expenses & bookings</p>
+          <p className="text-[10px] sm:text-[11px] text-slate-400 mt-1 truncate">Recorded expenses & bookings</p>
         </div>
 
         {/* Completed & Archive */}
-        <div className="glass-panel p-5 rounded-3xl border border-white/10 bg-gradient-to-br from-ink-900/90 to-ink-900/40">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Completed</span>
-            <div className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
-              <CheckCircle2 className="w-4 h-4" />
+        <div className="glass-panel p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-white/10 bg-gradient-to-br from-ink-900/90 to-ink-900/40 min-w-0">
+          <div className="flex items-center justify-between text-slate-400 mb-2 gap-1">
+            <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider truncate">Completed</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="text-2xl font-black text-white font-mono">{metrics.completedCount}</div>
-          <p className="text-[11px] text-slate-400 mt-1">Archived travel memories</p>
+          <div className="text-xl sm:text-2xl font-black text-white font-mono truncate">{metrics.completedCount}</div>
+          <p className="text-[10px] sm:text-[11px] text-slate-400 mt-1 truncate">Archived travel memories</p>
         </div>
       </div>
 
@@ -377,7 +377,7 @@ export const JourneysDashboard = () => {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
           {trips.map((trip) => {
             const statusConfig = getStatusBadge(trip.dynamicStatus || trip.status);
             const totalBudget = trip.budget?.totalBudget || 50000;
@@ -388,10 +388,10 @@ export const JourneysDashboard = () => {
               <div
                 key={trip._id}
                 onClick={() => navigate(`/journeys/${trip._id}`)}
-                className="group relative rounded-3xl bg-ink-900/90 border border-white/10 hover:border-coral-500/40 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer flex flex-col"
+                className="group relative rounded-3xl bg-ink-900/90 border border-white/10 hover:border-coral-500/40 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer flex flex-col min-w-0"
               >
                 {/* Trip Cover Image Header */}
-                <div className="relative h-48 w-full overflow-hidden bg-ink-950">
+                <div className="relative h-44 sm:h-48 w-full overflow-hidden bg-ink-950">
                   <img
                     src={trip.coverImage}
                     alt={trip.title}
@@ -404,40 +404,40 @@ export const JourneysDashboard = () => {
                   <div className="absolute inset-0 bg-gradient-to-t from-ink-900 via-ink-900/30 to-transparent" />
 
                   {/* Status & Category Badges */}
-                  <div className="absolute top-4 left-4 right-4 flex items-center justify-between gap-2">
+                  <div className="absolute top-3 sm:top-4 left-3 sm:left-4 right-3 sm:right-4 flex items-center justify-between gap-1.5 sm:gap-2">
                     {trip.participantStatus === 'pending' ? (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border backdrop-blur-md bg-amber-500/25 text-amber-300 border-amber-500/40 shadow-sm">
-                        <Clock className="w-3 h-3 animate-pulse text-amber-400" />
+                      <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-[11px] font-bold uppercase tracking-wider border backdrop-blur-md bg-amber-500/25 text-amber-300 border-amber-500/40 shadow-sm truncate">
+                        <Clock className="w-3 h-3 animate-pulse text-amber-400 shrink-0" />
                         Invite Pending
                       </span>
                     ) : (
                       <span
-                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border backdrop-blur-md ${statusConfig.bg}`}
+                        className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-[11px] font-bold uppercase tracking-wider border backdrop-blur-md truncate ${statusConfig.bg}`}
                       >
-                        <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`} />
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${statusConfig.dot}`} />
                         {statusConfig.label}
                       </span>
                     )}
 
-                    <span className="px-2.5 py-1 rounded-full bg-ink-950/80 backdrop-blur-md text-slate-300 border border-white/10 text-[11px] font-semibold flex items-center gap-1.5">
-                      <Users className="w-3.5 h-3.5 text-coral-400" />
+                    <span className="px-2 sm:px-2.5 py-1 rounded-full bg-ink-950/80 backdrop-blur-md text-slate-300 border border-white/10 text-[10px] sm:text-[11px] font-semibold flex items-center gap-1 sm:gap-1.5 shrink-0">
+                      <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-coral-400" />
                       {trip.travelersCount || 1}
                     </span>
                   </div>
 
                   {/* Destination Overlay */}
-                  <div className="absolute bottom-3 left-4 right-4">
-                    <span className="text-[10px] uppercase font-bold tracking-widest text-coral-400 block">
+                  <div className="absolute bottom-3 left-3 sm:left-4 right-3 sm:right-4">
+                    <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-widest text-coral-400 block truncate">
                       Primary Destination
                     </span>
-                    <h3 className="text-xl font-black text-white font-display tracking-tight drop-shadow-md truncate">
+                    <h3 className="text-lg sm:text-xl font-black text-white font-display tracking-tight drop-shadow-md truncate">
                       {trip.destination}
                     </h3>
                   </div>
                 </div>
 
                 {/* Card Body */}
-                <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-3 sm:space-y-4">
                   <div>
                     {/* Trip Title */}
                     <h4 className="text-base font-bold text-white group-hover:text-coral-400 transition-colors line-clamp-1">

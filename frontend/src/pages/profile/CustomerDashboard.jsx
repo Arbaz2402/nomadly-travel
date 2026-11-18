@@ -256,7 +256,7 @@ export const CustomerDashboard = () => {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between md:justify-end w-full md:w-auto gap-6 border-t md:border-t-0 pt-4 md:pt-0 border-white/5">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between md:justify-end w-full md:w-auto gap-3 sm:gap-6 border-t md:border-t-0 pt-4 md:pt-0 border-white/5">
                       <div className="text-left md:text-right">
                         <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">
                           Total Amount
@@ -266,13 +266,13 @@ export const CustomerDashboard = () => {
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                         {!isCancelled && (
                           <button
                             onClick={() => handleOpenTripPicker(booking)}
-                            className="px-3.5 py-2 rounded-xl bg-ink-900 hover:bg-ink-800 text-teal-400 border border-teal-500/20 text-xs font-bold transition-all flex items-center gap-1.5"
+                            className="flex-1 sm:flex-none justify-center px-3.5 py-2 rounded-xl bg-ink-900 hover:bg-ink-800 text-teal-400 border border-teal-500/20 text-xs font-bold transition-all flex items-center gap-1.5"
                           >
-                            <Map className="w-3.5 h-3.5" />
+                            <Map className="w-3.5 h-3.5 shrink-0" />
                             <span>Add to Journey</span>
                           </button>
                         )}
@@ -280,7 +280,7 @@ export const CustomerDashboard = () => {
                         {!isCancelled && (
                           <button
                             onClick={() => handleCancelBooking(booking._id)}
-                            className="px-4 py-2 rounded-xl bg-ink-900 hover:bg-rose-500/10 text-slate-400 hover:text-rose-400 border border-white/10 hover:border-rose-500/30 text-xs font-bold transition-all"
+                            className="flex-1 sm:flex-none justify-center px-4 py-2 rounded-xl bg-ink-900 hover:bg-rose-500/10 text-slate-400 hover:text-rose-400 border border-white/10 hover:border-rose-500/30 text-xs font-bold transition-all"
                           >
                             Cancel Booking
                           </button>

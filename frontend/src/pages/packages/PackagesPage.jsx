@@ -115,10 +115,10 @@ export const PackagesPage = () => {
           </p>
 
           {/* Duration Filters */}
-          <div className="flex flex-wrap items-center justify-center gap-2 pt-4">
+          <div className="flex items-center justify-start sm:justify-center gap-2 pt-4 overflow-x-auto scrollbar-none px-2 max-w-full">
             <button
               onClick={() => setSelectedDuration('all')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 transition-all ${
                 selectedDuration === 'all'
                   ? 'bg-white text-ink-950 shadow-md'
                   : 'bg-ink-900/60 text-slate-400 hover:text-white border border-white/5'
@@ -128,17 +128,17 @@ export const PackagesPage = () => {
             </button>
             <button
               onClick={() => setSelectedDuration('2')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 transition-all ${
                 selectedDuration === '2'
                   ? 'bg-white text-ink-950 shadow-md'
                   : 'bg-ink-900/60 text-slate-400 hover:text-white border border-white/5'
               }`}
             >
-              Weekend Getaways (2 Nights)
+              Weekend (2 Nights)
             </button>
             <button
               onClick={() => setSelectedDuration('3')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 transition-all ${
                 selectedDuration === '3'
                   ? 'bg-white text-ink-950 shadow-md'
                   : 'bg-ink-900/60 text-slate-400 hover:text-white border border-white/5'
@@ -148,13 +148,13 @@ export const PackagesPage = () => {
             </button>
             <button
               onClick={() => setSelectedDuration('4')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 transition-all ${
                 selectedDuration === '4'
                   ? 'bg-white text-ink-950 shadow-md'
                   : 'bg-ink-900/60 text-slate-400 hover:text-white border border-white/5'
               }`}
             >
-              Extended Retreats (4 Nights)
+              Retreats (4 Nights)
             </button>
           </div>
         </div>
