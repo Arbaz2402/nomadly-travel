@@ -60,10 +60,19 @@ export const buildFlightPartnerUrl = (flight = {}) => {
     }
   }
 
-  if (dateParam) {
-    return `https://www.makemytrip.com/flight/search?itinerary=${origin.toUpperCase()}-${dest.toUpperCase()}-${dateParam}&tripType=O&paxType=A-1_C-0_I-0&intl=false&cabinClass=E`;
+  // Default to tomorrow if no valid departure date provided
+  if (!dateParam) {
+    const tmrw = new Date(Date.now() + 86400000);
+    const dd = String(tmrw.getDate()).padStart(2, '0');
+    const mm = String(tmrw.getMonth() + 1).padStart(2, '0');
+    const yyyy = tmrw.getFullYear();
+    dateParam = `${dd}/${mm}/${yyyy}`;
   }
-  return `https://www.google.com/travel/flights?q=Flights%20to%20${encodeURIComponent(dest)}%20from%20${encodeURIComponent(origin)}`;
+
+  const originClean = origin.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3) || 'BOM';
+  const destClean = dest.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3) || 'DEL';
+
+  return `https://www.makemytrip.com/flight/search?itinerary=${originClean}-${destClean}-${dateParam}&tripType=O&paxType=A-1_C-0_I-0&intl=false&cabinClass=E`;
 };
 
 export const buildHotelPartnerUrl = (hotel = {}) => {

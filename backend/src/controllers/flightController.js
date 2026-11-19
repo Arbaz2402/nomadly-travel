@@ -36,6 +36,10 @@ export const searchFlights = async (req, res) => {
       }
     }
 
+    if (departureDate) {
+      query.departureDate = departureDate;
+    }
+
     if (cabinClass && cabinClass !== 'all') {
       query.cabinClass = cabinClass;
     }
