@@ -67,19 +67,24 @@ export const buildFlightPartnerUrl = (flight = {}) => {
 };
 
 export const buildHotelPartnerUrl = (hotel = {}) => {
-  const query = hotel.name || hotel.title || hotel.location?.city || hotel.city || 'Goa';
-  return `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(query)}`;
+  const query = hotel.hotelName || hotel.name || hotel.title || hotel.location?.city || hotel.city || 'Goa';
+  const checkinParam = hotel.checkIn ? `&checkin=${hotel.checkIn}` : '';
+  const checkoutParam = hotel.checkOut ? `&checkout=${hotel.checkOut}` : '';
+  return `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(query)}${checkinParam}${checkoutParam}`;
 };
 
 export const buildTrainPartnerUrl = (train = {}) => {
-  const fromCode = (train.originStationCode || train.originCity || 'BOM').toUpperCase();
-  const toCode = (train.destinationStationCode || train.destinationCity || 'DEL').toUpperCase();
-  return `https://www.confirmtkt.com/rbooking-d/trains/from/${fromCode}/to/${toCode}`;
+  const fromCode = (train.originStationCode || train.originCity || 'BOM').toUpperCase().replace(/[^A-Z]/g, '');
+  const toCode = (train.destinationStationCode || train.destinationCity || 'DEL').toUpperCase().replace(/[^A-Z]/g, '');
+  if (train.trainNumber) {
+    return `https://www.confirmtkt.com/rbooking-d/trains/from/${fromCode || 'BOM'}/to/${toCode || 'DEL'}`;
+  }
+  return `https://www.confirmtkt.com/rbooking-d/trains/from/${fromCode || 'BOM'}/to/${toCode || 'DEL'}`;
 };
 
 export const buildBusPartnerUrl = (bus = {}) => {
-  const from = (bus.originCity || 'Mumbai').toLowerCase().replace(/\s+/g, '-');
-  const to = (bus.destinationCity || 'Pune').toLowerCase().replace(/\s+/g, '-');
+  const from = (bus.originCity || 'Mumbai').toLowerCase().replace(/[^a-z0-9]/g, '-');
+  const to = (bus.destinationCity || 'Pune').toLowerCase().replace(/[^a-z0-9]/g, '-');
   return `https://www.redbus.in/bus-tickets/${from}-to-${to}`;
 };
 
