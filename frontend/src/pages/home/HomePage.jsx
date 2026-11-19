@@ -15,85 +15,119 @@ import { UnifiedSearchHero } from '../../components/search/UnifiedSearchHero';
 import { ApiClient } from '../../services/api';
 import { formatCurrency } from '../../utils/formatters';
 
-export const HomePage = () => {
-  const [featuredHotels, setFeaturedHotels] = useState([]);
-  const [loadingHotels, setLoadingHotels] = useState(true);
-  const [featuredExperiences, setFeaturedExperiences] = useState([]);
-  const [loadingExp, setLoadingExp] = useState(true);
+// Pre-seeded curated collections for zero-latency instant rendering
+const FALLBACK_HOTELS = [
+  {
+    _id: 'fallback-1',
+    name: 'The Oberoi Udaivilas, Udaipur',
+    propertyType: 'resort',
+    featuredPhoto: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&q=80',
+    location: { city: 'Udaipur', state: 'Rajasthan' },
+    starRating: 5,
+    guestRating: 9.8,
+    rooms: [{ pricePerNight: 36000 }],
+  },
+  {
+    _id: 'fallback-2',
+    name: 'Alila Diwa Goa - Hyatt Unbound',
+    propertyType: 'resort',
+    featuredPhoto: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=800&q=80',
+    location: { city: 'Goa', state: 'Goa' },
+    starRating: 5,
+    guestRating: 9.2,
+    rooms: [{ pricePerNight: 18500 }],
+  },
+  {
+    _id: 'fallback-3',
+    name: 'The Taj Mahal Palace, Mumbai',
+    propertyType: 'hotel',
+    featuredPhoto: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80',
+    location: { city: 'Mumbai', state: 'Maharashtra' },
+    starRating: 5,
+    guestRating: 9.6,
+    rooms: [{ pricePerNight: 24500 }],
+  },
+  {
+    _id: 'fallback-4',
+    name: 'The Leela Palace, New Delhi',
+    propertyType: 'hotel',
+    featuredPhoto: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&q=80',
+    location: { city: 'New Delhi', state: 'Delhi' },
+    starRating: 5,
+    guestRating: 9.4,
+    rooms: [{ pricePerNight: 22000 }],
+  },
+];
 
-  // Fallback verified boutique collections if database is starting up
-  const fallbackCollections = [
-    {
-      _id: 'fallback-1',
-      name: 'The Oberoi Udaivilas, Udaipur',
-      propertyType: 'resort',
-      featuredPhoto: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&q=80',
-      location: { city: 'Udaipur', state: 'Rajasthan' },
-      starRating: 5,
-      guestRating: 9.8,
-      rooms: [{ pricePerNight: 36000 }],
-    },
-    {
-      _id: 'fallback-2',
-      name: 'Alila Diwa Goa - Hyatt Unbound',
-      propertyType: 'resort',
-      featuredPhoto: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=800&q=80',
-      location: { city: 'Goa', state: 'Goa' },
-      starRating: 5,
-      guestRating: 9.2,
-      rooms: [{ pricePerNight: 18500 }],
-    },
-    {
-      _id: 'fallback-3',
-      name: 'The Taj Mahal Palace, Mumbai',
-      propertyType: 'hotel',
-      featuredPhoto: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80',
-      location: { city: 'Mumbai', state: 'Maharashtra' },
-      starRating: 5,
-      guestRating: 9.6,
-      rooms: [{ pricePerNight: 24500 }],
-    },
-    {
-      _id: 'fallback-4',
-      name: 'The Leela Palace, New Delhi',
-      propertyType: 'hotel',
-      featuredPhoto: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&q=80',
-      location: { city: 'New Delhi', state: 'Delhi' },
-      starRating: 5,
-      guestRating: 9.4,
-      rooms: [{ pricePerNight: 22000 }],
-    },
-  ];
+const FALLBACK_EXPERIENCES = [
+  {
+    _id: 'exp-1',
+    title: 'Grand Island Scuba Diving & Dolphin Cruise',
+    destinationCity: 'Goa',
+    durationHours: 6,
+    rating: 4.9,
+    pricePerPerson: 2800,
+    currency: 'INR',
+    featuredPhoto: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&q=80',
+  },
+  {
+    _id: 'exp-2',
+    title: 'Sunset Lake Pichola Luxury Boat Cruise',
+    destinationCity: 'Udaipur',
+    durationHours: 2,
+    rating: 4.8,
+    pricePerPerson: 1600,
+    currency: 'INR',
+    featuredPhoto: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&q=80',
+  },
+  {
+    _id: 'exp-3',
+    title: 'Arabian Desert Safari with Dune Bashing & BBQ',
+    destinationCity: 'Dubai',
+    durationHours: 7,
+    rating: 4.9,
+    pricePerPerson: 4500,
+    currency: 'INR',
+    featuredPhoto: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&q=80',
+  },
+  {
+    _id: 'exp-4',
+    title: 'Royal Amber Fort Heritage Walking Tour',
+    destinationCity: 'Jaipur',
+    durationHours: 4,
+    rating: 4.7,
+    pricePerPerson: 1200,
+    currency: 'INR',
+    featuredPhoto: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=800&q=80',
+  },
+];
+
+export const HomePage = () => {
+  const [featuredHotels, setFeaturedHotels] = useState(FALLBACK_HOTELS);
+  const [loadingHotels, setLoadingHotels] = useState(false);
+  const [featuredExperiences, setFeaturedExperiences] = useState(FALLBACK_EXPERIENCES);
+  const [loadingExp, setLoadingExp] = useState(false);
 
   useEffect(() => {
     const fetchHotels = async () => {
       try {
-        setLoadingHotels(true);
         const res = await ApiClient.getFeaturedHotels();
         if (res.success && res.data && res.data.length > 0) {
           setFeaturedHotels(res.data);
-        } else {
-          setFeaturedHotels(fallbackCollections);
         }
       } catch (err) {
-        console.warn('Loading fallback curated stays:', err.message);
-        setFeaturedHotels(fallbackCollections);
-      } finally {
-        setLoadingHotels(false);
+        console.warn('Keeping instant fallback curated stays:', err.message);
       }
     };
 
     const fetchExp = async () => {
       try {
-        setLoadingExp(true);
         const res = await ApiClient.getFeaturedExperiences();
-        if (res.success && res.data) {
+        if (res.success && res.data && res.data.length > 0) {
           setFeaturedExperiences(res.data);
         }
       } catch (err) {
-        console.warn('Could not load experiences for home:', err.message);
-      } finally {
-        setLoadingExp(false);
+        console.warn('Keeping instant fallback experiences:', err.message);
       }
     };
 
