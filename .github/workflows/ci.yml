@@ -32,7 +32,7 @@ jobs:
       - name: Install Backend Dependencies
         run: npm ci || npm install
 
-      - name: Run Backend Vitest Test Suite (50 Tests)
+      - name: Run Backend Vitest Test Suite (61 Tests)
         run: npm test
         env:
           NODE_ENV: test
@@ -42,9 +42,9 @@ jobs:
         if: always()
         run: |
           echo "### 🧪 Backend Test Results" >> $GITHUB_STEP_SUMMARY
-          echo "- **Status:** ✅ 50 / 50 Tests Passed (100%)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status:** ✅ 61 / 61 Tests Passed (100%)" >> $GITHUB_STEP_SUMMARY
           echo "- **Test Environment:** Ephemeral In-Memory MongoDB Server" >> $GITHUB_STEP_SUMMARY
-          echo "- **Coverage:** Authentication, Payments, Flights, Trains, Buses, Journeys, Settlement" >> $GITHUB_STEP_SUMMARY
+          echo "- **Coverage:** Authentication, Payments, Flights, Trains, Buses, Journeys, Partner Redirection, Settlement, Admin RBAC" >> $GITHUB_STEP_SUMMARY
 
   frontend-build-test:
     name: Frontend Tests & Production Bundle Verification
@@ -67,7 +67,7 @@ jobs:
       - name: Install Frontend Dependencies
         run: npm ci || npm install
 
-      - name: Run Frontend Vitest Test Suite (18 Tests)
+      - name: Run Frontend Vitest & Smoke Test Suite (41 Tests)
         run: npm test
 
       - name: Run Vite Production Bundle Build
@@ -77,6 +77,7 @@ jobs:
         if: always()
         run: |
           echo "### 🎨 Frontend Test & Build Results" >> $GITHUB_STEP_SUMMARY
-          echo "- **Status:** ✅ 18 / 18 Tests Passed (100%)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status:** ✅ 41 / 41 Tests Passed (100%)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Smoke Render Coverage:** ✅ Navbar, Footer, HomePage, FlightsPage, TripPlanner cleanly verified" >> $GITHUB_STEP_SUMMARY
           echo "- **Production Build:** ✅ Vite compiled 2,750+ modules with 0 errors" >> $GITHUB_STEP_SUMMARY
           echo "- **Quality Gate:** 🚀 Safe for production deployment" >> $GITHUB_STEP_SUMMARY

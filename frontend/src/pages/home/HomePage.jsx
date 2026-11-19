@@ -10,6 +10,7 @@ import {
   MapPin,
   TrendingUp,
   Loader2,
+  Calendar,
 } from 'lucide-react';
 import { UnifiedSearchHero } from '../../components/search/UnifiedSearchHero';
 import { ApiClient } from '../../services/api';
