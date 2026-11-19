@@ -47,7 +47,7 @@ jobs:
           echo "- **Coverage:** Authentication, Payments, Flights, Trains, Buses, Journeys, Partner Redirection, Settlement, Admin RBAC" >> $GITHUB_STEP_SUMMARY
 
   frontend-build-test:
-    name: Frontend Tests, Smoke Suite & Production Bundle Verification
+    name: Frontend Tests & Production Bundle Verification
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
