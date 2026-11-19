@@ -19,6 +19,9 @@ export const createBooking = async (req, res) => {
       addOns = [],
       sessionId,
       customSnapshot, // Optional extra metadata
+      providerReference,
+      providerName: customProviderName,
+      isDirectConfirmed = false,
     } = req.body;
 
     if (!passengers || !passengers.length) {
@@ -148,18 +151,28 @@ export const createBooking = async (req, res) => {
     const randomDigits = Math.floor(100000 + Math.random() * 900000);
     const bookingReference = `NOMAD-${categoryPrefix}-${randomDigits}`;
 
+    const resolvedProviderName = customProviderName || providerName;
+
     const booking = await Booking.create({
       bookingReference,
       user: req.user._id,
       travelCategory,
-      providerName,
-      isDemo: true,
+      providerName: resolvedProviderName,
+      providerReference: providerReference ? String(providerReference).trim() : undefined,
+      isDemo: false,
       itinerarySnapshot,
       passengers,
       contactInfo,
       pricing,
-      bookingStatus: 'pending_payment',
-      paymentStatus: 'pending',
+      bookingStatus: isDirectConfirmed ? 'confirmed' : 'pending_payment',
+      paymentStatus: isDirectConfirmed ? 'paid' : 'pending',
+      paymentDetails: isDirectConfirmed
+        ? {
+            method: 'partner_verified',
+            paymentId: `ext_${Date.now()}`,
+            paidAt: new Date(),
+          }
+        : undefined,
     });
 
     return res.status(201).json({

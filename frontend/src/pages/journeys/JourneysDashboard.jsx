@@ -209,7 +209,7 @@ export const JourneysDashboard = () => {
                 className="px-5 py-3 rounded-2xl bg-ink-900 border border-white/10 hover:border-coral-500/50 text-slate-300 text-xs font-bold flex items-center gap-2"
               >
                 <Sparkles className="w-4 h-4 text-coral-400" />
-                Explore Seeded Demo Trip
+                Explore Sample Journey
               </button>
             )}
           </div>

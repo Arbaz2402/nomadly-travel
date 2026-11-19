@@ -351,4 +351,4 @@ export const AIModifyActivityModal = ({ trip, item, itinerary, isOpen, onClose, 
 // =========================================================
 // MODAL: EDIT ACTIVITY MANUALLY
 // =========================================================
-
+

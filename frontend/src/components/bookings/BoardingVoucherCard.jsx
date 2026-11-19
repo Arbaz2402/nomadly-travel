@@ -49,6 +49,11 @@ export const BoardingVoucherCard = ({ booking, onCopyReference }) => {
             <p className="text-xs text-slate-400">
               {booking?.providerName || 'Nomadly Travel'}
             </p>
+            {booking?.providerReference && (
+              <span className="font-mono text-[11px] text-teal-400 font-bold block mt-1">
+                PNR: {booking.providerReference}
+              </span>
+            )}
           </div>
 
           <div>

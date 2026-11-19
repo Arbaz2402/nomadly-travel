@@ -117,6 +117,11 @@ export const BookingsList = ({
                 <h3 className="text-base font-bold text-white font-display">
                   {booking.providerName}
                 </h3>
+                {booking.providerReference && (
+                  <span className="font-mono text-[11px] text-teal-400 font-semibold block mt-0.5">
+                    PNR: {booking.providerReference}
+                  </span>
+                )}
 
                 <p className="text-xs text-slate-400 mt-1">
                   Booked on: {formatDate(booking.createdAt)} • Travelers: {booking.passengers?.length || 1}
