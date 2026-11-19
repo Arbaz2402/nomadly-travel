@@ -120,7 +120,7 @@ export const Navbar = () => {
                 <button
                   onClick={() => handleDemoLogin('customer')}
                   className="px-2.5 xl:px-3 py-1.5 text-xs font-medium rounded-xl bg-ink-900 text-slate-300 hover:text-white border border-white/10 hover:border-coral-500/40 transition-all flex items-center gap-1 whitespace-nowrap"
-                  title="Quick Demo Traveler Login"
+                  title="Traveler Account Login"
                 >
                   <Sparkles className="w-3 h-3 text-coral-400" />
                   Traveler
@@ -128,7 +128,7 @@ export const Navbar = () => {
                 <button
                   onClick={() => handleDemoLogin('admin')}
                   className="px-2.5 xl:px-3 py-1.5 text-xs font-medium rounded-xl bg-ink-900 text-slate-300 hover:text-white border border-white/10 hover:border-teal-500/40 transition-all flex items-center gap-1 whitespace-nowrap"
-                  title="Quick Demo Admin Console Login"
+                  title="Admin Console Login"
                 >
                   <ShieldCheck className="w-3 h-3 text-teal-400" />
                   Admin
@@ -285,7 +285,7 @@ export const Navbar = () => {
                     }}
                     className="w-full py-2 text-xs font-medium rounded-xl bg-ink-900 border border-white/10 text-slate-300"
                   >
-                    Traveler Demo
+                    Traveler
                   </button>
                   <button
                     onClick={() => {
@@ -294,7 +294,7 @@ export const Navbar = () => {
                     }}
                     className="w-full py-2 text-xs font-medium rounded-xl bg-ink-900 border border-white/10 text-teal-400"
                   >
-                    Admin Demo
+                    Admin
                   </button>
                 </div>
               </>

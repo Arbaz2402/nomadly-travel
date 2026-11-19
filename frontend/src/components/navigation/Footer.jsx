@@ -161,7 +161,7 @@ export const Footer = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-slate-500 text-[11px]">
             <p>© {new Date().getFullYear()} NOMADLY Inc. Built with React, Node, Express, MongoDB & Tailwind.</p>
             <p className="flex items-center gap-1">
-              Engineered for high-concurrency travel booking demonstration.
+              Engineered with Clean Architecture & Redux Toolkit.
             </p>
           </div>
         </div>

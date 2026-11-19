@@ -9,6 +9,8 @@ import { SavedTravelersAutofill } from '../../components/checkout/SavedTravelers
 import { PassengerDetailsForm } from '../../components/checkout/PassengerDetailsForm';
 import { JourneyAddons } from '../../components/checkout/JourneyAddons';
 import { CheckoutOrderSummary } from '../../components/checkout/CheckoutOrderSummary';
+import { PartnerBookingModal } from '../../components/checkout/PartnerBookingModal';
+import { getPartnerInfo } from '../../utils/partnerLinks';
 
 export const CheckoutPage = () => {
   const location = useLocation();
@@ -17,6 +19,7 @@ export const CheckoutPage = () => {
   const { showToast } = useToast();
 
   const checkoutState = location.state;
+  const [isPartnerModalOpen, setIsPartnerModalOpen] = useState(false);
 
   // Passenger & Contact State
   const [passengers, setPassengers] = useState([
@@ -82,6 +85,7 @@ export const CheckoutPage = () => {
   } = checkoutState;
 
   const itinerary = rawItinerary || itinerarySnapshot || {};
+  const partnerInfo = getPartnerInfo(category, itinerary);
 
   // Custom hook for client pricing calculation
   const pricingMetrics = useCheckoutPricing({
@@ -157,22 +161,10 @@ export const CheckoutPage = () => {
     showToast(`Autofilled details for ${saved.firstName} ${saved.lastName}`, 'success');
   };
 
-  const handlePaymentAndConfirm = async () => {
-    let currentUser = user;
-    if (!currentUser) {
-      try {
-        const demoRes = await demoSignIn('customer');
-        currentUser = demoRes.user;
-        showToast('Signed in with Demo Traveler account for checkout', 'info');
-      } catch (e) {
-        showToast('Authentication required to book.', 'error');
-        return;
-      }
-    }
-
+  const handleInitiatePartnerBooking = () => {
     for (const p of passengers) {
       if (!p.firstName.trim() || !p.lastName.trim()) {
-        showToast('Please provide full first and last name for all travelers.', 'error');
+        showToast('Please provide first and last name for all travelers.', 'error');
         return;
       }
     }
@@ -180,6 +172,27 @@ export const CheckoutPage = () => {
     if (!contactEmail.trim() || !contactPhone.trim()) {
       showToast('Please provide contact email and phone number for receipt delivery.', 'error');
       return;
+    }
+
+    // Open partner booking in a new tab
+    if (partnerInfo?.url) {
+      window.open(partnerInfo.url, '_blank', 'noopener,noreferrer');
+    }
+
+    // Open confirmation dialog on current tab
+    setIsPartnerModalOpen(true);
+  };
+
+  const handleConfirmPartnerBooking = async (optionalPnr = '') => {
+    let currentUser = user;
+    if (!currentUser) {
+      try {
+        const res = await demoSignIn('customer');
+        currentUser = res.user;
+      } catch (e) {
+        showToast('Please sign in to save your booking.', 'error');
+        return;
+      }
     }
 
     try {
@@ -194,45 +207,35 @@ export const CheckoutPage = () => {
         addOns: selectedAddOns,
         sessionId,
         customSnapshot: itinerary,
+        providerName: partnerInfo.name,
+        providerReference: optionalPnr ? optionalPnr.trim() : undefined,
+        isDirectConfirmed: true,
       };
 
       const bookingRes = await ApiClient.createBooking(bookingPayload);
       const booking = bookingRes.data;
 
-      const orderRes = await ApiClient.createPaymentOrder({
-        bookingId: booking._id,
-        amount: booking.pricing.totalPayable,
-        currency: booking.pricing.currency,
-      });
+      showToast(`Booking saved! Synchronized with ${partnerInfo.name}.`, 'success');
 
-      const { orderId } = orderRes.data;
-
-      const verifyRes = await ApiClient.verifyPayment({
-        bookingId: booking._id,
-        orderId,
-        paymentId: `pay_sandbox_${Date.now()}`,
-        signature: 'sandbox_verified_secure_signature',
-      });
-
-      showToast('Payment verified successfully! Booking confirmed.', 'success');
-
-      if (verifyRes.data?.booking) {
+      if (booking) {
         try {
-          sessionStorage.setItem('nomadly_latest_booking', JSON.stringify(verifyRes.data.booking));
+          sessionStorage.setItem('nomadly_latest_booking', JSON.stringify(booking));
         } catch (e) {
           console.warn('Could not cache booking to sessionStorage:', e);
         }
       }
 
+      setIsPartnerModalOpen(false);
+
       navigate('/confirmation', {
         state: {
-          booking: verifyRes.data.booking,
-          receipt: verifyRes.data.booking,
+          booking,
+          receipt: booking,
         },
       });
     } catch (err) {
-      console.error('Checkout error:', err);
-      showToast(err.message || 'Payment processing failed. Please try again.', 'error');
+      console.error('Save booking error:', err);
+      showToast(err.message || 'Failed to save booking. Please try again.', 'error');
     } finally {
       setIsProcessing(false);
     }
@@ -281,10 +284,23 @@ export const CheckoutPage = () => {
             onRemoveCoupon={handleRemoveCoupon}
             pricingMetrics={pricingMetrics}
             isProcessing={isProcessing}
-            onPayAndConfirm={handlePaymentAndConfirm}
+            onPayAndConfirm={handleInitiatePartnerBooking}
+            partnerInfo={partnerInfo}
           />
         </div>
       </div>
+
+      <PartnerBookingModal
+        isOpen={isPartnerModalOpen}
+        onClose={() => setIsPartnerModalOpen(false)}
+        partnerInfo={partnerInfo}
+        category={category}
+        title={title}
+        itinerary={itinerary}
+        pricingMetrics={pricingMetrics}
+        onConfirmBooking={handleConfirmPartnerBooking}
+        isProcessing={isProcessing}
+      />
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Ticket, Lock, ShieldCheck, AlertCircle } from 'lucide-react';
+import { Ticket, ExternalLink, ShieldCheck, AlertCircle } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatters';
 
 export const CheckoutOrderSummary = ({
@@ -18,6 +18,7 @@ export const CheckoutOrderSummary = ({
   pricingMetrics,
   isProcessing,
   onPayAndConfirm,
+  partnerInfo,
 }) => {
   const { rawBase, taxes, serviceFee, addOnsTotal, discountAmount, estimatedPayable } =
     pricingMetrics;
@@ -143,7 +144,7 @@ export const CheckoutOrderSummary = ({
         </div>
       </div>
 
-      {/* Pay & Confirm CTA */}
+      {/* Book on Partner CTA */}
       <button
         type="button"
         disabled={isProcessing}
@@ -153,19 +154,19 @@ export const CheckoutOrderSummary = ({
         {isProcessing ? (
           <>
             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            <span>Verifying & Confirming...</span>
+            <span>Preparing Booking...</span>
           </>
         ) : (
           <>
-            <Lock className="w-4 h-4" />
-            <span>Pay & Confirm Reservation</span>
+            <ExternalLink className="w-4 h-4" />
+            <span>Book on {partnerInfo?.name || 'Partner'}</span>
           </>
         )}
       </button>
 
-      <div className="text-center text-[10px] text-slate-500 flex items-center justify-center gap-1.5">
+      <div className="text-center text-[10px] text-slate-400 flex items-center justify-center gap-1.5">
         <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
-        <span>NOMADLY Secure Pay • 256-Bit Bank-Grade SSL Encryption</span>
+        <span>Official Partner Booking • Automatically Syncs with NOMADLY</span>
       </div>
     </div>
   );
