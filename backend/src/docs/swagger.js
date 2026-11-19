@@ -50,7 +50,7 @@ This interactive Swagger documentation details all available API endpoints acros
     { name: 'Hotels & Stays', description: 'Live hotel discovery, room categories, and featured luxury properties' },
     { name: 'Experiences & Tours', description: 'Authentic local adventures, scuba diving, desert safaris, and heritage cruises' },
     { name: 'Vacation Packages', description: 'Curated Flight + Hotel combos with bundled package discounts' },
-    { name: 'AI Smart Planner', description: 'AI-driven day-by-day itinerary synthesis & 1-click export into Journey workspaces' },
+    { name: 'Trip Planner Engine', description: 'Day-by-day itinerary synthesis & 1-click export into Journey workspaces' },
     { name: 'Bookings & Reservations', description: 'Ticket issuance, booking references (PNR), cancellations, and PDF receipts' },
     { name: 'Payments & Verification', description: 'Payment order initialization, cryptographic signature verification, and sandbox transactions' },
     { name: 'My Journeys (Trips)', description: 'Collaborative travel planner, itinerary items, expense splitting, and documents vault' },

@@ -24,9 +24,23 @@ export const createBooking = async (req, res) => {
       isDirectConfirmed = false,
     } = req.body;
 
-    if (!passengers || !passengers.length) {
+    let resolvedPassengers = passengers;
+    if ((!resolvedPassengers || !resolvedPassengers.length) && isDirectConfirmed) {
+      resolvedPassengers = [
+        {
+          title: 'Guest',
+          firstName: req.user?.displayName?.split(' ')[0] || 'Traveler',
+          lastName: req.user?.displayName?.split(' ').slice(1).join(' ') || '',
+        },
+      ];
+    } else if (!resolvedPassengers || !resolvedPassengers.length) {
       return res.status(400).json({ success: false, message: 'At least one traveler is required.' });
     }
+
+    const resolvedContactInfo = contactInfo && contactInfo.email ? contactInfo : {
+      email: req.user?.email || 'traveler@nomadly.travel',
+      phone: req.user?.phoneNumber || '+91 99999 99999',
+    };
 
     let baseFare = 0;
     let itinerarySnapshot = customSnapshot || {};
@@ -141,7 +155,7 @@ export const createBooking = async (req, res) => {
     const pricing = await PricingService.calculate({
       category: travelCategory,
       baseFare,
-      quantity: passengers.length,
+      quantity: resolvedPassengers.length,
       addOns,
       couponCode,
     });
@@ -161,8 +175,8 @@ export const createBooking = async (req, res) => {
       providerReference: providerReference ? String(providerReference).trim() : undefined,
       isDemo: false,
       itinerarySnapshot,
-      passengers,
-      contactInfo,
+      passengers: resolvedPassengers,
+      contactInfo: resolvedContactInfo,
       pricing,
       bookingStatus: isDirectConfirmed ? 'confirmed' : 'pending_payment',
       paymentStatus: isDirectConfirmed ? 'paid' : 'pending',

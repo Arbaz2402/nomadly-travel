@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { ExternalLink } from 'lucide-react';
 import { ApiClient } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import { useToast } from '../../context/ToastContext';
@@ -162,19 +163,7 @@ export const CheckoutPage = () => {
   };
 
   const handleInitiatePartnerBooking = () => {
-    for (const p of passengers) {
-      if (!p.firstName.trim() || !p.lastName.trim()) {
-        showToast('Please provide first and last name for all travelers.', 'error');
-        return;
-      }
-    }
-
-    if (!contactEmail.trim() || !contactPhone.trim()) {
-      showToast('Please provide contact email and phone number for receipt delivery.', 'error');
-      return;
-    }
-
-    // Open partner booking in a new tab
+    // Open partner booking in a new tab immediately - zero form filling needed
     if (partnerInfo?.url) {
       window.open(partnerInfo.url, '_blank', 'noopener,noreferrer');
     }
@@ -198,11 +187,27 @@ export const CheckoutPage = () => {
     try {
       setIsProcessing(true);
 
+      // If travelers were not filled out, use sensible defaults from profile
+      const resolvedPassengers = passengers.length > 0 && passengers[0].firstName?.trim()
+        ? passengers
+        : [
+            {
+              title: 'Guest',
+              firstName: currentUser?.displayName?.split(' ')[0] || 'Primary',
+              lastName: currentUser?.displayName?.split(' ').slice(1).join(' ') || 'Traveler',
+            },
+          ];
+
+      const resolvedContact = {
+        email: contactEmail.trim() || currentUser?.email || 'traveler@nomadly.travel',
+        phone: contactPhone.trim() || currentUser?.phoneNumber || '+91 99999 99999',
+      };
+
       const bookingPayload = {
         travelCategory: category,
         inventoryId,
-        passengers,
-        contactInfo: { email: contactEmail, phone: contactPhone },
+        passengers: resolvedPassengers,
+        contactInfo: resolvedContact,
         couponCode: appliedCoupon?.code,
         addOns: selectedAddOns,
         sessionId,
@@ -247,6 +252,26 @@ export const CheckoutPage = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8 space-y-6">
+          {partnerInfo && (
+            <div className="glass-panel p-4 rounded-2xl border border-coral-500/30 bg-coral-500/10 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <ExternalLink className="w-5 h-5 text-coral-400 shrink-0" />
+                <div className="text-left">
+                  <p className="text-xs font-bold text-white">Book directly with {partnerInfo.name}</p>
+                  <p className="text-[11px] text-slate-300">Skip the passenger form below and redirect directly without entering details.</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleInitiatePartnerBooking}
+                className="w-full sm:w-auto px-4 py-2 rounded-xl bg-coral-500 hover:bg-coral-600 text-white font-bold text-xs tracking-wide transition-all shrink-0 flex items-center justify-center gap-1.5"
+              >
+                <span>Book on {partnerInfo.name}</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
           <SavedTravelersAutofill
             savedTravelers={user?.savedTravelers}
             onAutofill={handleAutofillSaved}

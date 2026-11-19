@@ -72,12 +72,12 @@ export const AIModifyActivityModal = ({ trip, item, itinerary, isOpen, onClose, 
 
       if (res.success && res.data) {
         setReplacement(res.data);
-        showToast('AI found a great alternative!', 'success');
+        showToast('Alternative activity found!', 'success');
       } else {
         showToast(res.message || 'Failed to generate alternative', 'error');
       }
     } catch (err) {
-      showToast(err.message || 'AI generation failed', 'error');
+      showToast(err.message || 'Failed to find alternative activity', 'error');
     } finally {
       setLoading(false);
     }
@@ -102,7 +102,7 @@ export const AIModifyActivityModal = ({ trip, item, itinerary, isOpen, onClose, 
 
       const res = await ApiClient.updateItineraryItem(trip._id, item._id, payload);
       if (res.success) {
-        showToast('Activity swapped with AI replacement successfully!', 'success');
+        showToast('Activity updated successfully!', 'success');
         onUpdated();
         onClose();
       } else {
@@ -123,17 +123,17 @@ export const AIModifyActivityModal = ({ trip, item, itinerary, isOpen, onClose, 
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="p-1.5 rounded-lg bg-coral-500/15 border border-coral-500/30 text-coral-400">
-                <Sparkles className="w-4 h-4" />
+                <Compass className="w-4 h-4" />
               </span>
               <span className="text-[10px] font-bold uppercase tracking-wider text-coral-400 font-mono">
-                AI Activity Assistant
+                Activity Customizer
               </span>
             </div>
             <h3 className="text-xl font-extrabold text-white font-display">
               Change or Swap Activity
             </h3>
             <p className="text-xs text-slate-400">
-              Tell AI what you don't like or what you'd prefer instead, and get an authentic local replacement in {trip.destination}.
+              Specify your preferences to discover an authentic local alternative in {trip.destination}.
             </p>
           </div>
           <button

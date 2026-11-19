@@ -31,7 +31,7 @@ export const Navbar = () => {
   const handleDemoLogin = async (role) => {
     try {
       await demoSignIn(role);
-      showToast(`Welcome! Logged in as Demo ${role.toUpperCase()}`, 'success');
+      showToast(`Welcome! Logged in as ${role === 'admin' ? 'Administrator' : 'Traveler'}`, 'success');
       setUserDropdownOpen(false);
       if (role === 'admin') {
         navigate('/admin');
@@ -53,7 +53,7 @@ export const Navbar = () => {
     { name: 'Hotels', path: '/hotels', icon: Building2 },
     { name: 'Experiences', path: '/experiences', icon: Compass },
     { name: 'Packages', path: '/packages', icon: PackageCheck, badge: 'Save 20%' },
-    { name: 'AI Planner', path: '/ai-planner', icon: Sparkles, badge: 'AI' },
+    { name: 'Trip Planner', path: '/ai-planner', icon: Calendar },
     { name: 'My Journeys', path: '/journeys', icon: Map, badge: 'Organizer' },
   ];
 

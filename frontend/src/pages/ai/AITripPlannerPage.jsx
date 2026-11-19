@@ -33,8 +33,8 @@ export const AITripPlannerPage = () => {
       <div className="relative bg-gradient-to-b from-ink-900 to-ink-950 border-b border-white/10 py-14 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-coral-500/10 via-amber-500/10 to-teal-500/10 border border-coral-500/30 text-coral-400 text-xs font-bold uppercase tracking-wider">
-            <Sparkles className="w-3.5 h-3.5 text-coral-400" />
-            AI Trip Planner
+            <Compass className="w-3.5 h-3.5 text-coral-400" />
+            Custom Itinerary Planner
           </div>
           <h1 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight font-display">
             Plan Your Journey in Seconds

@@ -279,11 +279,11 @@ export const ItineraryView = ({
                               <button
                                 onClick={() => onOpenAiModify && onOpenAiModify(item)}
                                 className="px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-coral-500/15 via-coral-500/10 to-amber-500/15 hover:from-coral-500/25 hover:to-amber-500/25 text-coral-400 hover:text-coral-300 border border-coral-500/30 flex items-center gap-1.5 transition-all shadow-sm group"
-                                title="Tell AI: 'I don't want this, give this' to swap or modify"
+                                title="Swap or find an alternative local activity"
                               >
-                                <Sparkles className="w-3.5 h-3.5 text-coral-400 group-hover:rotate-12 transition-transform" />
-                                <span className="hidden sm:inline">Change with AI</span>
-                                <span className="sm:hidden">AI</span>
+                                <Compass className="w-3.5 h-3.5 text-coral-400 group-hover:rotate-12 transition-transform" />
+                                <span className="hidden sm:inline">Swap Activity</span>
+                                <span className="sm:hidden">Swap</span>
                               </button>
 
                               <button

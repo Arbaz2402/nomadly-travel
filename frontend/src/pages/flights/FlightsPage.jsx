@@ -15,11 +15,20 @@ import {
 import { FlightCard } from '../../components/travel-cards/FlightCard';
 import { ApiClient } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
+import { useAuthStore } from '../../store/authStore';
+import { PartnerBookingModal } from '../../components/checkout/PartnerBookingModal';
+import { getPartnerInfo } from '../../utils/partnerLinks';
+
+const getDefaultDepartureDate = () => {
+  const d = new Date(Date.now() + 86400000);
+  return d.toISOString().split('T')[0];
+};
 
 export const FlightsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { user, demoSignIn } = useAuthStore();
 
   const [flights, setFlights] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,11 +37,19 @@ export const FlightsPage = () => {
   // Search parameters
   const origin = searchParams.get('origin') || 'BOM';
   const destination = searchParams.get('destination') || 'DEL';
-  const departureDate = searchParams.get('departureDate') || '2026-11-15';
+  const departureDate = searchParams.get('departureDate') || getDefaultDepartureDate();
 
   const [originInput, setOriginInput] = useState(origin);
   const [destInput, setDestInput] = useState(destination);
   const [dateInput, setDateInput] = useState(departureDate);
+
+  // Direct partner redirection modal state (no checkout form required)
+  const [partnerModalState, setPartnerModalState] = useState({
+    isOpen: false,
+    flight: null,
+    partnerInfo: null,
+  });
+  const [isPartnerProcessing, setIsPartnerProcessing] = useState(false);
 
   useEffect(() => {
     setOriginInput(origin);
@@ -54,6 +71,7 @@ export const FlightsPage = () => {
       const res = await ApiClient.searchFlights({
         origin,
         destination,
+        departureDate,
         cabinClass: selectedCabin,
         directOnly: directOnly ? 'true' : 'false',
         maxPrice,
@@ -73,7 +91,7 @@ export const FlightsPage = () => {
 
   useEffect(() => {
     fetchFlights();
-  }, [origin, destination, selectedCabin, directOnly, maxPrice, sortBy]);
+  }, [origin, destination, departureDate, selectedCabin, directOnly, maxPrice, sortBy]);
 
   const handleSearchSubmit = (e) => {
     if (e) e.preventDefault();
@@ -94,6 +112,97 @@ export const FlightsPage = () => {
       departureDate: dateInput,
       cabinClass: selectedCabin,
     });
+  };
+
+  const handlePartnerBook = (flight) => {
+    const info = getPartnerInfo('flight', {
+      originCode: flight.originCode,
+      destinationCode: flight.destinationCode,
+      departureDate: flight.departureDate || dateInput || departureDate,
+      ...flight,
+    });
+
+    // 1. Open MakeMyTrip search immediately in a new tab
+    if (info?.url) {
+      window.open(info.url, '_blank', 'noopener,noreferrer');
+    }
+
+    // 2. Open confirmation modal on Nomadly (no forms to fill!)
+    setPartnerModalState({
+      isOpen: true,
+      flight,
+      partnerInfo: info,
+    });
+  };
+
+  const handleConfirmPartnerBooking = async (optionalPnr = '') => {
+    const flight = partnerModalState.flight;
+    if (!flight) return;
+
+    let currentUser = user;
+    if (!currentUser) {
+      try {
+        const res = await demoSignIn('customer');
+        currentUser = res.user;
+      } catch (e) {
+        showToast('Please sign in to save your booking.', 'error');
+        return;
+      }
+    }
+
+    try {
+      setIsPartnerProcessing(true);
+      const leg = flight.legs?.[0] || {};
+      const flightPricing = flight.pricing || {
+        baseFare: 4200,
+        taxes: 750,
+        totalAmount: 4950,
+        currency: 'INR',
+      };
+
+      const bookingPayload = {
+        travelCategory: 'flight',
+        inventoryId: flight._id,
+        isDirectConfirmed: true,
+        providerName: partnerModalState.partnerInfo?.name || 'MakeMyTrip Flights',
+        providerReference: optionalPnr ? optionalPnr.trim() : undefined,
+        customSnapshot: {
+          flightNumber: leg.flightNumber || '6E-205',
+          airline: leg.airline || flight.provider || 'IndiGo',
+          originCode: flight.originCode,
+          originCity: flight.originCity,
+          destinationCode: flight.destinationCode,
+          destinationCity: flight.destinationCity,
+          departureDate: flight.departureDate || dateInput || departureDate,
+          departureTime: leg.departureTime,
+          arrivalTime: leg.arrivalTime,
+          cabinClass: flight.cabinClass || 'economy',
+        },
+        pricing: {
+          baseFare: flightPricing.baseFare || 4200,
+          taxesAndFees: flightPricing.taxes || 750,
+          totalPayable: flightPricing.totalAmount || 4950,
+          currency: flightPricing.currency || 'INR',
+        },
+      };
+
+      const res = await ApiClient.createBooking(bookingPayload);
+      if (res.success && res.data) {
+        showToast(`Flight booking saved! Synchronized with ${partnerModalState.partnerInfo?.name || 'MakeMyTrip'}.`, 'success');
+        setPartnerModalState({ isOpen: false, flight: null, partnerInfo: null });
+        navigate('/confirmation', {
+          state: {
+            booking: res.data,
+            receipt: res.data,
+          },
+        });
+      }
+    } catch (err) {
+      console.error('Save partner booking error:', err);
+      showToast(err.message || 'Failed to save booking. Please try again.', 'error');
+    } finally {
+      setIsPartnerProcessing(false);
+    }
   };
 
   const handleBookFlight = (flight) => {
@@ -412,6 +521,7 @@ export const FlightsPage = () => {
                     key={flight._id}
                     flight={flight}
                     onBook={handleBookFlight}
+                    onPartnerBook={handlePartnerBook}
                     onToggleSave={handleToggleSave}
                   />
                 ))}
@@ -420,6 +530,25 @@ export const FlightsPage = () => {
           )}
         </main>
       </div>
+
+      {/* Instant Partner Booking Modal - zero passenger forms required */}
+      <PartnerBookingModal
+        isOpen={partnerModalState.isOpen}
+        onClose={() => setPartnerModalState({ isOpen: false, flight: null, partnerInfo: null })}
+        partnerInfo={partnerModalState.partnerInfo}
+        category="flight"
+        title={
+          partnerModalState.flight
+            ? `${partnerModalState.flight.legs?.[0]?.airline || partnerModalState.flight.provider || 'Flight'} (${partnerModalState.flight.originCode} → ${partnerModalState.flight.destinationCode})`
+            : 'Flight Reservation'
+        }
+        itinerary={partnerModalState.flight}
+        pricingMetrics={{
+          estimatedPayable: partnerModalState.flight?.pricing?.totalAmount || 4950,
+        }}
+        onConfirmBooking={handleConfirmPartnerBooking}
+        isProcessing={isPartnerProcessing}
+      />
     </div>
   );
 };

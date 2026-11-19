@@ -145,7 +145,7 @@ export const POPULAR_DESTINATIONS = [
       'https://images.unsplash.com/photo-1546412414-e1885259563a?w=1000&q=80',
     ],
     overview:
-      'Experience the futuristic metropolis where cutting-edge ambition meets Arabian luxury. Stay in a panoramic Dubai Marina high-rise suite, take on thrilling 4x4 dune bashing under the desert stars, and gaze out from the 148th floor of the world-famous Burj Khalifa.',
+      'Experience the futuristic metropolis where modern architecture meets Arabian luxury. Stay in a panoramic Dubai Marina high-rise suite, take on thrilling 4x4 dune bashing under the desert stars, and gaze out from the 148th floor of the world-famous Burj Khalifa.',
     highlights: [
       'Direct return international flights between New Delhi and Dubai',
       '4 Nights in a 5★ Marina-View Executive Suite with club lounge access',

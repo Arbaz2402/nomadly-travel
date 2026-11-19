@@ -1,8 +1,8 @@
 import React from 'react';
-import { Plane, Clock, Luggage, ArrowRight, ShieldCheck, Heart } from 'lucide-react';
+import { Plane, Clock, Luggage, ArrowRight, ShieldCheck, Heart, ExternalLink } from 'lucide-react';
 import { formatCurrency, formatDuration, formatTime } from '../../utils/formatters';
 
-export const FlightCard = ({ flight, onBook, isSaved, onToggleSave }) => {
+export const FlightCard = ({ flight, onBook, onPartnerBook, isSaved, onToggleSave }) => {
   const leg = flight.legs[0] || {};
 
   return (
@@ -88,7 +88,7 @@ export const FlightCard = ({ flight, onBook, isSaved, onToggleSave }) => {
       </div>
 
       {/* Pricing & CTA */}
-      <div className="mt-5 pt-4 border-t border-white/5 flex items-center justify-between gap-3">
+      <div className="mt-5 pt-4 border-t border-white/5 flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
           <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Total Fare</span>
           <p className="text-lg sm:text-xl font-extrabold text-white tracking-tight font-display truncate">
@@ -96,13 +96,26 @@ export const FlightCard = ({ flight, onBook, isSaved, onToggleSave }) => {
           </p>
         </div>
 
-        <button
-          onClick={() => onBook && onBook(flight)}
-          className="px-4 sm:px-5 py-2.5 rounded-xl bg-coral-500 hover:bg-coral-600 text-white font-bold text-xs sm:text-sm tracking-wide shadow-glow transition-all flex items-center gap-1.5 shrink-0"
-        >
-          <span>Select Flight</span>
-          <ArrowRight className="w-4 h-4 shrink-0" />
-        </button>
+        <div className="flex items-center gap-2">
+          {onPartnerBook && (
+            <button
+              onClick={() => onPartnerBook(flight)}
+              className="px-3.5 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-rose-700 hover:from-red-500 hover:to-rose-600 text-white font-bold text-xs sm:text-sm tracking-wide shadow-glow transition-all flex items-center gap-1.5 shrink-0 border border-white/10"
+              title="Book directly on MakeMyTrip without filling any passenger forms"
+            >
+              <span>Book on MMT</span>
+              <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+            </button>
+          )}
+
+          <button
+            onClick={() => onBook && onBook(flight)}
+            className="px-3 sm:px-3.5 py-2 rounded-xl bg-ink-800 hover:bg-ink-700 text-slate-200 border border-white/10 font-semibold text-xs sm:text-sm transition-all flex items-center gap-1 shrink-0"
+          >
+            <span>Details</span>
+            <ArrowRight className="w-3.5 h-3.5 shrink-0" />
+          </button>
+        </div>
       </div>
     </div>
   );
