@@ -14,6 +14,7 @@ import {
   Sparkles,
   ChevronDown,
   PackageCheck,
+  Calendar,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useToast } from '../../context/ToastContext';
