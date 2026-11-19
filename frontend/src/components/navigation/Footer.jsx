@@ -105,9 +105,9 @@ export const Footer = () => {
           </div>
 
           <div>
-            <h4 className="text-white font-semibold mb-3">Smart Features</h4>
+            <h4 className="text-white font-semibold mb-3">Trip Planning</h4>
             <ul className="space-y-2">
-              <li><Link to="/ai-planner" className="hover:text-coral-400 transition-colors flex items-center gap-1.5"><Sparkles className="w-3 h-3 text-coral-400" /> AI Trip Planner</Link></li>
+              <li><Link to="/ai-planner" className="hover:text-coral-400 transition-colors">Custom Trip Planner</Link></li>
               <li><Link to="/journeys" className="hover:text-coral-400 transition-colors">My Journeys Organizer</Link></li>
               <li><Link to="/trip-builder" className="hover:text-coral-400 transition-colors">Unified Trip Builder</Link></li>
               <li><Link to="/wishlist" className="hover:text-coral-400 transition-colors">Fare Price Watchlist</Link></li>

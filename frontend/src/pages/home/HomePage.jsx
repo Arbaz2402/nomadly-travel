@@ -361,15 +361,15 @@ export const HomePage = () => {
         )}
       </section>
 
-      {/* AI Smart Planner & Vacation Packages Dual Showcase */}
+      {/* Itinerary Planner & Vacation Packages Dual Showcase */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Card 1: AI Planner */}
+          {/* Card 1: Itinerary Planner */}
           <div className="relative rounded-3xl overflow-hidden p-8 border border-coral-500/30 bg-gradient-to-br from-ink-900 via-ink-850 to-ink-900 flex flex-col justify-between space-y-6 shadow-xl">
             <div className="space-y-3">
               <span className="px-3 py-1 rounded-full bg-coral-500/20 text-coral-400 border border-coral-500/30 text-xs font-bold uppercase tracking-wider inline-flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5" />
-                AI Trip Planner
+                <Calendar className="w-3.5 h-3.5" />
+                Trip Planner
               </span>
               <h3 className="text-2xl font-extrabold text-white font-display">
                 Create tailored multi-day itineraries in seconds.
@@ -383,7 +383,7 @@ export const HomePage = () => {
                 to="/ai-planner"
                 className="px-5 py-2.5 rounded-xl bg-coral-500 hover:bg-coral-600 text-white font-bold text-xs tracking-wide shadow-glow inline-flex items-center gap-2 transition-all"
               >
-                <span>Launch AI Trip Planner</span>
+                <span>Launch Trip Planner</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
