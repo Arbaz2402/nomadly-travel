@@ -40,10 +40,71 @@ export const getPartnerInfo = (category = 'flight', item = {}) => {
   }
 };
 
+const CITY_TO_IATA = {
+  BENGALURU: 'BLR',
+  BANGALORE: 'BLR',
+  BLR: 'BLR',
+  MUMBAI: 'BOM',
+  BOMBAY: 'BOM',
+  BOM: 'BOM',
+  DELHI: 'DEL',
+  'NEW DELHI': 'DEL',
+  DEL: 'DEL',
+  AHMEDABAD: 'AMD',
+  AMD: 'AMD',
+  GOA: 'GOI',
+  GOI: 'GOI',
+  GOX: 'GOX',
+  CHENNAI: 'MAA',
+  MAA: 'MAA',
+  HYDERABAD: 'HYD',
+  HYD: 'HYD',
+  KOLKATA: 'CCU',
+  CCU: 'CCU',
+  PUNE: 'PNQ',
+  PNQ: 'PNQ',
+  JAIPUR: 'JAI',
+  JAI: 'JAI',
+  KOCHI: 'COK',
+  COCHIN: 'COK',
+  COK: 'COK',
+  DUBAI: 'DXB',
+  DXB: 'DXB',
+  SINGAPORE: 'SIN',
+  SIN: 'SIN',
+  BANGKOK: 'BKK',
+  BKK: 'BKK',
+  LONDON: 'LHR',
+  LHR: 'LHR',
+  'NEW YORK': 'JFK',
+  JFK: 'JFK',
+  PARIS: 'CDG',
+  CDG: 'CDG',
+};
+
+export const resolveIataCode = (input = '') => {
+  if (!input || typeof input !== 'string') return 'DEL';
+  const clean = input.trim().toUpperCase();
+  if (CITY_TO_IATA[clean]) return CITY_TO_IATA[clean];
+
+  for (const [city, code] of Object.entries(CITY_TO_IATA)) {
+    if (clean.includes(city) || city.includes(clean)) {
+      return code;
+    }
+  }
+
+  const alphaOnly = clean.replace(/[^A-Z]/g, '');
+  if (alphaOnly.length === 3) return alphaOnly;
+  return alphaOnly.slice(0, 3) || 'DEL';
+};
+
 export const buildFlightPartnerUrl = (flight = {}) => {
-  const origin = flight.originCode || flight.originCity || 'BOM';
-  const dest = flight.destinationCode || flight.destinationCity || 'DEL';
+  const originRaw = flight.originCode || flight.originCity || 'BOM';
+  const destRaw = flight.destinationCode || flight.destinationCity || 'DEL';
   const rawDate = flight.departureDate || '';
+
+  const originClean = resolveIataCode(originRaw);
+  const destClean = resolveIataCode(destRaw);
 
   let dateParam = '';
   if (rawDate) {
@@ -68,9 +129,6 @@ export const buildFlightPartnerUrl = (flight = {}) => {
     const yyyy = tmrw.getFullYear();
     dateParam = `${dd}/${mm}/${yyyy}`;
   }
-
-  const originClean = origin.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3) || 'BOM';
-  const destClean = dest.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3) || 'DEL';
 
   return `https://www.makemytrip.com/flight/search?itinerary=${originClean}-${destClean}-${dateParam}&tripType=O&paxType=A-1_C-0_I-0&intl=false&cabinClass=E`;
 };

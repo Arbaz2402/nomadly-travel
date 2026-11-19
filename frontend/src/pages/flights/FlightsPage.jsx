@@ -11,6 +11,9 @@ import {
   Calendar,
   Sparkles,
   ArrowRight,
+  ExternalLink,
+  ShieldCheck,
+  Ticket,
 } from 'lucide-react';
 import { FlightCard } from '../../components/travel-cards/FlightCard';
 import { ApiClient } from '../../services/api';
@@ -112,6 +115,39 @@ export const FlightsPage = () => {
       departureDate: dateInput,
       cabinClass: selectedCabin,
     });
+  };
+
+  const handleDirectMMTRedirect = () => {
+    const info = getPartnerInfo('flight', {
+      originCode: originInput || origin,
+      destinationCode: destInput || destination,
+      departureDate: dateInput || departureDate,
+    });
+
+    if (info?.url) {
+      window.open(info.url, '_blank', 'noopener,noreferrer');
+    }
+
+    setPartnerModalState({
+      isOpen: true,
+      flight: {
+        originCode: originInput || origin,
+        destinationCode: destInput || destination,
+        departureDate: dateInput || departureDate,
+        provider: 'MakeMyTrip Flights',
+        pricing: { totalAmount: 0, currency: 'INR' },
+        legs: [{ airline: 'MakeMyTrip Verified Flight', flightNumber: 'Live Flight' }],
+      },
+      partnerInfo: info,
+    });
+  };
+
+  const handleGoogleFlightsRedirect = () => {
+    const orig = originInput || origin;
+    const dest = destInput || destination;
+    const date = dateInput || departureDate;
+    const url = `https://www.google.com/travel/flights?q=Flights%20to%20${encodeURIComponent(dest)}%20from%20${encodeURIComponent(orig)}%20on%20${encodeURIComponent(date)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   const handlePartnerBook = (flight) => {
@@ -470,7 +506,62 @@ export const FlightsPage = () => {
         </aside>
 
         {/* Right Search Results */}
-        <main className="lg:col-span-9 space-y-4">
+        <main className="lg:col-span-9 space-y-5">
+          {/* Live Partner Metasearch Hub */}
+          <div className="glass-panel rounded-3xl p-6 sm:p-7 border border-coral-500/30 bg-gradient-to-br from-ink-900 via-ink-850 to-ink-900 shadow-xl space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-5">
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-300 text-[11px] font-bold uppercase tracking-wider mb-2">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  Live Airline Inventory • Verified Partner Search
+                </div>
+                <h2 className="text-xl sm:text-2xl font-extrabold text-white font-display">
+                  {origin} ➔ {destination} Flights
+                </h2>
+                <p className="text-xs text-slate-300 mt-1">
+                  Departure: <span className="font-semibold text-white">{dateInput || departureDate}</span> • Operating: IndiGo, Air India, Akasa Air, SpiceJet
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleDirectMMTRedirect}
+                  className="px-4 sm:px-5 py-3 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-rose-700 hover:from-red-500 hover:to-rose-600 text-white font-bold text-xs sm:text-sm tracking-wide shadow-glow transition-all flex items-center gap-2 shrink-0 border border-white/10"
+                >
+                  <span>Search Live on MakeMyTrip</span>
+                  <ExternalLink className="w-4 h-4 shrink-0" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleGoogleFlightsRedirect}
+                  className="px-3.5 sm:px-4 py-3 rounded-2xl bg-ink-800 hover:bg-ink-700 text-slate-200 border border-white/10 font-semibold text-xs sm:text-sm transition-all flex items-center gap-1.5 shrink-0"
+                >
+                  <span>Google Flights</span>
+                  <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="p-3 rounded-2xl bg-ink-950/60 border border-white/5 space-y-0.5">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Real-Time Inventory</span>
+                <p className="text-xs text-slate-300">Live flight numbers & instant seat availability directly on MakeMyTrip.</p>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-ink-950/60 border border-white/5 space-y-0.5">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Zero Form Filling</span>
+                <p className="text-xs text-slate-300">No passenger or passport forms required on Nomadly to book.</p>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-ink-950/60 border border-white/5 space-y-0.5">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Journeys Sync</span>
+                <p className="text-xs text-slate-300">Paste your PNR upon return to automatically attach to your Journey.</p>
+              </div>
+            </div>
+          </div>
+
           {loading ? (
             <div className="space-y-4">
               {[1, 2, 3].map((i) => (
