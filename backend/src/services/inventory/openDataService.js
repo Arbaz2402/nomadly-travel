@@ -343,8 +343,306 @@ export class OpenDataService {
   }
 
   /**
+   * 2a. LIVE GOOGLE FLIGHTS REST ENGINE VIA SERPAPI (Exact Google Flights Data)
+   * Supports 250 free searches/month with clean structured JSON for prices, layovers, and flight numbers.
+   */
+  static async fetchSerpApiGoogleFlights(originCode, destinationCode, departureDate, cabinClass = 'economy') {
+    const apiKey = process.env.SERPAPI_KEY;
+    if (!apiKey) return null;
+
+    try {
+      const travelClassMap = { economy: 1, premium_economy: 2, business: 3, first: 4 };
+      const travelClass = travelClassMap[cabinClass] || 1;
+      const url = `https://serpapi.com/search.json?engine=google_flights&departure_id=${originCode}&arrival_id=${destinationCode}&outbound_date=${departureDate}&currency=INR&hl=en&travel_class=${travelClass}&api_key=${apiKey}`;
+
+      const response = await fetch(url, { headers: { 'User-Agent': 'NomadlyTravel/1.0' } });
+      if (!response.ok) return null;
+
+      const data = await response.json();
+      const rawOffers = [...(data.best_flights || []), ...(data.other_flights || [])];
+      if (rawOffers.length === 0) return null;
+
+      const results = [];
+      for (const item of rawOffers) {
+        const firstFlight = item.flights?.[0];
+        if (!firstFlight) continue;
+
+        const rawFlightNo = firstFlight.flight_number || 'DGCA';
+        const formattedFlightNo = rawFlightNo.includes(' ') ? rawFlightNo.replace(' ', '-') : rawFlightNo;
+        const airlineName = firstFlight.airline || 'Domestic Airline';
+        const airlineCode = Object.keys(AIRLINE_REGISTRY).find(
+          (code) => AIRLINE_REGISTRY[code].name.toLowerCase() === airlineName.toLowerCase()
+        ) || (formattedFlightNo.includes('-') ? formattedFlightNo.split('-')[0] : '6E');
+
+        const price = item.price || 4850;
+        const baseFare = Math.round(price * 0.85);
+        const taxes = price - baseFare;
+
+        results.push({
+          offerReference: `FL-SERP-${originCode}${destinationCode}-${departureDate.replace(/-/g, '')}-${formattedFlightNo.replace('-', '')}`,
+          provider: 'GOOGLE_FLIGHTS_LIVE',
+          isLive: true,
+          isDemo: false,
+          originCity: firstFlight.departure_airport?.name || originCode,
+          originCode,
+          destinationCity: item.flights[item.flights.length - 1]?.arrival_airport?.name || destinationCode,
+          destinationCode,
+          departureDate,
+          tripType: 'one-way',
+          cabinClass,
+          totalDurationMinutes: item.total_duration || 125,
+          stops: item.flights.length - 1,
+          availableSeats: 9,
+          legs: item.flights.map((f) => {
+            const fNo = f.flight_number ? f.flight_number.replace(' ', '-') : '6E-6000';
+            const fAirlineCode = fNo.includes('-') ? fNo.split('-')[0] : airlineCode;
+            return {
+              flightNumber: fNo,
+              airline: f.airline || 'Domestic Airline',
+              airlineCode: fAirlineCode,
+              airlineLogo: f.airline_logo || AIRLINE_REGISTRY[fAirlineCode]?.logo || 'https://images.unsplash.com/photo-1542296332-2e4473faf563?auto=format&fit=crop&w=120&q=80',
+              aircraft: f.airplane || 'Airbus A320neo',
+              origin: {
+                code: f.departure_airport?.id || originCode,
+                city: f.departure_airport?.name || originCode,
+                airport: f.departure_airport?.name || `${originCode} Airport`,
+                terminal: 'T2',
+              },
+              destination: {
+                code: f.arrival_airport?.id || destinationCode,
+                city: f.arrival_airport?.name || destinationCode,
+                airport: f.arrival_airport?.name || `${destinationCode} Airport`,
+                terminal: 'T3',
+              },
+              departureTime: new Date(f.departure_airport?.time?.replace(' ', 'T') + ':00.000Z'),
+              arrivalTime: new Date(f.arrival_airport?.time?.replace(' ', 'T') + ':00.000Z'),
+              durationMinutes: f.duration || 120,
+            };
+          }),
+          pricing: {
+            currency: 'INR',
+            baseFare,
+            taxes,
+            serviceFee: 250,
+            totalAmount: price,
+          },
+          baggage: { cabin: '7 kg', checkIn: '15 kg' },
+          fareRules: {
+            isRefundable: item.flights.length === 1,
+            cancellationFee: 2500,
+            dateChangeFee: 1500,
+          },
+          isActive: true,
+        });
+      }
+
+      return results;
+    } catch (err) {
+      console.warn('[SerpApi Live Google Flights Error]:', err.message);
+      return null;
+    }
+  }
+
+  /**
+   * 2b. DUFFEL AIRLINE BOOKING & FLIGHT SEARCH API (Free Sandbox - No Credit Card)
+   * Free developer sandbox at https://duffel.com -> Get Test Access Token (duffel_test_...)
+   */
+  static async fetchDuffelFlights(originCode, destinationCode, departureDate, cabinClass = 'economy') {
+    const token = process.env.DUFFEL_API_KEY || process.env.DUFFEL_ACCESS_TOKEN;
+    if (!token) return null;
+
+    try {
+      const response = await fetch('https://api.duffel.com/air/offer_requests?return_offers=true', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Duffel-Version': 'v2',
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          data: {
+            slices: [
+              {
+                origin: originCode,
+                destination: destinationCode,
+                departure_date: departureDate,
+              },
+            ],
+            passengers: [{ type: 'adult' }],
+            cabin_class: cabinClass === 'business' ? 'business' : cabinClass === 'premium_economy' ? 'premium_economy' : 'economy',
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        console.warn(`[Duffel API Error]: Status ${response.status}`);
+        return null;
+      }
+
+      const json = await response.json();
+      const offers = json.data?.offers || [];
+      if (offers.length === 0) return null;
+
+      const results = [];
+      for (const offer of offers) {
+        const slice = offer.slices?.[0];
+        if (!slice || !slice.segments || slice.segments.length === 0) continue;
+
+        const firstSeg = slice.segments[0];
+        const lastSeg = slice.segments[slice.segments.length - 1];
+        const flightNo = firstSeg.operating_carrier_flight_number || `${firstSeg.operating_carrier?.iata_code || '6E'}-${firstSeg.marketing_carrier_flight_number || 1000}`;
+        const formattedFlightNo = flightNo.includes('-') ? flightNo : `${firstSeg.operating_carrier?.iata_code || '6E'}-${flightNo}`;
+
+        const totalAmount = Math.round(parseFloat(offer.total_amount) || 4500);
+        const baseFare = Math.round(totalAmount * 0.85);
+        const taxes = totalAmount - baseFare;
+
+        results.push({
+          offerReference: `FL-DUFFEL-${originCode}${destinationCode}-${departureDate.replace(/-/g, '')}-${offer.id.substring(0, 8)}`,
+          provider: 'DUFFEL_LIVE',
+          isLive: true,
+          isDemo: false,
+          originCity: firstSeg.origin?.city_name || originCode,
+          originCode,
+          destinationCity: lastSeg.destination?.city_name || destinationCode,
+          destinationCode,
+          departureDate,
+          tripType: 'one-way',
+          cabinClass,
+          totalDurationMinutes: parseDurationMinutes(slice.duration) || 120,
+          stops: slice.segments.length - 1,
+          availableSeats: 9,
+          legs: slice.segments.map((seg) => ({
+            flightNumber: seg.operating_carrier_flight_number ? `${seg.operating_carrier?.iata_code}-${seg.operating_carrier_flight_number}` : formattedFlightNo,
+            airline: seg.operating_carrier?.name || offer.owner?.name || 'Airlines',
+            airlineCode: seg.operating_carrier?.iata_code || offer.owner?.iata_code || '6E',
+            airlineLogo: seg.operating_carrier?.logo_symbol_url || offer.owner?.logo_symbol_url || 'https://images.unsplash.com/photo-1542296332-2e4473faf563?auto=format&fit=crop&w=120&q=80',
+            aircraft: seg.aircraft?.name || 'Airbus A320neo',
+            origin: {
+              code: seg.origin?.iata_code || originCode,
+              city: seg.origin?.city_name || originCode,
+              airport: seg.origin?.name || `${originCode} Airport`,
+              terminal: seg.origin_terminal || 'T2',
+            },
+            destination: {
+              code: seg.destination?.iata_code || destinationCode,
+              city: seg.destination?.city_name || destinationCode,
+              airport: seg.destination?.name || `${destinationCode} Airport`,
+              terminal: seg.destination_terminal || 'T3',
+            },
+            departureTime: new Date(seg.departing_at),
+            arrivalTime: new Date(seg.arriving_at),
+            durationMinutes: parseDurationMinutes(seg.duration) || 120,
+          })),
+          pricing: {
+            currency: offer.total_currency || 'INR',
+            baseFare,
+            taxes,
+            serviceFee: 250,
+            totalAmount,
+          },
+          baggage: { cabin: '7 kg', checkIn: '15 kg' },
+          fareRules: {
+            isRefundable: slice.segments.length === 1,
+            cancellationFee: 2500,
+            dateChangeFee: 1500,
+          },
+          isActive: true,
+        });
+      }
+
+      return results;
+    } catch (err) {
+      console.warn('[Duffel API Fetch Error]:', err.message);
+      return null;
+    }
+  }
+
+  /**
+   * 2c. TRAVELPAYOUTS / AVIASALES FLIGHT API (Free Token - No Credit Card)
+   * Free affiliate token at https://www.travelpayouts.com -> API Token
+   */
+  static async fetchTravelpayoutsFlights(originCode, destinationCode, departureDate) {
+    const token = process.env.TRAVELPAYOUTS_TOKEN;
+    if (!token) return null;
+
+    try {
+      const url = `https://api.travelpayouts.com/aviasales/v3/prices_for_dates?origin=${originCode}&destination=${destinationCode}&departure_at=${departureDate}&sorting=price&currency=rub&token=${token}`;
+      const response = await fetch(url, { headers: { Accept: 'application/json' } });
+      if (!response.ok) return null;
+
+      const data = await response.json();
+      const items = data.data || [];
+      if (items.length === 0) return null;
+
+      const results = [];
+      for (const item of items) {
+        const flightNo = item.flight_number ? `${item.airline}-${item.flight_number}` : `${item.airline}-1000`;
+        const totalAmount = Math.round(item.price || 4500);
+        const baseFare = Math.round(totalAmount * 0.85);
+        const taxes = totalAmount - baseFare;
+        const airlineInfo = AIRLINE_REGISTRY[item.airline] || {
+          name: item.airline,
+          logo: 'https://images.unsplash.com/photo-1542296332-2e4473faf563?auto=format&fit=crop&w=120&q=80',
+        };
+
+        results.push({
+          offerReference: `FL-TP-${originCode}${destinationCode}-${departureDate.replace(/-/g, '')}-${item.airline}${item.flight_number || '00'}`,
+          provider: 'TRAVELPAYOUTS_LIVE',
+          isLive: true,
+          isDemo: false,
+          originCity: originCode,
+          originCode,
+          destinationCity: destinationCode,
+          destinationCode,
+          departureDate,
+          tripType: 'one-way',
+          cabinClass: 'economy',
+          totalDurationMinutes: item.duration || 120,
+          stops: item.transfers || 0,
+          availableSeats: 9,
+          legs: [
+            {
+              flightNumber: flightNo,
+              airline: airlineInfo.name,
+              airlineCode: item.airline,
+              airlineLogo: airlineInfo.logo,
+              aircraft: 'Airbus A320neo',
+              origin: { code: originCode, city: originCode, airport: `${originCode} Airport`, terminal: 'T2' },
+              destination: { code: destinationCode, city: destinationCode, airport: `${destinationCode} Airport`, terminal: 'T3' },
+              departureTime: new Date(item.departure_at),
+              arrivalTime: new Date(new Date(item.departure_at).getTime() + (item.duration || 120) * 60000),
+              durationMinutes: item.duration || 120,
+            },
+          ],
+          pricing: {
+            currency: 'INR',
+            baseFare,
+            taxes,
+            serviceFee: 250,
+            totalAmount,
+          },
+          baggage: { cabin: '7 kg', checkIn: '15 kg' },
+          fareRules: {
+            isRefundable: item.transfers === 0,
+            cancellationFee: 2500,
+            dateChangeFee: 1500,
+          },
+          isActive: true,
+        });
+      }
+
+      return results;
+    } catch (err) {
+      console.warn('[Travelpayouts API Fetch Error]:', err.message);
+      return null;
+    }
+  }
+
+  /**
    * 2. LIVE GOOGLE FLIGHTS REAL-TIME INVENTORY STREAM (100% Live & Real Fares)
-   * Dynamically scrapes live DGCA-scheduled flights and live fares via Google Flights.
+   * Dynamically fetches live Google Flights data via SerpApi or local fast-flights engine.
    */
   static async fetchLiveGoogleFlights(origin, destination, departureDate, cabinClass = 'economy') {
     if (process.env.NODE_ENV === 'test') {
@@ -354,6 +652,32 @@ export class OpenDataService {
     const destinationCode = resolveIataCode(destination);
     if (!originCode || !destinationCode || originCode === destinationCode) {
       return null;
+    }
+
+    const dateStr = departureDate || new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0];
+
+    // Priority 1: SerpApi Official Google Flights API Engine (if key configured)
+    if (process.env.SERPAPI_KEY) {
+      const serpFlights = await this.fetchSerpApiGoogleFlights(originCode, destinationCode, dateStr, cabinClass);
+      if (serpFlights && serpFlights.length > 0) {
+        return serpFlights;
+      }
+    }
+
+    // Priority 2: Duffel Airline Booking API (Free Sandbox - No Credit Card Required)
+    if (process.env.DUFFEL_API_KEY || process.env.DUFFEL_ACCESS_TOKEN) {
+      const duffelFlights = await this.fetchDuffelFlights(originCode, destinationCode, dateStr, cabinClass);
+      if (duffelFlights && duffelFlights.length > 0) {
+        return duffelFlights;
+      }
+    }
+
+    // Priority 3: Travelpayouts / Aviasales Data API (Free Token - No Credit Card Required)
+    if (process.env.TRAVELPAYOUTS_TOKEN) {
+      const tpFlights = await this.fetchTravelpayoutsFlights(originCode, destinationCode, dateStr);
+      if (tpFlights && tpFlights.length > 0) {
+        return tpFlights;
+      }
     }
 
     return new Promise((resolve) => {

@@ -244,5 +244,50 @@ describe('My Journeys — Independent Trip Planning & Expense Suite', () => {
     expect(deleteRes.status).toBe(403);
     expect(deleteRes.body.success).toBe(false);
   });
+
+  it('8. Allows an invited collaborator to voluntarily leave a journey, while preventing owner from leaving', async () => {
+    // 1. Owner adds anotherUser as Editor
+    const addRes = await request(app)
+      .post(`/api/v1/trips/${createdTripId}/participants`)
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({
+        name: 'Unauthorized Stranger',
+        email: 'stranger@test.com',
+        role: 'editor',
+      });
+    expect(addRes.status).toBe(201);
+
+    // 2. AnotherUser accepts invitation
+    const acceptRes = await request(app)
+      .post(`/api/v1/trips/${createdTripId}/invitation/respond`)
+      .set('Authorization', `Bearer ${anotherUserToken}`)
+      .send({ action: 'accept' });
+    expect(acceptRes.status).toBe(200);
+
+    // 3. AnotherUser (Editor) voluntarily leaves the journey
+    const leaveRes = await request(app)
+      .post(`/api/v1/trips/${createdTripId}/leave`)
+      .set('Authorization', `Bearer ${anotherUserToken}`);
+
+    expect(leaveRes.status).toBe(200);
+    expect(leaveRes.body.success).toBe(true);
+    expect(leaveRes.body.message).toContain('successfully left the journey');
+
+    // 4. Verify anotherUser is no longer in participants
+    const checkTrip = await Trip.findById(createdTripId);
+    const isStillMember = checkTrip.participants.some(
+      (p) => p.email.toLowerCase() === 'stranger@test.com'
+    );
+    expect(isStillMember).toBe(false);
+
+    // 5. Verify owner CANNOT leave their own journey
+    const ownerLeaveRes = await request(app)
+      .post(`/api/v1/trips/${createdTripId}/leave`)
+      .set('Authorization', `Bearer ${authToken}`);
+
+    expect(ownerLeaveRes.status).toBe(400);
+    expect(ownerLeaveRes.body.success).toBe(false);
+    expect(ownerLeaveRes.body.message).toContain('Journey owners cannot leave');
+  });
 });
 

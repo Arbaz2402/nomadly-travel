@@ -12,11 +12,12 @@ import {
   Check,
   Send,
   Users,
+  LogOut,
 } from 'lucide-react';
 import { ApiClient } from '../../../services/api';
 import { useToast } from '../../../context/ToastContext';
 
-export const MembersView = ({ trip, participants, isOwner, onRefresh, onOpenAddMember }) => {
+export const MembersView = ({ trip, participants, isOwner, onRefresh, onOpenAddMember, onLeaveJourney }) => {
   const { showToast } = useToast();
   const [resendingId, setResendingId] = useState(null);
   const [copiedInviteId, setCopiedInviteId] = useState(null);
@@ -116,14 +117,27 @@ Looking forward to traveling together!`;
           </p>
         </div>
 
-        {isOwner && (
-          <button
-            onClick={onOpenAddMember}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-coral-500 to-coral-600 hover:from-coral-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-glow whitespace-nowrap"
-          >
-            <UserPlus className="w-4 h-4" /> Send Invitation Request
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {!isOwner && onLeaveJourney && (
+            <button
+              onClick={onLeaveJourney}
+              className="px-3.5 py-2 rounded-xl text-xs font-bold text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 flex items-center gap-1.5 transition-all whitespace-nowrap shadow-sm"
+              title="Leave this journey"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Leave Journey</span>
+            </button>
+          )}
+
+          {isOwner && (
+            <button
+              onClick={onOpenAddMember}
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-coral-500 to-coral-600 hover:from-coral-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-glow whitespace-nowrap"
+            >
+              <UserPlus className="w-4 h-4" /> Send Invitation Request
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Pending Invitations Section */}
@@ -276,4 +290,4 @@ Looking forward to traveling together!`;
     </div>
   );
 };
-
+

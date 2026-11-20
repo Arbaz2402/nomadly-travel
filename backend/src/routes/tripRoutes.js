@@ -33,6 +33,7 @@ import {
   respondToTripInvitation,
   updateTripParticipantRole,
   removeTripParticipant,
+  leaveJourney,
 } from '../controllers/participantController.js';
 import {
   getTripDocuments,
@@ -83,6 +84,8 @@ router.post('/:id/invitation/respond', respondToTripInvitation);
 router.post('/:id/participants/:participantId/resend', requireTripAccess(['owner']), resendTripInvitation);
 router.put('/:id/participants/:participantId', requireTripAccess(['owner']), updateTripParticipantRole);
 router.delete('/:id/participants/:participantId', requireTripAccess(['owner']), removeTripParticipant);
+router.post('/:id/leave', requireTripAccess(['owner', 'editor', 'viewer']), leaveJourney);
+router.delete('/:id/leave', requireTripAccess(['owner', 'editor', 'viewer']), leaveJourney);
 
 // 7. Secure Trip Documents
 router.get('/:id/documents', requireTripAccess(['owner', 'editor', 'viewer']), getTripDocuments);
