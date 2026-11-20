@@ -88,6 +88,43 @@ describe('Flight & Travel Inventory Suite', () => {
       expect(res.body.success).toBe(true);
       expect(res.body.data.length).toBeGreaterThan(0);
     });
+
+    it('GET /api/v1/flights/search returns authentic DGCA flights for BLR to AMD without fake QP-173 or 6E-106', async () => {
+      const res = await request(app).get('/api/v1/flights/search?origin=BLR&destination=AMD');
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.length).toBeGreaterThanOrEqual(5);
+
+      const flightNumbers = res.body.data.flatMap((f) => f.legs.map((l) => l.flightNumber));
+
+      // Absolutely zero fake flight numbers
+      expect(flightNumbers).not.toContain('QP-173');
+      expect(flightNumbers).not.toContain('6E-106');
+
+      // Zero 3-digit Akasa flight numbers
+      const akasaFlights = flightNumbers.filter((fn) => fn.startsWith('QP-'));
+      expect(akasaFlights.length).toBeGreaterThan(0);
+      for (const fn of akasaFlights) {
+        expect(fn).toMatch(/^QP-\d{4}$/); // Genuine 4-digit Akasa format
+      }
+
+      // Contains authentic DGCA flights
+      expect(flightNumbers).toContain('QP-1902');
+      expect(flightNumbers).toContain('AI-2483');
+      expect(flightNumbers).toContain('6E-6563');
+    });
+
+    it('GET /api/v1/flights/search returns authentic DGCA flights for BLR to MAA without 6E-106', async () => {
+      const res = await request(app).get('/api/v1/flights/search?origin=BLR&destination=MAA');
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.length).toBeGreaterThanOrEqual(5);
+
+      const flightNumbers = res.body.data.flatMap((f) => f.legs.map((l) => l.flightNumber));
+      expect(flightNumbers).not.toContain('6E-106');
+      expect(flightNumbers).toContain('6E-618');
+      expect(flightNumbers).toContain('6E-543');
+    });
   });
 });
 
