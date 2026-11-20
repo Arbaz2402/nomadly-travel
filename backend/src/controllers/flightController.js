@@ -1,5 +1,10 @@
 import { FlightOffer } from '../models/FlightOffer.js';
-import { OpenDataService, AIRPORT_REGISTRY } from '../services/inventory/openDataService.js';
+import {
+  OpenDataService,
+  AIRPORT_REGISTRY,
+  AUTHENTIC_DGCA_FLIGHTS,
+  resolveIataCode,
+} from '../services/inventory/openDataService.js';
 
 export const searchFlights = async (req, res) => {
   try {
@@ -107,8 +112,17 @@ export const searchFlights = async (req, res) => {
 
     let flights = await FlightOffer.find(query).sort(sortOptions).limit(50);
 
-    // If no flights found for this specific route, dynamically generate live authentic schedules!
-    if (flights.length === 0 && origin && destination) {
+    // Sanitize results: immediately drop any legacy fake flight numbers (e.g., QP-173, 6E-106)
+    flights = flights.filter(
+      (f) => !f.legs?.some((l) => /^QP-\d{3}$|-(106|173|129|152)$/.test(l.flightNumber))
+    );
+
+    const originCode = resolveIataCode(origin);
+    const destinationCode = resolveIataCode(destination);
+    const routeKey = originCode && destinationCode ? `${originCode}-${destinationCode}` : null;
+
+    // If route has an authentic DGCA schedule registry OR if no valid flights found, generate authentic timetable
+    if (origin && destination && (flights.length === 0 || (routeKey && AUTHENTIC_DGCA_FLIGHTS[routeKey]))) {
       console.log(`✈️ Generating live authentic flight schedules for ${origin} -> ${destination}...`);
       const dynamicFlights = await OpenDataService.generateLiveFlightOffers(
         origin,

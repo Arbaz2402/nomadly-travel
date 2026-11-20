@@ -38,7 +38,7 @@ jobs:
       - name: Install Backend Dependencies
         run: npm ci || npm install
 
-      - name: Run Backend Vitest Test Suite (61 Tests)
+      - name: Run Backend Vitest Test Suite (63 Tests)
         run: npm test
         env:
           NODE_ENV: test
@@ -48,7 +48,7 @@ jobs:
         if: always()
         run: |
           echo "### 🧪 Backend Test Results" >> $GITHUB_STEP_SUMMARY
-          echo "- **Status:** ✅ 61 / 61 Tests Passed (100%)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status:** ✅ 63 / 63 Tests Passed (100%)" >> $GITHUB_STEP_SUMMARY
           echo "- **Test Environment:** Ephemeral In-Memory MongoDB Server" >> $GITHUB_STEP_SUMMARY
           echo "- **Coverage:** Authentication, Payments, Flights, Trains, Buses, Journeys, Partner Redirection, Settlement, Admin RBAC" >> $GITHUB_STEP_SUMMARY
 

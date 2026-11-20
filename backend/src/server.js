@@ -30,6 +30,22 @@ const startServer = async () => {
       await seedDatabase();
     }
 
+    // 2b. Automatically purge any legacy fake flight numbers (e.g. QP-173, 6E-106) from database
+    try {
+      const purged = await FlightOffer.deleteMany({
+        $or: [
+          { 'legs.flightNumber': { $regex: /^QP-\d{3}$/ } },
+          { 'legs.flightNumber': { $regex: /-(106|173|129|152)$/ } },
+          { provider: 'OPEN_AIR' },
+        ],
+      });
+      if (purged.deletedCount > 0) {
+        console.log(`🧹 Purged ${purged.deletedCount} legacy synthetic flight offers from database.`);
+      }
+    } catch (purgeErr) {
+      console.warn('Startup legacy flight purge notice:', purgeErr.message);
+    }
+
     // 3. Start Listening
     app.listen(PORT, () => {
       console.log(`🚀 NOMADLY API Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);

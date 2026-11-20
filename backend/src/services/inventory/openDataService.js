@@ -159,7 +159,7 @@ const AIRLINE_SLOTS = [
 ];
 
 // Authentic DGCA Indian Domestic Airline Timetables
-const AUTHENTIC_DGCA_FLIGHTS = {
+export const AUTHENTIC_DGCA_FLIGHTS = {
   'BLR-AMD': [
     { carrier: '6E', flightNumber: '6E-512', name: 'IndiGo', departureTime: '07:15', arrivalTime: '11:30', stops: 1, aircraft: 'Airbus A320neo', basePrice: 4600 },
     { carrier: '6E', flightNumber: '6E-6124', name: 'IndiGo', departureTime: '08:00', arrivalTime: '10:20', stops: 0, aircraft: 'Airbus A321neo', basePrice: 4950 },
@@ -442,6 +442,20 @@ export class OpenDataService {
     const generatedOffers = [];
 
     if (authenticSchedules.length > 0) {
+      try {
+        await FlightOffer.deleteMany({
+          originCode,
+          destinationCode,
+          $or: [
+            { provider: { $in: ['OPEN_AIR', 'DEMO_DATA'] } },
+            { 'legs.flightNumber': { $regex: /^QP-\d{3}$/ } },
+            { 'legs.flightNumber': { $regex: /-(106|173|129|152)$/ } },
+          ],
+        });
+      } catch (delErr) {
+        // Safe fallback in transient environments
+      }
+
       for (let i = 0; i < authenticSchedules.length; i++) {
         const item = authenticSchedules[i];
         const timeStr = item.departureTime;
@@ -516,7 +530,16 @@ export class OpenDataService {
           isActive: true,
         };
 
-        generatedOffers.push(offerDoc);
+        try {
+          const upserted = await FlightOffer.findOneAndUpdate(
+            { offerReference: offerDoc.offerReference },
+            offerDoc,
+            { upsert: true, new: true, setDefaultsOnInsert: true }
+          );
+          generatedOffers.push(upserted || offerDoc);
+        } catch {
+          generatedOffers.push(offerDoc);
+        }
       }
 
       return generatedOffers;
