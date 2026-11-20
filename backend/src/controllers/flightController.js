@@ -62,6 +62,49 @@ export const searchFlights = async (req, res) => {
     else if (sortBy === 'duration_asc') sortOptions = { totalDurationMinutes: 1 };
     else if (sortBy === 'departure_asc') sortOptions = { 'legs.0.departureTime': 1 };
 
+    // 1. Prioritize Real-Time Live Flight Inventory Stream (Google Flights engine)
+    if (origin && destination && process.env.NODE_ENV !== 'test') {
+      try {
+        const liveGoogleFlights = await OpenDataService.fetchLiveGoogleFlights(
+          origin,
+          destination,
+          departureDate,
+          cabinClass
+        );
+
+        if (liveGoogleFlights && liveGoogleFlights.length > 0) {
+          let filtered = liveGoogleFlights;
+          if (airline && airline !== 'all') {
+            filtered = filtered.filter((f) =>
+              f.legs?.[0]?.airline?.toLowerCase().includes(airline.toLowerCase())
+            );
+          }
+          if (directOnly === 'true') {
+            filtered = filtered.filter((f) => f.stops === 0);
+          }
+          if (maxPrice) {
+            filtered = filtered.filter((f) => f.pricing?.totalAmount <= Number(maxPrice));
+          }
+
+          if (sortBy === 'price_asc') filtered.sort((a, b) => a.pricing.totalAmount - b.pricing.totalAmount);
+          else if (sortBy === 'price_desc') filtered.sort((a, b) => b.pricing.totalAmount - a.pricing.totalAmount);
+          else if (sortBy === 'duration_asc') filtered.sort((a, b) => a.totalDurationMinutes - b.totalDurationMinutes);
+          else if (sortBy === 'departure_asc') {
+            filtered.sort((a, b) => new Date(a.legs?.[0]?.departureTime) - new Date(b.legs?.[0]?.departureTime));
+          }
+
+          return res.status(200).json({
+            success: true,
+            count: filtered.length,
+            data: filtered,
+            isLiveStream: true,
+          });
+        }
+      } catch (liveErr) {
+        console.warn('Real-time flight stream fallback:', liveErr.message);
+      }
+    }
+
     let flights = await FlightOffer.find(query).sort(sortOptions).limit(50);
 
     // If no flights found for this specific route, dynamically generate live authentic schedules!

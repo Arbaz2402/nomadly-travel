@@ -53,6 +53,7 @@ export const FlightsPage = () => {
     partnerInfo: null,
   });
   const [isPartnerProcessing, setIsPartnerProcessing] = useState(false);
+  const [isLiveFeed, setIsLiveFeed] = useState(false);
 
   useEffect(() => {
     setOriginInput(origin);
@@ -83,6 +84,7 @@ export const FlightsPage = () => {
 
       if (res.success) {
         setFlights(res.data);
+        setIsLiveFeed(Boolean(res.isLiveStream || res.data?.[0]?.isLive));
       }
     } catch (err) {
       console.error('Error fetching flights:', err);
@@ -601,8 +603,9 @@ export const FlightsPage = () => {
             <>
               <div className="flex items-center justify-between text-xs text-slate-400 px-1">
                 <span>Showing {flights.length} verified flight offers</span>
-                <span className="text-teal-400 font-semibold flex items-center gap-1">
-                  • Live Fare Revalidated
+                <span className="text-emerald-400 font-semibold flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  {isLiveFeed ? 'Live Google Flights Verified' : 'Live Fare Revalidated'}
                 </span>
               </div>
 
