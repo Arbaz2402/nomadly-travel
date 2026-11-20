@@ -134,6 +134,21 @@ export const useTripWorkspace = () => {
     }
   };
 
+  const handleLeaveJourney = async () => {
+    if (!window.confirm('Are you sure you want to leave this journey? You will be removed from travelers and lose access to its workspace.')) {
+      return;
+    }
+    try {
+      const res = await ApiClient.leaveJourney(trip._id);
+      if (res.success) {
+        showToast('You have successfully left the journey.', 'info');
+        navigate('/journeys');
+      }
+    } catch (err) {
+      showToast(err.message || 'Failed to leave journey', 'error');
+    }
+  };
+
   return {
     id,
     trip,
@@ -171,5 +186,6 @@ export const useTripWorkspace = () => {
     loadTabData,
     handleRespondInvitation,
     handleDeleteTrip,
+    handleLeaveJourney,
   };
 };

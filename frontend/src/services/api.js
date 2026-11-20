@@ -299,6 +299,10 @@ export class ApiClient {
     return this.request(`/trips/${tripId}/participants/${participantId}`, { method: 'DELETE' });
   }
 
+  static leaveJourney(tripId) {
+    return this.request(`/trips/${tripId}/leave`, { method: 'POST' });
+  }
+
   // Documents Vault
   static getTripDocuments(tripId) {
     return this.request(`/trips/${tripId}/documents`);

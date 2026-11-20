@@ -278,6 +278,61 @@ export const removeTripParticipant = async (req, res) => {
   }
 };
 
+/**
+ * 6g. LEAVE JOURNEY (Voluntary exit by editor or viewer)
+ */
+export const leaveJourney = async (req, res) => {
+  try {
+    const trip = req.trip;
+    const currentUserId = req.user._id.toString();
+    const currentUserEmail = req.user.email?.toLowerCase();
+
+    // 1. Primary owner cannot leave their own journey
+    if (trip.user.toString() === currentUserId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Journey owners cannot leave. You can transfer ownership or delete the journey.',
+      });
+    }
+
+    // 2. Locate participant record
+    const participantIndex = trip.participants.findIndex(
+      (p) =>
+        (p.user && p.user.toString() === currentUserId) ||
+        (p.email && currentUserEmail && p.email.toLowerCase() === currentUserEmail)
+    );
+
+    if (participantIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: 'You are not a registered participant of this journey.',
+      });
+    }
+
+    const participant = trip.participants[participantIndex];
+    const memberName = participant.name || req.user.name || 'A traveler';
+
+    // 3. Remove participant
+    trip.participants.splice(participantIndex, 1);
+    await trip.save();
+
+    // 4. Log journey activity
+    await logActivity(
+      trip._id,
+      req.user,
+      'MEMBER_LEFT',
+      `${memberName} left the journey`
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: 'You have successfully left the journey.',
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // ==========================================
 // 7. SECURE TRIP DOCUMENTS
 // ==========================================

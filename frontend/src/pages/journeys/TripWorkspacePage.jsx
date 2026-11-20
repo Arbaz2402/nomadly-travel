@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Trash2, Loader2, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Trash2, LogOut, Loader2, AlertTriangle } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useTripWorkspace } from '../../hooks/useTripWorkspace';
 import { TripWorkspaceHero } from '../../components/journeys/workspace/TripWorkspaceHero';
@@ -55,6 +55,7 @@ export const TripWorkspacePage = () => {
     loadTabData,
     handleRespondInvitation,
     handleDeleteTrip,
+    handleLeaveJourney,
   } = useTripWorkspace();
 
   if (loading) {
@@ -120,13 +121,22 @@ export const TripWorkspacePage = () => {
           <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-slate-300">
             Role: <span className="text-teal-400">{trip.userRole?.toUpperCase()}</span>
           </span>
-          {isOwner && (
+          {isOwner ? (
             <button
               onClick={handleDeleteTrip}
               className="p-2 rounded-xl text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
               title="Delete Journey"
             >
               <Trash2 className="w-4 h-4" />
+            </button>
+          ) : (
+            <button
+              onClick={handleLeaveJourney}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/25 transition-all shadow-sm"
+              title="Leave this journey"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Leave Journey</span>
             </button>
           )}
         </div>
@@ -226,6 +236,7 @@ export const TripWorkspacePage = () => {
           isOwner={isOwner}
           onRefresh={() => loadTabData('members')}
           onOpenAddMember={() => setAddMemberOpen(true)}
+          onLeaveJourney={handleLeaveJourney}
         />
       )}
 
