@@ -31,4 +31,6 @@ services:
         value: arbazkaladiya1@gmail.com
       - key: EMAIL_PASS
         sync: false
+      - key: SERPAPI_KEY
+        sync: false
 
