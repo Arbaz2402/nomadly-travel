@@ -25,6 +25,12 @@ export const FlightCard = ({ flight, onBook, onPartnerBook, isSaved, onToggleSav
           </div>
 
           <div className="flex items-center gap-2">
+            {flight.isLive && (
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                Live Fare
+              </span>
+            )}
             {flight.fareRules?.isRefundable && (
               <span className="text-[10px] px-2.5 py-1 rounded-full bg-teal-500/10 text-teal-400 border border-teal-500/20 font-semibold flex items-center gap-1">
                 <ShieldCheck className="w-3 h-3" />

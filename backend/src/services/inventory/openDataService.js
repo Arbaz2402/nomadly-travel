@@ -11,6 +11,12 @@ import { Hotel } from '../../models/Hotel.js';
 import { FlightOffer } from '../../models/FlightOffer.js';
 import { Train } from '../../models/Train.js';
 import { Bus } from '../../models/Bus.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { spawn } from 'child_process';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Curated Airline Registry with Branding & Logos
 export const AIRLINE_REGISTRY = {
@@ -277,7 +283,67 @@ export class OpenDataService {
   }
 
   /**
-   * 2. LIVE DYNAMIC FLIGHT SCHEDULE ENGINE (Zero-Key, Zero-Signup)
+   * 2. LIVE GOOGLE FLIGHTS REAL-TIME INVENTORY STREAM (100% Live & Real Fares)
+   * Dynamically scrapes live DGCA-scheduled flights and live fares via Google Flights.
+   */
+  static async fetchLiveGoogleFlights(origin, destination, departureDate, cabinClass = 'economy') {
+    if (process.env.NODE_ENV === 'test') {
+      return null;
+    }
+    const originCode = resolveIataCode(origin);
+    const destinationCode = resolveIataCode(destination);
+    if (!originCode || !destinationCode || originCode === destinationCode) {
+      return null;
+    }
+
+    return new Promise((resolve) => {
+      try {
+        const scriptPath = path.resolve(__dirname, 'liveFlightsFetcher.py');
+        const pyProcess = spawn('python', [
+          scriptPath,
+          '--from_airport', originCode,
+          '--to_airport', destinationCode,
+          '--date', departureDate || '',
+          '--cabin', cabinClass || 'economy'
+        ]);
+
+        let stdoutData = '';
+
+        pyProcess.stdout.on('data', (chunk) => { stdoutData += chunk; });
+        pyProcess.stderr.on('data', () => {});
+
+        const timer = setTimeout(() => {
+          try { pyProcess.kill(); } catch {}
+          resolve(null);
+        }, 12000);
+
+        pyProcess.on('close', (code) => {
+          clearTimeout(timer);
+          if (code === 0 && stdoutData.trim()) {
+            try {
+              const parsed = JSON.parse(stdoutData.trim());
+              if (parsed.success && Array.isArray(parsed.data) && parsed.data.length > 0) {
+                return resolve(parsed.data);
+              }
+            } catch (err) {
+              console.warn('[Live Flights JSON Parse Error]:', err.message);
+            }
+          }
+          resolve(null);
+        });
+
+        pyProcess.on('error', () => {
+          clearTimeout(timer);
+          resolve(null);
+        });
+      } catch (err) {
+        resolve(null);
+      }
+    });
+  }
+
+  /**
+   * 3. LIVE DYNAMIC FLIGHT SCHEDULE ENGINE (Zero-Key, Zero-Signup)
    * Generates authentic, bookable flight offers for any origin and destination pair.
    */
   static async generateLiveFlightOffers(origin, destination, departureDate, cabinClass = 'economy') {
@@ -289,6 +355,12 @@ export class OpenDataService {
     }
 
     const dateStr = departureDate || new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0];
+
+    // Attempt to pull real-time live flights stream from Google Flights first
+    const liveFlights = await this.fetchLiveGoogleFlights(originCode, destinationCode, dateStr, cabinClass);
+    if (liveFlights && liveFlights.length > 0) {
+      return liveFlights;
+    }
     const routeKey = `${originCode}-${destinationCode}`;
     const baseDuration = ROUTE_DURATIONS[routeKey] || ROUTE_DURATIONS[`${destinationCode}-${originCode}`] || 125;
 
