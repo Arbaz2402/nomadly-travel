@@ -53,6 +53,11 @@ const tripDocumentSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    memberName: {
+      type: String,
+      default: 'All Travelers',
+      trim: true,
+    },
     notes: {
       type: String,
       default: '',

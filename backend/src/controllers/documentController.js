@@ -19,7 +19,7 @@ export const getTripDocuments = async (req, res) => {
 export const uploadTripDocument = async (req, res) => {
   try {
     const trip = req.trip;
-    const { title, category, fileName, fileType, fileSize, fileData, notes } = req.body;
+    const { title, category, fileName, fileType, fileSize, fileData, notes, memberName } = req.body;
 
     if (!title || !fileName || !fileData) {
       return res.status(400).json({
@@ -46,7 +46,8 @@ export const uploadTripDocument = async (req, res) => {
       fileSize: Number(fileSize) || fileData.length,
       fileData,
       uploadedBy: req.user._id,
-      uploadedByName: req.user.displayName || 'You',
+      uploadedByName: req.user.displayName || req.user.name || 'You',
+      memberName: memberName && memberName !== 'All Travelers' ? memberName.trim() : 'All Travelers',
       notes: notes || '',
     });
 
@@ -84,6 +85,10 @@ export const downloadTripDocument = async (req, res) => {
         fileType: doc.fileType,
         fileSize: doc.fileSize,
         fileData: doc.fileData,
+        uploadedByName: doc.uploadedByName,
+        memberName: doc.memberName,
+        notes: doc.notes,
+        createdAt: doc.createdAt,
       },
     });
   } catch (error) {
@@ -94,11 +99,28 @@ export const downloadTripDocument = async (req, res) => {
 export const deleteTripDocument = async (req, res) => {
   try {
     const trip = req.trip;
-    const doc = await TripDocument.findOneAndDelete({ _id: req.params.docId, trip: trip._id });
+    const doc = await TripDocument.findOne({ _id: req.params.docId, trip: trip._id });
 
     if (!doc) {
       return res.status(404).json({ success: false, message: 'Document not found.' });
     }
+
+    // Permission check: Only the person who uploaded the document or the journey owner can delete
+    const currentUserId = req.user._id ? req.user._id.toString() : '';
+    const isUploader = doc.uploadedBy && doc.uploadedBy.toString() === currentUserId;
+    const isTripCreator = trip.user && trip.user.toString() === currentUserId;
+    const isOwnerRole = trip.participants?.some(
+      (p) => p.user && p.user.toString() === currentUserId && p.role === 'owner'
+    );
+
+    if (!isUploader && !isTripCreator && !isOwnerRole) {
+      return res.status(403).json({
+        success: false,
+        message: 'Permission denied: Only the document uploader or the journey owner can delete this document.',
+      });
+    }
+
+    await TripDocument.deleteOne({ _id: doc._id });
 
     await logActivity(trip._id, req.user, 'DELETED_DOCUMENT', `Deleted document "${doc.title}"`);
 
