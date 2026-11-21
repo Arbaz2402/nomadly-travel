@@ -20,6 +20,7 @@ import adminRoutes from './routes/adminRoutes.js';
 import experienceRoutes from './routes/experienceRoutes.js';
 import packageRoutes from './routes/packageRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
+import currencyRoutes from './routes/currencyRoutes.js';
 
 // Swagger OpenAPI Documentation
 import swaggerUi from 'swagger-ui-express';
@@ -111,6 +112,7 @@ app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/experiences', experienceRoutes);
 app.use('/api/v1/packages', packageRoutes);
 app.use('/api/v1/ai', aiRoutes);
+app.use('/api/v1/currency', currencyRoutes);
 
 // Interactive Swagger OpenAPI Documentation
 const swaggerUiOptions = {

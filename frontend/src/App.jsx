@@ -13,6 +13,8 @@ import { ExperiencesPage } from './pages/experiences/ExperiencesPage';
 import { PackagesPage } from './pages/packages/PackagesPage';
 import { PackageDetailsPage } from './pages/packages/PackageDetailsPage';
 import { AITripPlannerPage } from './pages/ai/AITripPlannerPage';
+import { CurrencyConverterPage } from './pages/tools/CurrencyConverterPage';
+import { PackingChecklistPage } from './pages/tools/PackingChecklistPage';
 import { CustomerDashboard } from './pages/profile/CustomerDashboard';
 import { TripBuilderPage } from './pages/trip-builder/TripBuilderPage';
 import { JourneysDashboard } from './pages/journeys/JourneysDashboard';
@@ -41,14 +43,16 @@ export const App = () => {
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<ErrorBoundary><HomePage /></ErrorBoundary>} />
-          <Route path="/flights" element={<ErrorBoundary><FlightsPage /></ErrorBoundary>} />
           <Route path="/hotels" element={<ErrorBoundary><HotelsPage /></ErrorBoundary>} />
           <Route path="/experiences" element={<ErrorBoundary><ExperiencesPage /></ErrorBoundary>} />
           <Route path="/packages" element={<ErrorBoundary><PackagesPage /></ErrorBoundary>} />
           <Route path="/packages/:id" element={<ErrorBoundary><PackageDetailsPage /></ErrorBoundary>} />
+          <Route path="/currency-converter" element={<ErrorBoundary><CurrencyConverterPage /></ErrorBoundary>} />
+          <Route path="/packing-checklist" element={<ErrorBoundary><PackingChecklistPage /></ErrorBoundary>} />
           <Route path="/ai-planner" element={<ErrorBoundary><AITripPlannerPage /></ErrorBoundary>} />
-          <Route path="/trains" element={<Navigate to="/flights" replace />} />
-          <Route path="/buses" element={<Navigate to="/flights" replace />} />
+          <Route path="/flights" element={<Navigate to="/hotels" replace />} />
+          <Route path="/trains" element={<Navigate to="/hotels" replace />} />
+          <Route path="/buses" element={<Navigate to="/hotels" replace />} />
           <Route
             path="/checkout"
             element={

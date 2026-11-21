@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
-  Plane,
   Building2,
   Compass,
   Map,
@@ -15,6 +14,8 @@ import {
   ChevronDown,
   PackageCheck,
   Calendar,
+  Coins,
+  CheckSquare,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useToast } from '../../context/ToastContext';
@@ -50,10 +51,11 @@ export const Navbar = () => {
   };
 
   const navLinks = [
-    { name: 'Flights', path: '/flights', icon: Plane },
     { name: 'Hotels', path: '/hotels', icon: Building2 },
     { name: 'Experiences', path: '/experiences', icon: Compass },
     { name: 'Packages', path: '/packages', icon: PackageCheck, badge: 'Save 20%' },
+    { name: 'Currency', path: '/currency-converter', icon: Coins },
+    { name: 'Packing', path: '/packing-checklist', icon: CheckSquare },
     { name: 'Trip Planner', path: '/ai-planner', icon: Calendar },
     { name: 'My Journeys', path: '/journeys', icon: Map, badge: 'Organizer' },
   ];
