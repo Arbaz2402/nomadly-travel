@@ -58,6 +58,10 @@ export const TripWorkspacePage = () => {
     handleLeaveJourney,
   } = useTripWorkspace();
 
+  const [editingExpense, setEditingExpense] = React.useState(null);
+  const [settleUpModalOpen, setSettleUpModalOpen] = React.useState(false);
+  const [settleUpData, setSettleUpData] = React.useState(null);
+
   if (loading) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center gap-3 text-slate-400">
@@ -204,8 +208,15 @@ export const TripWorkspacePage = () => {
           expenses={expenses}
           analytics={analytics}
           canEdit={canEdit}
-          onRefresh={() => loadTabData('expenses')}
-          onOpenAddExpense={() => setAddExpenseOpen(true)}
+          onRefresh={() => {
+            loadTabData('expenses');
+            loadTabData('splitting');
+          }}
+          onOpenAddExpense={() => {
+            setEditingExpense(null);
+            setAddExpenseOpen(true);
+          }}
+          onOpenEditExpense={(exp) => setEditingExpense(exp)}
         />
       )}
 
@@ -213,7 +224,21 @@ export const TripWorkspacePage = () => {
         <SplittingView
           trip={trip}
           settlement={settlement}
-          onRefresh={() => loadTabData('splitting')}
+          expenses={expenses}
+          canEdit={canEdit}
+          onRefresh={() => {
+            loadTabData('splitting');
+            loadTabData('expenses');
+          }}
+          onOpenAddExpense={() => {
+            setEditingExpense(null);
+            setAddExpenseOpen(true);
+          }}
+          onOpenEditExpense={(exp) => setEditingExpense(exp)}
+          onOpenSettleUp={(data) => {
+            setSettleUpData(data);
+            setSettleUpModalOpen(true);
+          }}
         />
       )}
 
@@ -251,6 +276,12 @@ export const TripWorkspacePage = () => {
         setAddActivityOpen={setAddActivityOpen}
         addExpenseOpen={addExpenseOpen}
         setAddExpenseOpen={setAddExpenseOpen}
+        editingExpense={editingExpense}
+        setEditingExpense={setEditingExpense}
+        settleUpModalOpen={settleUpModalOpen}
+        setSettleUpModalOpen={setSettleUpModalOpen}
+        settleUpData={settleUpData}
+        setSettleUpData={setSettleUpData}
         addMemberOpen={addMemberOpen}
         setAddMemberOpen={setAddMemberOpen}
         uploadDocOpen={uploadDocOpen}

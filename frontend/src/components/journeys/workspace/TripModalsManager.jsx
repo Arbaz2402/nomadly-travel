@@ -2,6 +2,7 @@ import React from 'react';
 import { AttachBookingModal } from '../AttachBookingModal';
 import { AddActivityModal } from '../modals/AddActivityModal';
 import { AddExpenseModal } from '../modals/AddExpenseModal';
+import { SettleUpModal } from '../modals/SettleUpModal';
 import { AddMemberModal } from '../modals/AddMemberModal';
 import { UploadDocModal } from '../modals/UploadDocModal';
 import { AIModifyActivityModal } from '../modals/AIModifyActivityModal';
@@ -17,6 +18,12 @@ export const TripModalsManager = ({
   setAddActivityOpen,
   addExpenseOpen,
   setAddExpenseOpen,
+  editingExpense,
+  setEditingExpense,
+  settleUpModalOpen,
+  setSettleUpModalOpen,
+  settleUpData,
+  setSettleUpData,
   addMemberOpen,
   setAddMemberOpen,
   uploadDocOpen,
@@ -58,15 +65,40 @@ export const TripModalsManager = ({
         />
       )}
 
-      {/* Add Expense Modal */}
-      {addExpenseOpen && (
+      {/* Add / Edit Expense Modal */}
+      {(addExpenseOpen || Boolean(editingExpense)) && (
         <AddExpenseModal
           trip={trip}
-          isOpen={addExpenseOpen}
-          onClose={() => setAddExpenseOpen(false)}
+          isOpen={Boolean(addExpenseOpen || editingExpense)}
+          expenseToEdit={editingExpense}
+          onClose={() => {
+            setAddExpenseOpen(false);
+            if (setEditingExpense) setEditingExpense(null);
+          }}
           onCreated={() => {
             onTripDataRefresh();
             onTabRefresh('expenses');
+            onTabRefresh('splitting');
+            onTabRefresh('overview');
+          }}
+        />
+      )}
+
+      {/* Settle Up Debt Payment Modal */}
+      {settleUpModalOpen && (
+        <SettleUpModal
+          trip={trip}
+          isOpen={settleUpModalOpen}
+          initialData={settleUpData}
+          onClose={() => {
+            setSettleUpModalOpen(false);
+            if (setSettleUpData) setSettleUpData(null);
+          }}
+          onSettled={() => {
+            onTripDataRefresh();
+            onTabRefresh('expenses');
+            onTabRefresh('splitting');
+            onTabRefresh('overview');
           }}
         />
       )}

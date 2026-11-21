@@ -10,7 +10,10 @@ export const getTripExpenses = async (req, res) => {
     const expenses = await TripExpense.find({ trip: trip._id }).sort({ date: -1, createdAt: -1 });
 
     const tripBudget = trip.budget?.totalBudget || 50000;
-    const totalSpent = expenses.reduce((sum, exp) => sum + (exp.convertedAmount || exp.amount || 0), 0);
+    const totalSpent = expenses.reduce((sum, exp) => {
+      if (exp.category === 'settlement') return sum;
+      return sum + (exp.convertedAmount || exp.amount || 0);
+    }, 0);
     const remainingBudget = Math.max(0, tripBudget - totalSpent);
     const utilization = tripBudget > 0 ? Number(((totalSpent / tripBudget) * 100).toFixed(1)) : 0;
 
@@ -75,7 +78,14 @@ export const createTripExpense = async (req, res) => {
     // Calculate Splits
     let calculatedSplits = [];
     if (Array.isArray(splits) && splits.length > 0) {
-      calculatedSplits = splits;
+      calculatedSplits = splits.map((s) => ({
+        user: s.user || null,
+        name: s.name,
+        email: s.email || '',
+        shareAmount: Number(s.shareAmount || 0),
+        sharePercentage: Number(s.sharePercentage || 0),
+        isSettled: Boolean(s.isSettled),
+      }));
     } else {
       // Auto equal split across trip participants
       const participants = trip.participants?.length > 0 ? trip.participants : [finalPaidBy];
@@ -88,7 +98,7 @@ export const createTripExpense = async (req, res) => {
         email: p.email || '',
         shareAmount: perPersonShare,
         sharePercentage: percentageShare,
-        isSettled: (p.email && p.email.toLowerCase() === finalPaidBy.email?.toLowerCase()),
+        isSettled: false,
       }));
     }
 
@@ -152,7 +162,16 @@ export const updateTripExpense = async (req, res) => {
     if (paidBy !== undefined) expense.paidBy = paidBy;
     if (receiptUrl !== undefined) expense.receiptUrl = receiptUrl;
     if (splitType !== undefined) expense.splitType = splitType;
-    if (splits !== undefined) expense.splits = splits;
+    if (splits !== undefined && Array.isArray(splits)) {
+      expense.splits = splits.map((s) => ({
+        user: s.user || null,
+        name: s.name,
+        email: s.email || '',
+        shareAmount: Number(s.shareAmount || 0),
+        sharePercentage: Number(s.sharePercentage || 0),
+        isSettled: Boolean(s.isSettled),
+      }));
+    }
     if (date !== undefined) expense.date = new Date(date);
 
     // Re-evaluate multi-currency if amount or currency changed
