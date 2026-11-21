@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Upload,
   FileText,
@@ -12,11 +12,16 @@ import {
   ShieldCheck,
   Receipt,
   CreditCard,
-  Image as ImageIcon
+  User,
+  Users,
+  Lock,
+  Calendar,
+  Filter
 } from 'lucide-react';
 import { ApiClient } from '../../../services/api';
 import { useToast } from '../../../context/ToastContext';
 import { formatDate } from '../../../utils/formatters';
+import { useAuthStore } from '../../../store/authStore';
 import { DocumentPreviewModal } from '../modals/DocumentPreviewModal';
 
 const getCategoryIcon = (category) => {
@@ -42,7 +47,62 @@ const getCategoryIcon = (category) => {
 
 export const DocumentsView = ({ trip, documents = [], canEdit, onRefresh, onOpenUpload }) => {
   const { showToast } = useToast();
+  const { user } = useAuthStore();
   const [previewDoc, setPreviewDoc] = useState(null);
+  const [selectedMemberFilter, setSelectedMemberFilter] = useState('ALL');
+
+  // Check if current user is journey owner
+  const isTripOwner = useMemo(() => {
+    if (!user?._id) return false;
+    const currentUserId = user._id.toString();
+    const tripCreatorId = trip?.user?._id ? trip.user._id.toString() : trip?.user ? trip.user.toString() : '';
+    if (tripCreatorId && tripCreatorId === currentUserId) return true;
+    return Boolean(
+      trip?.participants?.some(
+        (p) => (p.user?._id?.toString() === currentUserId || p.user?.toString() === currentUserId) && p.role === 'owner'
+      )
+    );
+  }, [trip, user]);
+
+  // Check if a specific document can be deleted by the current user
+  const canDeleteDoc = (doc) => {
+    if (!canEdit) return false;
+    if (isTripOwner) return true; // Owner can delete any document
+    if (!user?._id) return false;
+
+    const currentUserId = user._id.toString();
+    const uploaderId = doc.uploadedBy?._id ? doc.uploadedBy._id.toString() : doc.uploadedBy ? doc.uploadedBy.toString() : '';
+    if (uploaderId && uploaderId === currentUserId) return true; // Uploader can delete their own document
+
+    if (doc.uploadedByName && user.displayName && doc.uploadedByName.toLowerCase() === user.displayName.toLowerCase()) {
+      return true;
+    }
+    return false;
+  };
+
+  // Group / filter options by traveler
+  const memberOptions = useMemo(() => {
+    const counts = {};
+    documents.forEach((d) => {
+      const name = d.memberName && d.memberName.trim() !== '' ? d.memberName.trim() : 'All Travelers';
+      counts[name] = (counts[name] || 0) + 1;
+    });
+
+    const list = Object.keys(counts).map((name) => ({
+      name,
+      count: counts[name],
+    }));
+
+    return list;
+  }, [documents]);
+
+  const filteredDocuments = useMemo(() => {
+    if (selectedMemberFilter === 'ALL') return documents;
+    return documents.filter((d) => {
+      const name = d.memberName && d.memberName.trim() !== '' ? d.memberName.trim() : 'All Travelers';
+      return name === selectedMemberFilter;
+    });
+  }, [documents, selectedMemberFilter]);
 
   const handleDownload = async (docId, fileName) => {
     try {
@@ -86,7 +146,7 @@ export const DocumentsView = ({ trip, documents = [], canEdit, onRefresh, onOpen
             </span>
           </div>
           <p className="text-xs text-slate-400 mt-0.5">
-            Preview, zoom, rotate, and securely download boarding passes, ID cards, passport scans, and vouchers.
+            Organized by traveler (Arbaz, Shahbaz, etc.) with universal access, uploader tracking, and owner-only deletion protection.
           </p>
         </div>
 
@@ -100,18 +160,73 @@ export const DocumentsView = ({ trip, documents = [], canEdit, onRefresh, onOpen
         )}
       </div>
 
+      {/* Traveler Organization Filter Pills */}
+      {documents.length > 0 && (
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+          <div className="flex items-center gap-1.5 text-xs text-slate-400 font-bold mr-1 shrink-0">
+            <Filter className="w-3.5 h-3.5 text-coral-400" />
+            <span>Arrange by:</span>
+          </div>
+
+          <button
+            onClick={() => setSelectedMemberFilter('ALL')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 ${
+              selectedMemberFilter === 'ALL'
+                ? 'bg-coral-500 text-white shadow-glow'
+                : 'bg-ink-900/80 border border-white/5 text-slate-400 hover:text-white hover:border-white/20'
+            }`}
+          >
+            <span>All Documents</span>
+            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-black/20 font-mono">
+              {documents.length}
+            </span>
+          </button>
+
+          {memberOptions.map((opt) => {
+            const isSelected = selectedMemberFilter === opt.name;
+            const isShared = opt.name === 'All Travelers';
+            return (
+              <button
+                key={opt.name}
+                onClick={() => setSelectedMemberFilter(opt.name)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 ${
+                  isSelected
+                    ? 'bg-coral-500 text-white shadow-glow'
+                    : 'bg-ink-900/80 border border-white/5 text-slate-400 hover:text-white hover:border-white/20'
+                }`}
+              >
+                {isShared ? <Users className="w-3.5 h-3.5" /> : <User className="w-3.5 h-3.5" />}
+                <span>{isShared ? 'Shared Group' : `${opt.name}'s`}</span>
+                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-black/20 font-mono">
+                  {opt.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* Documents Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {documents.length === 0 ? (
+        {filteredDocuments.length === 0 ? (
           <div className="col-span-full py-12 text-center text-slate-400 text-xs glass-panel rounded-3xl border border-white/10 flex flex-col items-center gap-2">
             <FileText className="w-8 h-8 text-slate-500" />
-            <span className="font-semibold text-slate-300">No travel documents uploaded yet.</span>
-            <span>Upload tickets, vouchers, passport scans, or ID cards to preview and access them anywhere.</span>
+            <span className="font-semibold text-slate-300">
+              {documents.length === 0
+                ? 'No travel documents uploaded yet.'
+                : `No documents found for ${selectedMemberFilter}.`}
+            </span>
+            <span>
+              {documents.length === 0
+                ? 'Upload tickets, vouchers, passport scans, or ID cards to preview and access them anywhere.'
+                : 'Switch filters above or upload a document assigned to this traveler.'}
+            </span>
           </div>
         ) : (
-          documents.map((doc) => {
+          filteredDocuments.map((doc) => {
             const ext = doc.fileName?.split('.').pop()?.toUpperCase() || 'DOC';
-            const isImage = ['JPG', 'JPEG', 'PNG', 'WEBP', 'GIF'].includes(ext);
+            const isShared = !doc.memberName || doc.memberName === 'All Travelers';
+            const userCanDelete = canDeleteDoc(doc);
 
             return (
               <div
@@ -142,8 +257,36 @@ export const DocumentsView = ({ trip, documents = [], canEdit, onRefresh, onOpen
                   </div>
                 </div>
 
+                {/* Member Assignment & Uploader Info Badge */}
+                <div className="space-y-1 pt-1 border-t border-white/5 text-[11px]">
+                  {/* Belongs to traveler */}
+                  <div className="flex items-center gap-1.5 text-slate-300">
+                    {isShared ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/5 text-slate-300 font-semibold text-[10px]">
+                        <Users className="w-3 h-3 text-slate-400" /> Shared Group Document
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-coral-500/10 text-coral-300 font-semibold text-[10px] border border-coral-500/20">
+                        <User className="w-3 h-3 text-coral-400" /> Belongs to {doc.memberName}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Uploaded By & Date */}
+                  <div className="flex items-center justify-between text-[10px] text-slate-400 pt-0.5">
+                    <span className="truncate">
+                      Uploaded by <strong className="text-slate-300">{doc.uploadedByName || 'Traveler'}</strong>
+                    </span>
+                    {doc.createdAt && (
+                      <span className="text-slate-500 shrink-0 ml-1">
+                        {formatDate(doc.createdAt)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
                 {/* Footer Action Buttons */}
-                <div className="flex items-center justify-between pt-3 border-t border-white/5 text-xs">
+                <div className="flex items-center justify-between pt-2 border-t border-white/5 text-xs">
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setPreviewDoc(doc)}
@@ -162,14 +305,22 @@ export const DocumentsView = ({ trip, documents = [], canEdit, onRefresh, onOpen
                     </button>
                   </div>
 
-                  {canEdit && (
+                  {/* Protected Delete: Only uploader or trip owner can delete */}
+                  {userCanDelete ? (
                     <button
                       onClick={() => handleDelete(doc._id, doc.title)}
                       className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
-                      title="Delete document"
+                      title="Delete document (You uploaded this or own the trip)"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
+                  ) : (
+                    <span
+                      className="p-1.5 rounded-lg text-slate-600 cursor-not-allowed"
+                      title={`Protected: Only ${doc.uploadedByName || 'uploader'} or the journey owner can delete this`}
+                    >
+                      <Lock className="w-3.5 h-3.5" />
+                    </span>
                   )}
                 </div>
               </div>

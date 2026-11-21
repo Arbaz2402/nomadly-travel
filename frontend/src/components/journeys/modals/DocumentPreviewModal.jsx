@@ -333,13 +333,26 @@ export const DocumentPreviewModal = ({ trip, doc, isOpen, onClose }) => {
           )}
         </div>
 
-        {/* Modal Footer Notes */}
-        {doc.notes && (
-          <div className="px-6 py-3 bg-ink-950/80 border-t border-white/5 text-[11px] text-slate-400 flex items-center gap-2">
-            <span className="font-semibold text-slate-300">Notes:</span>
-            <span>{doc.notes}</span>
+        {/* Modal Footer Info */}
+        <div className="px-6 py-3 bg-ink-950/80 border-t border-white/5 text-[11px] text-slate-400 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            {doc.memberName && doc.memberName !== 'All Travelers' && (
+              <span className="font-semibold text-coral-400">
+                Belongs to {doc.memberName}
+              </span>
+            )}
+            <span>
+              Uploaded by <strong className="text-slate-300">{fileDetails?.uploadedByName || doc.uploadedByName || 'Traveler'}</strong>
+            </span>
           </div>
-        )}
+
+          {doc.notes && (
+            <div className="flex items-center gap-1.5 text-slate-400">
+              <span className="font-semibold text-slate-300">Notes:</span>
+              <span>{doc.notes}</span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
