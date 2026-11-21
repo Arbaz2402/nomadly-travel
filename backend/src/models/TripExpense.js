@@ -38,6 +38,7 @@ const tripExpenseSchema = new mongoose.Schema(
         'activities',
         'shopping',
         'insurance',
+        'settlement',
         'other',
       ],
       default: 'food',
@@ -54,7 +55,8 @@ const tripExpenseSchema = new mongoose.Schema(
         if (normalized === 'car_rental' || normalized === 'local_transportation' || normalized === 'transport') return 'local_transportation';
         if (normalized === 'shopping') return 'shopping';
         if (normalized === 'insurance') return 'insurance';
-        if (['flights', 'hotels', 'trains', 'buses', 'local_transportation', 'food', 'activities', 'shopping', 'insurance', 'other'].includes(normalized)) {
+        if (normalized === 'settlement' || normalized === 'payment' || normalized === 'repay') return 'settlement';
+        if (['flights', 'hotels', 'trains', 'buses', 'local_transportation', 'food', 'activities', 'shopping', 'insurance', 'settlement', 'other'].includes(normalized)) {
           return normalized;
         }
         return 'other';
@@ -117,7 +119,7 @@ const tripExpenseSchema = new mongoose.Schema(
     },
     splitType: {
       type: String,
-      enum: ['equal', 'custom', 'percentage'],
+      enum: ['equal', 'custom', 'percentage', 'shares'],
       default: 'equal',
     },
     splits: [expenseSplitSchema],

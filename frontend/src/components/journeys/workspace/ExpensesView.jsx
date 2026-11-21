@@ -1,12 +1,20 @@
 import React from 'react';
-import { Plus, Trash2, PieChart as PieIcon } from 'lucide-react';
+import { Plus, Trash2, Edit2, PieChart as PieIcon } from 'lucide-react';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, Legend } from 'recharts';
 import { ApiClient } from '../../../services/api';
 import { useToast } from '../../../context/ToastContext';
 import { formatCurrency, formatDate } from '../../../utils/formatters';
 import { CHART_COLORS } from '../helpers';
 
-export const ExpensesView = ({ trip, expenses, analytics, canEdit, onRefresh, onOpenAddExpense }) => {
+export const ExpensesView = ({
+  trip,
+  expenses,
+  analytics,
+  canEdit,
+  onRefresh,
+  onOpenAddExpense,
+  onOpenEditExpense,
+}) => {
   const { showToast } = useToast();
 
   const handleDeleteExpense = async (expId, title) => {
@@ -111,59 +119,81 @@ export const ExpensesView = ({ trip, expenses, analytics, canEdit, onRefresh, on
           {expenses.data?.length === 0 ? (
             <div className="py-12 text-center text-slate-400 text-xs">No expenses recorded yet.</div>
           ) : (
-            expenses.data.map((exp) => (
-              <div
-                key={exp._id}
-                className="p-4 hover:bg-white/[0.02] flex items-center justify-between gap-4 transition-colors"
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-white">{exp.title}</span>
-                    <span className="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-white/5 text-slate-300">
-                      {exp.category}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-slate-400 mt-0.5">
-                    Paid by <span className="font-semibold text-slate-300">{exp.paidBy?.name}</span> on{' '}
-                    {formatDate(exp.date)}
-                    {exp.currency !== trip.currency && (
-                      <span className="text-teal-400 ml-1.5">
-                        (Rate: 1 {exp.currency} = {exp.exchangeRate} {trip.currency})
-                      </span>
-                    )}
-                  </p>
-                </div>
+            expenses.data.map((exp) => {
+              const isSettlement = exp.category === 'settlement';
+              const includedCount = exp.splits?.filter((s) => Number(s.shareAmount) > 0).length || 0;
 
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <span className="text-sm font-bold font-mono text-white block">
-                      {formatCurrency(exp.convertedAmount || exp.amount, trip.currency)}
-                    </span>
-                    {exp.currency !== trip.currency && (
-                      <span className="text-[10px] text-slate-400 font-mono">
-                        Orig: {exp.amount} {exp.currency}
+              return (
+                <div
+                  key={exp._id}
+                  className="p-4 hover:bg-white/[0.02] flex items-center justify-between gap-4 transition-colors"
+                >
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-bold text-white">{exp.title}</span>
+                      <span
+                        className={`text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full ${
+                          isSettlement
+                            ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30'
+                            : 'bg-white/5 text-slate-300'
+                        }`}
+                      >
+                        {isSettlement ? '🤝 Settlement Payment' : exp.category}
                       </span>
-                    )}
+                      {!isSettlement && exp.splits?.length > 0 && (
+                        <span className="text-[10px] text-slate-400 bg-ink-950 px-1.5 py-0.5 rounded border border-white/5">
+                          Split {includedCount} ways ({exp.splitType || 'equal'})
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      Paid by <span className="font-semibold text-slate-300">{exp.paidBy?.name}</span> on{' '}
+                      {formatDate(exp.date)}
+                      {exp.currency !== trip.currency && (
+                        <span className="text-teal-400 ml-1.5">
+                          (Rate: 1 {exp.currency} = {exp.exchangeRate} {trip.currency})
+                        </span>
+                      )}
+                    </p>
                   </div>
 
-                  {canEdit && (
-                    <button
-                      onClick={() => handleDeleteExpense(exp._id, exp.title)}
-                      className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <span className="text-sm font-bold font-mono text-white block">
+                        {formatCurrency(exp.convertedAmount || exp.amount, trip.currency)}
+                      </span>
+                      {exp.currency !== trip.currency && (
+                        <span className="text-[10px] text-slate-400 font-mono">
+                          Orig: {exp.amount} {exp.currency}
+                        </span>
+                      )}
+                    </div>
+
+                    {canEdit && (
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => onOpenEditExpense && onOpenEditExpense(exp)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+                          title="Edit expense & splits"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteExpense(exp._id, exp.title)}
+                          className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                          title="Delete expense"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
     </div>
   );
 };
-
-// =========================================================
-// SUB-COMPONENT: EXPENSE SPLITTING & SETTLEMENT
-// =========================================================

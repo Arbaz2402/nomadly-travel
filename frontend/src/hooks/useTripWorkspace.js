@@ -87,10 +87,14 @@ export const useTripWorkspace = () => {
         if (res.success) setExpenses(res);
         const aRes = await ApiClient.getTripAnalytics(id);
         if (aRes.success) setAnalytics(aRes.data);
+        const sRes = await ApiClient.getTripSettlement(id);
+        if (sRes.success) setSettlement(sRes.data);
       }
       if (tab === 'splitting') {
         const res = await ApiClient.getTripSettlement(id);
         if (res.success) setSettlement(res.data);
+        const expRes = await ApiClient.getTripExpenses(id);
+        if (expRes.success) setExpenses(expRes);
       }
       if (tab === 'members') {
         const res = await ApiClient.getTripParticipants(id);

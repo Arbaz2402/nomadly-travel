@@ -15,6 +15,8 @@ export const calculateTripSettlement = (expenses = [], participants = []) => {
       totalPaid: 0,
       totalOwed: 0,
       netBalance: 0,
+      paidExpenses: [],
+      sharedExpenses: [],
     };
   });
 
@@ -23,7 +25,11 @@ export const calculateTripSettlement = (expenses = [], participants = []) => {
 
   expenses.forEach((expense) => {
     const cost = Number(expense.convertedAmount || expense.amount || 0);
-    totalSpent += cost;
+    
+    // Settlement payments transfer money between members without counting as trip spending
+    if (expense.category !== 'settlement') {
+      totalSpent += cost;
+    }
 
     // Credit payer
     const payerKey = (expense.paidBy?.email || expense.paidBy?.name || 'Unknown').toLowerCase();
@@ -34,15 +40,22 @@ export const calculateTripSettlement = (expenses = [], participants = []) => {
         totalPaid: 0,
         totalOwed: 0,
         netBalance: 0,
+        paidExpenses: [],
+        sharedExpenses: [],
       };
     }
     memberBalances[payerKey].totalPaid += cost;
+    memberBalances[payerKey].paidExpenses.push({
+      id: expense._id,
+      title: expense.title,
+      category: expense.category,
+      amount: cost,
+      date: expense.date,
+    });
 
     // Debit split participants
     if (expense.splits && expense.splits.length > 0) {
       expense.splits.forEach((split) => {
-        if (split.isSettled) return; // Skip already settled splits
-
         const splitKey = (split.email || split.name || 'Unknown').toLowerCase();
         if (!memberBalances[splitKey]) {
           memberBalances[splitKey] = {
@@ -51,13 +64,34 @@ export const calculateTripSettlement = (expenses = [], participants = []) => {
             totalPaid: 0,
             totalOwed: 0,
             netBalance: 0,
+            paidExpenses: [],
+            sharedExpenses: [],
           };
         }
-        memberBalances[splitKey].totalOwed += Number(split.shareAmount || 0);
+        const share = Number(split.shareAmount || 0);
+        memberBalances[splitKey].totalOwed += share;
+        memberBalances[splitKey].sharedExpenses.push({
+          id: expense._id,
+          title: expense.title,
+          category: expense.category,
+          shareAmount: share,
+          totalAmount: cost,
+          paidByName: expense.paidBy?.name || 'Unknown',
+          date: expense.date,
+        });
       });
     } else {
       // Default: payer paid for themselves, no splits recorded
       memberBalances[payerKey].totalOwed += cost;
+      memberBalances[payerKey].sharedExpenses.push({
+        id: expense._id,
+        title: expense.title,
+        category: expense.category,
+        shareAmount: cost,
+        totalAmount: cost,
+        paidByName: expense.paidBy?.name || 'Unknown',
+        date: expense.date,
+      });
     }
   });
 
