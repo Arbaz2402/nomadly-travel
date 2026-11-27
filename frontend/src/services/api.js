@@ -339,6 +339,10 @@ export class ApiClient {
     return this.request(`/currency/rates?base=${base}`);
   }
 
+  static getLiveCurrencyPair(from = 'EUR', to = 'INR', range = '1mo', refresh = false) {
+    return this.request(`/currency/pair?from=${from}&to=${to}&range=${range}${refresh ? '&refresh=true' : ''}`);
+  }
+
   static convertCurrency(payload) {
     return this.request('/currency/convert', { method: 'POST', body: JSON.stringify(payload) });
   }
