@@ -274,6 +274,10 @@ export class ApiClient {
     return this.request(`/trips/${tripId}/analytics`);
   }
 
+  static getTripWeather(tripId) {
+    return this.request(`/trips/${tripId}/weather`);
+  }
+
   // Collaboration & Members
   static getTripParticipants(tripId) {
     return this.request(`/trips/${tripId}/participants`);

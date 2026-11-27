@@ -10,6 +10,7 @@ import {
   getTripActivityLogs,
   addSegmentToTrip,
   updateTripBudget,
+  getTripWeather,
 } from '../controllers/tripController.js';
 import {
   getTripItinerary,
@@ -76,6 +77,7 @@ router.post('/:id/settlement/settle', requireTripAccess(['owner', 'editor']), se
 
 // 5. Analytics & Budget
 router.get('/:id/analytics', requireTripAccess(['owner', 'editor', 'viewer']), getTripAnalytics);
+router.get('/:id/weather', requireTripAccess(['owner', 'editor', 'viewer']), getTripWeather);
 
 // 6. Collaboration & Members
 router.get('/:id/participants', requireTripAccess(['owner', 'editor', 'viewer']), getTripParticipants);

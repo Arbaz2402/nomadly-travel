@@ -104,6 +104,17 @@ const tripSchema = new mongoose.Schema(
         ],
       },
     ],
+    emergencyContacts: [
+      {
+        name: { type: String, required: true, trim: true },
+        phone: { type: String, required: true, trim: true },
+        category: {
+          type: String,
+          enum: ['police', 'medical', 'hotel', 'embassy', 'local', 'other'],
+          default: 'local',
+        },
+      },
+    ],
     isPublic: { type: Boolean, default: false },
   },
   {

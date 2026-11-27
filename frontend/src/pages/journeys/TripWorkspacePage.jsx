@@ -243,8 +243,15 @@ export const TripWorkspacePage = () => {
           trip={trip}
           analytics={analytics}
           expenses={expenses}
+          itinerary={itinerary}
+          settlement={settlement}
           activityLogs={activityLogs}
+          canEdit={canEdit}
           onSwitchTab={(t) => setActiveTab(t)}
+          onRefresh={() => {
+            fetchTripData();
+            loadTabData('itinerary');
+          }}
         />
       )}
 
