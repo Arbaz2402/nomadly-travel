@@ -23,8 +23,6 @@ services:
         value: nomadly-app-fe5b9
       - key: FIREBASE_CLIENT_EMAIL
         value: firebase-adminsdk-fbsvc@nomadly-app-fe5b9.iam.gserviceaccount.com
-      - key: RAPIDAPI_KEY
-        value: 90892622famshe5b6efc68aebcf4p1eaa28jsn369d2ce96e82
       - key: FIREBASE_SERVICE_ACCOUNT
         sync: false
       - key: EMAIL_USER

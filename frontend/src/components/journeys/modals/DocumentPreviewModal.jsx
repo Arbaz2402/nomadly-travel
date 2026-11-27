@@ -100,22 +100,23 @@ export const DocumentPreviewModal = ({ trip, doc, isOpen, onClose }) => {
   const handleOpenInNewTab = () => {
     if (!fileData) return;
     try {
-      const win = window.open();
-      if (win) {
-        if (isPdf) {
-          win.document.write(
-            `<iframe src="${fileData}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`
-          );
-        } else if (isImage) {
-          win.document.write(
-            `<body style="margin:0; background:#0b132b; display:flex; justify-content:center; align-items:center; min-height:100vh;"><img src="${fileData}" style="max-width:100%; max-height:100vh; object-fit:contain;" /></body>`
-          );
-        } else {
-          win.location.href = fileData;
-        }
+      const [meta, base64] = fileData.split(',');
+      if (base64) {
+        const mimeMatch = meta?.match(/data:([^;]+);/);
+        const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+        // Prevent active script execution (HTML/SVG) in same-origin context
+        const safeMime = mime === 'text/html' || mime === 'image/svg+xml' ? 'text/plain' : mime;
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        const blob = new Blob([bytes], { type: safeMime });
+        const blobUrl = URL.createObjectURL(blob);
+        window.open(blobUrl, '_blank', 'noopener,noreferrer');
+        return;
       }
+      window.open(fileData, '_blank', 'noopener,noreferrer');
     } catch {
-      window.open(fileData, '_blank');
+      showToast('Unable to open document in new tab', 'error');
     }
   };
 

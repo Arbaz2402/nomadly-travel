@@ -202,10 +202,14 @@ export const getCurrencyRates = async (req, res) => {
 
 export const getLivePairQuote = async (req, res) => {
   try {
-    const from = (req.query.from || 'EUR').toUpperCase();
-    const to = (req.query.to || 'INR').toUpperCase();
-    const range = (req.query.range || '1mo').toLowerCase();
+    const from = String(req.query.from || 'EUR').toUpperCase().trim();
+    const to = String(req.query.to || 'INR').toUpperCase().trim();
+    const range = String(req.query.range || '1mo').toLowerCase().trim();
     const forceRefresh = req.query.refresh === 'true';
+
+    if (!/^[A-Z]{3}$/.test(from) || !/^[A-Z]{3}$/.test(to)) {
+      return res.status(400).json({ success: false, message: 'Invalid 3-letter ISO currency code.' });
+    }
 
     const data = await fetchLivePairWithHistory(from, to, range, forceRefresh);
 

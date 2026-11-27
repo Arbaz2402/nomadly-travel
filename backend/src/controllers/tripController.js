@@ -235,6 +235,8 @@ export const updateTrip = async (req, res) => {
       totalBudget,
       budget,
       status,
+      packingList,
+      emergencyContacts,
       isPublic,
     } = req.body;
 
@@ -247,7 +249,15 @@ export const updateTrip = async (req, res) => {
     if (endDate !== undefined) trip.endDate = new Date(endDate);
     if (travelersCount !== undefined) trip.travelersCount = travelersCount;
     if (currency !== undefined) trip.currency = currency.toUpperCase();
-    if (status !== undefined) trip.status = status;
+    if (status !== undefined) {
+      const allowedStatuses = ['draft', 'upcoming', 'ongoing', 'completed', 'cancelled'];
+      if (!allowedStatuses.includes(status)) {
+        return res.status(400).json({ success: false, message: 'Invalid trip status value.' });
+      }
+      trip.status = status;
+    }
+    if (packingList !== undefined) trip.packingList = packingList;
+    if (emergencyContacts !== undefined) trip.emergencyContacts = emergencyContacts;
     if (isPublic !== undefined) trip.isPublic = isPublic;
 
     if (budget || totalBudget !== undefined) {
@@ -589,7 +599,89 @@ export const updateTripBudget = async (req, res) => {
   }
 };
 
+// In-memory 30-min weather cache per destination
+const weatherCache = new Map();
+const WEATHER_TTL_MS = 30 * 60 * 1000;
 
+const describeWmoCode = (code) => {
+  if (code === 0) return { label: 'Clear Sky', icon: 'sun' };
+  if (code >= 1 && code <= 3) return { label: 'Partly Cloudy', icon: 'cloud-sun' };
+  if (code === 45 || code === 48) return { label: 'Foggy', icon: 'cloud' };
+  if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return { label: 'Rain / Showers', icon: 'rain' };
+  if (code >= 71 && code <= 77) return { label: 'Snowfall', icon: 'snow' };
+  if (code >= 95) return { label: 'Thunderstorm', icon: 'storm' };
+  return { label: 'Fair Weather', icon: 'cloud-sun' };
+};
+
+export const getTripWeather = async (req, res) => {
+  try {
+    const trip = req.trip;
+    const destination = (req.query.destination || trip.destination || '').trim();
+    if (!destination) {
+      return res.status(400).json({ success: false, message: 'Destination is required for weather.' });
+    }
+
+    const cacheKey = destination.toLowerCase();
+    const cached = weatherCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < WEATHER_TTL_MS) {
+      return res.status(200).json({ success: true, data: cached.data });
+    }
+
+    // 1. Geocode destination via free Open-Meteo Geocoding API (zero key needed)
+    const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(destination)}&count=1&language=en&format=json`;
+    const geoRes = await fetch(geoUrl, { signal: AbortSignal.timeout(4500) });
+    if (!geoRes.ok) {
+      return res.status(200).json({ success: true, data: null });
+    }
+    const geoData = await geoRes.json();
+    const place = geoData?.results?.[0];
+    if (!place) {
+      return res.status(200).json({ success: true, data: null });
+    }
+
+    // 2. Fetch 7-day daily forecast from Open-Meteo
+    const forecastUrl = `https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto`;
+    const fcRes = await fetch(forecastUrl, { signal: AbortSignal.timeout(4500) });
+    if (!fcRes.ok) {
+      return res.status(200).json({ success: true, data: null });
+    }
+    const fcData = await fcRes.json();
+    const daily = fcData?.daily;
+    if (!daily || !Array.isArray(daily.time)) {
+      return res.status(200).json({ success: true, data: null });
+    }
+
+    const forecast = daily.time.map((dateStr, idx) => {
+      const code = daily.weathercode?.[idx] ?? 1;
+      const cond = describeWmoCode(code);
+      return {
+        date: dateStr,
+        tempMax: Math.round(daily.temperature_2m_max?.[idx] ?? 26),
+        tempMin: Math.round(daily.temperature_2m_min?.[idx] ?? 18),
+        rainChance: Math.round(daily.precipitation_probability_max?.[idx] ?? 0),
+        condition: cond.label,
+        icon: cond.icon,
+      };
+    });
+
+    const rainAlert = forecast.some((d) => d.rainChance >= 50);
+    const coldAlert = forecast.some((d) => d.tempMin <= 10);
+
+    const payload = {
+      location: `${place.name}${place.country ? `, ${place.country}` : ''}`,
+      rainAlert,
+      coldAlert,
+      forecast,
+      provider: 'Open-Meteo Live Forecast',
+    };
+
+    weatherCache.set(cacheKey, { timestamp: Date.now(), data: payload });
+    return res.status(200).json({ success: true, data: payload });
+  } catch (error) {
+    console.warn('[Weather Forecast Notice]:', error.message);
+    return res.status(200).json({ success: true, data: null });
+  }
+};
 
 // ==========================================
 // DOMAIN RE-EXPORTS (FOR MODULARITY & BACKWARD COMPATIBILITY)

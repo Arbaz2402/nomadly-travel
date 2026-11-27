@@ -93,6 +93,28 @@ const tripSchema = new mongoose.Schema(
       },
     ],
     segments: [tripSegmentSchema], // Kept for backwards compatibility
+    packingList: [
+      {
+        name: { type: String, required: true },
+        items: [
+          {
+            text: { type: String, required: true },
+            packed: { type: Boolean, default: false },
+          },
+        ],
+      },
+    ],
+    emergencyContacts: [
+      {
+        name: { type: String, required: true, trim: true },
+        phone: { type: String, required: true, trim: true },
+        category: {
+          type: String,
+          enum: ['police', 'medical', 'hotel', 'embassy', 'local', 'other'],
+          default: 'local',
+        },
+      },
+    ],
     isPublic: { type: Boolean, default: false },
   },
   {
@@ -100,15 +122,19 @@ const tripSchema = new mongoose.Schema(
   }
 );
 
-// Helpful virtual to auto-evaluate dynamic trip status if not explicitly draft/cancelled
+// Helpful virtual to auto-evaluate dynamic trip status if not explicitly overridden
 tripSchema.methods.calculateDynamicStatus = function () {
-  if (this.status === 'draft' || this.status === 'cancelled') {
+  if (
+    this.status === 'draft' ||
+    this.status === 'cancelled' ||
+    this.status === 'ongoing' ||
+    this.status === 'completed'
+  ) {
     return this.status;
   }
   const now = new Date();
   const start = new Date(this.startDate);
   const end = new Date(this.endDate);
-  // Compare by dates
   if (now < start) return 'upcoming';
   if (now >= start && now <= end) return 'ongoing';
   return 'completed';

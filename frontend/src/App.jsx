@@ -3,15 +3,8 @@ import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { Navbar } from './components/navigation/Navbar';
 import { Footer } from './components/navigation/Footer';
 import { HomePage } from './pages/home/HomePage';
-import { FlightsPage } from './pages/flights/FlightsPage';
-import { HotelsPage } from './pages/hotels/HotelsPage';
-import { TrainsPage } from './pages/trains/TrainsPage';
-import { BusesPage } from './pages/buses/BusesPage';
 import { CheckoutPage } from './pages/checkout/CheckoutPage';
 import { BookingConfirmation } from './pages/bookings/BookingConfirmation';
-import { ExperiencesPage } from './pages/experiences/ExperiencesPage';
-import { PackagesPage } from './pages/packages/PackagesPage';
-import { PackageDetailsPage } from './pages/packages/PackageDetailsPage';
 import { AITripPlannerPage } from './pages/ai/AITripPlannerPage';
 import { CurrencyConverterPage } from './pages/tools/CurrencyConverterPage';
 import { PackingChecklistPage } from './pages/tools/PackingChecklistPage';
@@ -43,16 +36,16 @@ export const App = () => {
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<ErrorBoundary><HomePage /></ErrorBoundary>} />
-          <Route path="/hotels" element={<ErrorBoundary><HotelsPage /></ErrorBoundary>} />
-          <Route path="/experiences" element={<ErrorBoundary><ExperiencesPage /></ErrorBoundary>} />
-          <Route path="/packages" element={<ErrorBoundary><PackagesPage /></ErrorBoundary>} />
-          <Route path="/packages/:id" element={<ErrorBoundary><PackageDetailsPage /></ErrorBoundary>} />
           <Route path="/currency-converter" element={<ErrorBoundary><CurrencyConverterPage /></ErrorBoundary>} />
           <Route path="/packing-checklist" element={<ErrorBoundary><PackingChecklistPage /></ErrorBoundary>} />
           <Route path="/ai-planner" element={<ErrorBoundary><AITripPlannerPage /></ErrorBoundary>} />
-          <Route path="/flights" element={<Navigate to="/hotels" replace />} />
-          <Route path="/trains" element={<Navigate to="/hotels" replace />} />
-          <Route path="/buses" element={<Navigate to="/hotels" replace />} />
+          <Route path="/hotels" element={<Navigate to="/journeys" replace />} />
+          <Route path="/experiences" element={<Navigate to="/journeys" replace />} />
+          <Route path="/packages" element={<Navigate to="/journeys" replace />} />
+          <Route path="/packages/:id" element={<Navigate to="/journeys" replace />} />
+          <Route path="/flights" element={<Navigate to="/journeys" replace />} />
+          <Route path="/trains" element={<Navigate to="/journeys" replace />} />
+          <Route path="/buses" element={<Navigate to="/journeys" replace />} />
           <Route
             path="/checkout"
             element={

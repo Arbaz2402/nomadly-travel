@@ -45,9 +45,20 @@ export const CurrencyConverterPage = () => {
   const [pairQuote, setPairQuote] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Cash planner state
+  // Cash planner state (independent from top converter)
   const [tripDays, setTripDays] = useState(5);
   const [dailyCashBudget, setDailyCashBudget] = useState(60);
+  const [cashCurrency, setCashCurrency] = useState('USD');
+  const [cashTargetCurrency, setCashTargetCurrency] = useState('INR');
+  const [allRates, setAllRates] = useState(null);
+
+  useEffect(() => {
+    ApiClient.getCurrencyRates('USD')
+      .then((res) => {
+        if (res.success && res.rates) setAllRates(res.rates);
+      })
+      .catch(() => {});
+  }, []);
 
   const loadLivePair = async (from = fromCurrency, to = toCurrency, range = chartRange, forceRefresh = false) => {
     try {
@@ -85,9 +96,17 @@ export const CurrencyConverterPage = () => {
   const isPositive = change >= 0;
   const history = pairQuote?.history || [];
 
-  // Pocket money computation
+  // Pocket money computation (independent currency pair)
+  const cashRate =
+    cashCurrency === cashTargetCurrency
+      ? 1
+      : cashCurrency === fromCurrency && cashTargetCurrency === toCurrency
+      ? exchangeRate
+      : allRates
+      ? (allRates[cashTargetCurrency] || 1) / (allRates[cashCurrency] || 1)
+      : 84.4;
   const totalCashNeeded = tripDays * dailyCashBudget;
-  const totalCashInDest = (totalCashNeeded * exchangeRate).toFixed(0);
+  const totalCashInDest = (totalCashNeeded * cashRate).toFixed(0);
 
   const fromName = POPULAR_CURRENCIES.find((c) => c.code === fromCurrency)?.name || fromCurrency;
   const toName = POPULAR_CURRENCIES.find((c) => c.code === toCurrency)?.name || toCurrency;
@@ -355,7 +374,7 @@ export const CurrencyConverterPage = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="text-xs font-bold text-slate-300 mb-1 block">Trip Duration (Days)</label>
               <input
@@ -369,15 +388,43 @@ export const CurrencyConverterPage = () => {
             </div>
             <div>
               <label className="text-xs font-bold text-slate-300 mb-1 block">
-                Daily Cash ({fromCurrency})
+                Daily Cash ({cashCurrency})
               </label>
               <input
                 type="number"
-                min="5"
+                min="1"
                 value={dailyCashBudget}
                 onChange={(e) => setDailyCashBudget(Math.max(1, parseFloat(e.target.value) || 1))}
                 className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-white/10 text-xs font-mono font-bold text-white"
               />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-slate-300 mb-1 block">Cash Currency</label>
+              <div className="flex items-center gap-1.5">
+                <select
+                  value={cashCurrency}
+                  onChange={(e) => setCashCurrency(e.target.value)}
+                  className="w-full px-2.5 py-2 rounded-xl bg-ink-950 border border-white/10 text-xs font-bold text-white cursor-pointer"
+                >
+                  {POPULAR_CURRENCIES.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.flag} {c.code}
+                    </option>
+                  ))}
+                </select>
+                <span className="text-slate-500 text-xs">➔</span>
+                <select
+                  value={cashTargetCurrency}
+                  onChange={(e) => setCashTargetCurrency(e.target.value)}
+                  className="w-full px-2.5 py-2 rounded-xl bg-ink-950 border border-white/10 text-xs font-bold text-white cursor-pointer"
+                >
+                  {POPULAR_CURRENCIES.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.flag} {c.code}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
@@ -386,7 +433,8 @@ export const CurrencyConverterPage = () => {
             <div className="flex items-center justify-between text-xs">
               <span className="text-slate-400">Total Recommended Cash:</span>
               <span className="font-mono font-bold text-emerald-400 text-sm">
-                {totalCashNeeded} {fromCurrency} ({totalCashInDest} {toCurrency})
+                {totalCashNeeded} {cashCurrency}
+                {cashCurrency !== cashTargetCurrency && ` (${totalCashInDest} ${cashTargetCurrency})`}
               </span>
             </div>
 
@@ -394,25 +442,25 @@ export const CurrencyConverterPage = () => {
               <div className="p-2 rounded-lg bg-ink-900 border border-white/5">
                 <span className="text-slate-400 block text-[10px]">Taxis & Transit (35%)</span>
                 <span className="font-mono text-slate-200 font-bold">
-                  {(totalCashNeeded * 0.35).toFixed(0)} {fromCurrency}
+                  {(totalCashNeeded * 0.35).toFixed(0)} {cashCurrency}
                 </span>
               </div>
               <div className="p-2 rounded-lg bg-ink-900 border border-white/5">
                 <span className="text-slate-400 block text-[10px]">Street Food & Cafes (40%)</span>
                 <span className="font-mono text-slate-200 font-bold">
-                  {(totalCashNeeded * 0.4).toFixed(0)} {fromCurrency}
+                  {(totalCashNeeded * 0.4).toFixed(0)} {cashCurrency}
                 </span>
               </div>
               <div className="p-2 rounded-lg bg-ink-900 border border-white/5">
                 <span className="text-slate-400 block text-[10px]">Tips & Incidentals (15%)</span>
                 <span className="font-mono text-slate-200 font-bold">
-                  {(totalCashNeeded * 0.15).toFixed(0)} {fromCurrency}
+                  {(totalCashNeeded * 0.15).toFixed(0)} {cashCurrency}
                 </span>
               </div>
               <div className="p-2 rounded-lg bg-ink-900 border border-white/5">
                 <span className="text-slate-400 block text-[10px]">Emergency Reserve (10%)</span>
                 <span className="font-mono text-slate-200 font-bold">
-                  {(totalCashNeeded * 0.1).toFixed(0)} {fromCurrency}
+                  {(totalCashNeeded * 0.1).toFixed(0)} {cashCurrency}
                 </span>
               </div>
             </div>
