@@ -28,7 +28,17 @@ describe('Currency & FX Exchange Service Suite', () => {
     expect(res.body.data.inverseRate).toBeGreaterThan(0);
   });
 
-  it('3. Rejects invalid negative or missing amount', async () => {
+  it('3. GET /api/v1/currency/pair returns live intraday rate and historical chart series', async () => {
+    const res = await request(app).get('/api/v1/currency/pair?from=EUR&to=INR&range=1mo');
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.from).toBe('EUR');
+    expect(res.body.data.to).toBe('INR');
+    expect(res.body.data.rate).toBeGreaterThan(80);
+    expect(Array.isArray(res.body.data.history)).toBe(true);
+  });
+
+  it('4. Rejects invalid negative or missing amount', async () => {
     const res = await request(app)
       .post('/api/v1/currency/convert')
       .send({ amount: -50, from: 'USD', to: 'INR' });
