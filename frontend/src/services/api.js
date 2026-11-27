@@ -334,6 +334,15 @@ export class ApiClient {
     return this.request(`/trips/${tripId}/budget`, { method: 'PUT', body: JSON.stringify(payload) });
   }
 
+  // Currency Rates & Converter
+  static getCurrencyRates(base = 'USD') {
+    return this.request(`/currency/rates?base=${base}`);
+  }
+
+  static convertCurrency(payload) {
+    return this.request('/currency/convert', { method: 'POST', body: JSON.stringify(payload) });
+  }
+
   // Wishlist & Alerts
   static getWishlist() {
     return this.request('/wishlist');

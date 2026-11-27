@@ -31,8 +31,4 @@ services:
         value: arbazkaladiya1@gmail.com
       - key: EMAIL_PASS
         sync: false
-      - key: DUFFEL_API_KEY
-        sync: false
-      - key: TRAVELPAYOUTS_TOKEN
-        sync: false
 

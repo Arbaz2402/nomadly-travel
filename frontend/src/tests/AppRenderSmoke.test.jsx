@@ -6,7 +6,8 @@ import { ToastProvider } from '../context/ToastContext';
 import { Navbar } from '../components/navigation/Navbar';
 import { Footer } from '../components/navigation/Footer';
 import { HomePage } from '../pages/home/HomePage';
-import { FlightsPage } from '../pages/flights/FlightsPage';
+import { CurrencyConverterPage } from '../pages/tools/CurrencyConverterPage';
+import { PackingChecklistPage } from '../pages/tools/PackingChecklistPage';
 import { AITripPlannerPage } from '../pages/ai/AITripPlannerPage';
 
 // Mock window.matchMedia for responsive UI components
@@ -38,7 +39,9 @@ describe('Application Core Shell & Page Render Smoke Test Suite', () => {
   it('renders Navbar without any missing icon or ReferenceError', () => {
     const { container } = renderWithProviders(<Navbar />);
     expect(container).toBeInTheDocument();
-    expect(screen.getByText('Flights')).toBeInTheDocument();
+    expect(screen.getByText('Hotels')).toBeInTheDocument();
+    expect(screen.getByText('Currency')).toBeInTheDocument();
+    expect(screen.getByText('Packing')).toBeInTheDocument();
     expect(screen.getByText('Trip Planner')).toBeInTheDocument();
   });
 
@@ -56,9 +59,16 @@ describe('Application Core Shell & Page Render Smoke Test Suite', () => {
     expect(screen.getByText(/Launch Trip Planner/i)).toBeInTheDocument();
   });
 
-  it('renders FlightsPage search view cleanly without ReferenceError', () => {
-    const { container } = renderWithProviders(<FlightsPage />, ['/flights?origin=BOM&destination=DEL']);
+  it('renders CurrencyConverterPage cleanly without ReferenceError', () => {
+    const { container } = renderWithProviders(<CurrencyConverterPage />, ['/currency-converter']);
     expect(container).toBeInTheDocument();
+    expect(screen.getByText(/Live Multi-Currency & Cash Calculator/i)).toBeInTheDocument();
+  });
+
+  it('renders PackingChecklistPage cleanly without ReferenceError', () => {
+    const { container } = renderWithProviders(<PackingChecklistPage />, ['/packing-checklist']);
+    expect(container).toBeInTheDocument();
+    expect(screen.getByText(/Travel Packing Checklist/i)).toBeInTheDocument();
   });
 
   it('renders Trip Planner page cleanly without ReferenceError', () => {

@@ -1,43 +1,31 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Plane,
   Building2,
   Search,
   Calendar,
   Users,
   MapPin,
-  ArrowRightLeft,
   Sparkles,
   Compass,
+  Coins,
+  Luggage,
+  CheckSquare
 } from 'lucide-react';
 
 export const UnifiedSearchHero = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('flights');
-
-  // Flight states
-  const [flightOrigin, setFlightOrigin] = useState('Mumbai (BOM)');
-  const [flightDest, setFlightDest] = useState('Delhi (DEL)');
-  const [flightDate, setFlightDate] = useState('2026-11-15');
-  const [flightCabin, setFlightCabin] = useState('economy');
+  const [activeTab, setActiveTab] = useState('hotels');
 
   // Hotel states
   const [hotelCity, setHotelCity] = useState('Mumbai');
-  const [checkIn, setCheckIn] = useState('2026-11-15');
-  const [checkOut, setCheckOut] = useState('2026-11-18');
+  const [checkIn, setCheckIn] = useState('2026-11-25');
+  const [checkOut, setCheckOut] = useState('2026-11-28');
   const [hotelGuests, setHotelGuests] = useState('2');
 
   // Tour / Experience states
   const [tourCity, setTourCity] = useState('Goa');
   const [tourCategory, setTourCategory] = useState('all');
-
-  const handleFlightSearch = (e) => {
-    e.preventDefault();
-    const originCode = flightOrigin.includes('(') ? flightOrigin.split('(')[1].replace(')', '') : flightOrigin;
-    const destCode = flightDest.includes('(') ? flightDest.split('(')[1].replace(')', '') : flightDest;
-    navigate(`/flights?origin=${originCode}&destination=${destCode}&departureDate=${flightDate}&cabinClass=${flightCabin}`);
-  };
 
   const handleHotelSearch = (e) => {
     e.preventDefault();
@@ -47,12 +35,6 @@ export const UnifiedSearchHero = () => {
   const handleTourSearch = (e) => {
     e.preventDefault();
     navigate(`/experiences?city=${tourCity}&category=${tourCategory}`);
-  };
-
-  const swapFlightAirports = () => {
-    const temp = flightOrigin;
-    setFlightOrigin(flightDest);
-    setFlightDest(temp);
   };
 
   return (
@@ -75,7 +57,7 @@ export const UnifiedSearchHero = () => {
         <div className="text-center max-w-3xl mx-auto mb-10 md:mb-14">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-coral-500/10 border border-coral-500/20 text-coral-400 text-xs font-semibold uppercase tracking-wider mb-5 backdrop-blur-md">
             <Sparkles className="w-3.5 h-3.5" />
-            Live Global Flights & Verified Boutique Stays
+            Verified Boutique Stays, Tours & Smart Travel Utilities
           </div>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight leading-[1.1] mb-5 font-display">
             Your entire journey, <br />
@@ -84,135 +66,64 @@ export const UnifiedSearchHero = () => {
             </span>
           </h1>
           <p className="text-base sm:text-lg text-slate-300 font-normal leading-relaxed">
-            Search real-time airline flights and verified boutique stays from one unified interface.
+            Discover hand-picked boutique hotels, local tours, live multi-currency budgeting, and automated packing lists.
           </p>
         </div>
 
         {/* Floating Glass Search Panel */}
         <div className="glass-panel rounded-3xl p-3 sm:p-5 shadow-2xl max-w-5xl mx-auto border border-white/10 relative z-20">
           {/* Tabs */}
-          <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1 scrollbar-none">
-            <button
-              onClick={() => setActiveTab('flights')}
-              className={`flex items-center gap-2.5 px-6 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition-all flex-shrink-0 ${
-                activeTab === 'flights'
-                  ? 'bg-coral-500 text-white shadow-glow'
-                  : 'text-slate-300 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Plane className="w-4 h-4 stroke-[2.2]" />
-              Flights
-            </button>
+          <div className="flex items-center justify-between gap-2 mb-4 overflow-x-auto pb-1 scrollbar-none flex-wrap">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setActiveTab('hotels')}
+                className={`flex items-center gap-2.5 px-6 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition-all flex-shrink-0 ${
+                  activeTab === 'hotels'
+                    ? 'bg-coral-500 text-white shadow-glow'
+                    : 'text-slate-300 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Building2 className="w-4 h-4 stroke-[2.2]" />
+                Hotels & Stays
+              </button>
 
-            <button
-              onClick={() => setActiveTab('hotels')}
-              className={`flex items-center gap-2.5 px-6 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition-all flex-shrink-0 ${
-                activeTab === 'hotels'
-                  ? 'bg-coral-500 text-white shadow-glow'
-                  : 'text-slate-300 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Building2 className="w-4 h-4 stroke-[2.2]" />
-              Hotels & Stays
-            </button>
+              <button
+                onClick={() => setActiveTab('tours')}
+                className={`flex items-center gap-2.5 px-6 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition-all flex-shrink-0 ${
+                  activeTab === 'tours'
+                    ? 'bg-coral-500 text-white shadow-glow'
+                    : 'text-slate-300 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Compass className="w-4 h-4 stroke-[2.2]" />
+                Tours & Experiences
+              </button>
+            </div>
 
-            <button
-              onClick={() => setActiveTab('tours')}
-              className={`flex items-center gap-2.5 px-6 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition-all flex-shrink-0 ${
-                activeTab === 'tours'
-                  ? 'bg-coral-500 text-white shadow-glow'
-                  : 'text-slate-300 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Compass className="w-4 h-4 stroke-[2.2]" />
-              Tours & Experiences
-            </button>
+            {/* Quick Tools Shortcuts */}
+            <div className="hidden sm:flex items-center gap-2">
+              <button
+                onClick={() => navigate('/currency-converter')}
+                className="px-3.5 py-2 rounded-xl bg-ink-900 hover:bg-ink-800 border border-white/5 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              >
+                <Coins className="w-3.5 h-3.5 text-teal-400" />
+                Live Currency FX
+              </button>
+
+              <button
+                onClick={() => navigate('/packing-checklist')}
+                className="px-3.5 py-2 rounded-xl bg-ink-900 hover:bg-ink-800 border border-white/5 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              >
+                <Luggage className="w-3.5 h-3.5 text-coral-400" />
+                Packing Checklist
+              </button>
+            </div>
           </div>
 
-          {/* Tab 1: Flights Form */}
-          {activeTab === 'flights' && (
-            <form onSubmit={handleFlightSearch} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2.5 sm:gap-3 items-center">
-              <div className="relative sm:col-span-1 lg:col-span-3 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
-                <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
-                  From (Airport)
-                </label>
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-coral-500 flex-shrink-0" />
-                  <input
-                    type="text"
-                    value={flightOrigin}
-                    onChange={(e) => setFlightOrigin(e.target.value)}
-                    placeholder="e.g. Mumbai (BOM)"
-                    className="bg-transparent text-sm text-white font-medium focus:outline-none w-full"
-                  />
-                </div>
-                {/* Floating swap button between From & To on large screens */}
-                <button
-                  type="button"
-                  onClick={swapFlightAirports}
-                  className="hidden lg:flex absolute -right-3.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 rounded-full bg-ink-800 border border-white/15 hover:border-coral-500 text-slate-300 hover:text-white items-center justify-center transition-all shadow-lg hover:scale-110"
-                  title="Swap Origin & Destination"
-                >
-                  <ArrowRightLeft className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              <div className="sm:col-span-1 lg:col-span-3 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors relative">
-                <div className="flex items-center justify-between">
-                  <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
-                    To (Airport)
-                  </label>
-                  <button
-                    type="button"
-                    onClick={swapFlightAirports}
-                    className="lg:hidden text-[10px] text-coral-400 hover:underline flex items-center gap-1 font-semibold"
-                  >
-                    <ArrowRightLeft className="w-3 h-3" /> Swap
-                  </button>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-teal-400 flex-shrink-0" />
-                  <input
-                    type="text"
-                    value={flightDest}
-                    onChange={(e) => setFlightDest(e.target.value)}
-                    placeholder="e.g. Delhi (DEL)"
-                    className="bg-transparent text-sm text-white font-medium focus:outline-none w-full"
-                  />
-                </div>
-              </div>
-
-              <div className="sm:col-span-1 lg:col-span-3 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
-                <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
-                  Departure Date
-                </label>
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                  <input
-                    type="date"
-                    value={flightDate}
-                    onChange={(e) => setFlightDate(e.target.value)}
-                    className="bg-transparent text-sm text-white font-medium focus:outline-none w-full [color-scheme:dark]"
-                  />
-                </div>
-              </div>
-
-              <div className="sm:col-span-1 lg:col-span-3">
-                <button
-                  type="submit"
-                  className="w-full py-3.5 sm:py-4 px-4 rounded-2xl bg-coral-500 hover:bg-coral-600 text-white font-bold text-sm tracking-wide shadow-glow transition-all flex items-center justify-center gap-2 whitespace-nowrap"
-                >
-                  <Search className="w-4 h-4 stroke-[2.5] shrink-0" />
-                  <span className="whitespace-nowrap font-bold">Search Flights</span>
-                </button>
-              </div>
-            </form>
-          )}
-
-          {/* Tab 2: Hotels Form */}
+          {/* Tab 1: Hotels Form */}
           {activeTab === 'hotels' && (
             <form onSubmit={handleHotelSearch} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2.5 sm:gap-3 items-center">
-              <div className="sm:col-span-2 lg:col-span-3 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
+              <div className="sm:col-span-2 lg:col-span-4 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">
                 <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
                   Destination City
                 </label>
@@ -258,7 +169,7 @@ export const UnifiedSearchHero = () => {
                 </div>
               </div>
 
-              <div className="sm:col-span-2 lg:col-span-3">
+              <div className="sm:col-span-2 lg:col-span-2">
                 <button
                   type="submit"
                   className="w-full py-3.5 sm:py-4 px-4 rounded-2xl bg-coral-500 hover:bg-coral-600 text-white font-bold text-sm tracking-wide shadow-glow transition-all flex items-center justify-center gap-2 whitespace-nowrap"
@@ -270,7 +181,7 @@ export const UnifiedSearchHero = () => {
             </form>
           )}
 
-          {/* Tab 3: Tours & Experiences Form */}
+          {/* Tab 2: Tours & Experiences Form */}
           {activeTab === 'tours' && (
             <form onSubmit={handleTourSearch} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2.5 sm:gap-3 items-center">
               <div className="sm:col-span-2 lg:col-span-5 bg-ink-900/80 border border-white/5 rounded-2xl p-3 focus-within:border-coral-500 transition-colors">

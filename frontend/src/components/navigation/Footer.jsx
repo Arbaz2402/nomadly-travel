@@ -95,12 +95,13 @@ export const Footer = () => {
           </div>
 
           <div>
-            <h4 className="text-white font-semibold mb-3">Travel Modes</h4>
+            <h4 className="text-white font-semibold mb-3">Travel Modes & Tools</h4>
             <ul className="space-y-2">
-              <li><Link to="/flights" className="hover:text-coral-400 transition-colors">Flights & Airlines</Link></li>
               <li><Link to="/hotels" className="hover:text-coral-400 transition-colors">Hotels & Resorts</Link></li>
               <li><Link to="/experiences" className="hover:text-coral-400 transition-colors">Tours & Experiences</Link></li>
               <li><Link to="/packages" className="hover:text-coral-400 transition-colors">Vacation Packages</Link></li>
+              <li><Link to="/currency-converter" className="hover:text-coral-400 transition-colors">Live Currency Converter</Link></li>
+              <li><Link to="/packing-checklist" className="hover:text-coral-400 transition-colors">Smart Packing Checklist</Link></li>
             </ul>
           </div>
 
