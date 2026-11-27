@@ -85,23 +85,22 @@ export const Footer = () => {
               <span className="text-lg font-bold text-white tracking-tight font-display">NOMADLY</span>
             </div>
             <p className="text-slate-400 max-w-sm mb-4 leading-relaxed">
-              Your entire journey, intelligently organized. Search, compare, and book domestic & international flights and verified luxury boutique stays with live real-time rates.
+              Your entire journey, intelligently organized. Collaborate on itineraries, split group expenses like Splitwise, preview travel documents, and track live currency exchange rates.
             </p>
             <div className="flex items-center gap-2 text-[11px] text-slate-500">
               <span>Production-Grade Architecture</span>
               <span>•</span>
-              <span>Live Flights & Stays Platform</span>
+              <span>Unified Journey Organizer</span>
             </div>
           </div>
 
           <div>
-            <h4 className="text-white font-semibold mb-3">Travel Modes & Tools</h4>
+            <h4 className="text-white font-semibold mb-3">Travel Tools</h4>
             <ul className="space-y-2">
-              <li><Link to="/hotels" className="hover:text-coral-400 transition-colors">Hotels & Resorts</Link></li>
-              <li><Link to="/experiences" className="hover:text-coral-400 transition-colors">Tours & Experiences</Link></li>
-              <li><Link to="/packages" className="hover:text-coral-400 transition-colors">Vacation Packages</Link></li>
               <li><Link to="/currency-converter" className="hover:text-coral-400 transition-colors">Live Currency Converter</Link></li>
               <li><Link to="/packing-checklist" className="hover:text-coral-400 transition-colors">Smart Packing Checklist</Link></li>
+              <li><Link to="/ai-planner" className="hover:text-coral-400 transition-colors">Custom Trip Planner</Link></li>
+              <li><Link to="/journeys" className="hover:text-coral-400 transition-colors">My Journeys Organizer</Link></li>
             </ul>
           </div>
 

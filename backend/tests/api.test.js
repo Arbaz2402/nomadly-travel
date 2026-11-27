@@ -43,10 +43,6 @@ describe('NOMADLY API Core Test Suite', () => {
       expect(res.body.openapi).toBe('3.0.3');
       expect(res.body.info.title).toContain('NOMADLY');
       expect(res.body.paths['/auth/me']).toBeDefined();
-      expect(res.body.paths['/flights/search']).toBeDefined();
-      expect(res.body.paths['/hotels/search']).toBeDefined();
-      expect(res.body.paths['/experiences']).toBeDefined();
-      expect(res.body.paths['/packages']).toBeDefined();
       expect(res.body.paths['/ai/generate-itinerary']).toBeDefined();
     });
 
@@ -56,33 +52,12 @@ describe('NOMADLY API Core Test Suite', () => {
     });
   });
 
-  describe('Search & Discovery Modules', () => {
-    it('GET /api/v1/flights/search returns flight offers', async () => {
-      const res = await request(app).get('/api/v1/flights/search?origin=BOM&destination=DEL');
+  describe('Live Travel Utilities', () => {
+    it('GET /api/v1/currency/rates returns live FX rates', async () => {
+      const res = await request(app).get('/api/v1/currency/rates?base=USD');
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
-      expect(res.body.data.length).toBeGreaterThan(0);
-    });
-
-    it('GET /api/v1/hotels/search returns hotels in city', async () => {
-      const res = await request(app).get('/api/v1/hotels/search?city=Mumbai');
-      expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.length).toBeGreaterThan(0);
-    });
-
-    it('GET /api/v1/trains/search returns express trains', async () => {
-      const res = await request(app).get('/api/v1/trains/search?origin=Mumbai');
-      expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.length).toBeGreaterThan(0);
-    });
-
-    it('GET /api/v1/buses/search returns buses with seat layouts', async () => {
-      const res = await request(app).get('/api/v1/buses/search?origin=Mumbai');
-      expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data[0].seats.length).toBeGreaterThan(0);
+      expect(res.body.rates.INR).toBeGreaterThan(70);
     });
   });
 
@@ -133,44 +108,6 @@ describe('NOMADLY API Core Test Suite', () => {
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.data.kpis).toBeDefined();
-    });
-  });
-
-  describe('Vacation Packages & Details Endpoints', () => {
-    it('GET /api/v1/packages returns list of curated vacation packages with flights and hotels', async () => {
-      const res = await request(app).get('/api/v1/packages');
-      expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(Array.isArray(res.body.data)).toBe(true);
-      expect(res.body.data.length).toBeGreaterThan(0);
-      const pkg = res.body.data[0];
-      expect(pkg.id).toBeDefined();
-      expect(pkg.title).toBeDefined();
-      expect(pkg.pricing.packagePrice).toBeGreaterThan(0);
-      expect(pkg.flight).toBeDefined();
-      expect(pkg.hotel).toBeDefined();
-    });
-
-    it('GET /api/v1/packages/:id returns full package details with gallery, itinerary, and policies', async () => {
-      const res = await request(app).get('/api/v1/packages/pkg-goa-3n');
-      expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      const pkg = res.body.data;
-      expect(pkg.id).toBe('pkg-goa-3n');
-      expect(pkg.destinationCity).toBe('Goa');
-      expect(Array.isArray(pkg.gallery)).toBe(true);
-      expect(pkg.gallery.length).toBeGreaterThan(0);
-      expect(Array.isArray(pkg.itinerary)).toBe(true);
-      expect(pkg.itinerary.length).toBeGreaterThan(0);
-      expect(pkg.overview).toBeDefined();
-      expect(pkg.roomType).toBeDefined();
-      expect(pkg.cancellationPolicy).toBeDefined();
-    });
-
-    it('GET /api/v1/packages/non-existent returns 404 not found', async () => {
-      const res = await request(app).get('/api/v1/packages/non-existent-pkg-999');
-      expect(res.status).toBe(404);
-      expect(res.body.success).toBe(false);
     });
   });
 });

@@ -39,24 +39,24 @@ describe('Application Core Shell & Page Render Smoke Test Suite', () => {
   it('renders Navbar without any missing icon or ReferenceError', () => {
     const { container } = renderWithProviders(<Navbar />);
     expect(container).toBeInTheDocument();
-    expect(screen.getByText('Hotels')).toBeInTheDocument();
     expect(screen.getByText('Currency')).toBeInTheDocument();
     expect(screen.getByText('Packing')).toBeInTheDocument();
     expect(screen.getByText('Trip Planner')).toBeInTheDocument();
+    expect(screen.getByText('My Journeys')).toBeInTheDocument();
   });
 
   it('renders Footer without any missing icon or ReferenceError', () => {
     const { container } = renderWithProviders(<Footer />);
     expect(container).toBeInTheDocument();
     expect(screen.getByText('NOMADLY')).toBeInTheDocument();
-    expect(screen.getByText('Custom Trip Planner')).toBeInTheDocument();
+    expect(screen.getAllByText('Custom Trip Planner').length).toBeGreaterThan(0);
   });
 
   it('renders HomePage without crashing or throwing ReferenceError', () => {
     const { container } = renderWithProviders(<HomePage />);
     expect(container).toBeInTheDocument();
-    expect(screen.getByText(/Featured Luxury Resorts & Boutique Stays/i)).toBeInTheDocument();
-    expect(screen.getByText(/Launch Trip Planner/i)).toBeInTheDocument();
+    expect(screen.getByText(/Everything You Need for Group & Solo Travel/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Launch Trip Planner/i).length).toBeGreaterThan(0);
   });
 
   it('renders CurrencyConverterPage cleanly without ReferenceError', () => {

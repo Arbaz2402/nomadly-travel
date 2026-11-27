@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
-  Building2,
   Compass,
   Map,
   User,
@@ -12,7 +11,6 @@ import {
   Bookmark,
   Sparkles,
   ChevronDown,
-  PackageCheck,
   Calendar,
   Coins,
   CheckSquare,
@@ -51,9 +49,6 @@ export const Navbar = () => {
   };
 
   const navLinks = [
-    { name: 'Hotels', path: '/hotels', icon: Building2 },
-    { name: 'Experiences', path: '/experiences', icon: Compass },
-    { name: 'Packages', path: '/packages', icon: PackageCheck, badge: 'Save 20%' },
     { name: 'Currency', path: '/currency-converter', icon: Coins },
     { name: 'Packing', path: '/packing-checklist', icon: CheckSquare },
     { name: 'Trip Planner', path: '/ai-planner', icon: Calendar },
