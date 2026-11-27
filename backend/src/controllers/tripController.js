@@ -249,7 +249,13 @@ export const updateTrip = async (req, res) => {
     if (endDate !== undefined) trip.endDate = new Date(endDate);
     if (travelersCount !== undefined) trip.travelersCount = travelersCount;
     if (currency !== undefined) trip.currency = currency.toUpperCase();
-    if (status !== undefined) trip.status = status;
+    if (status !== undefined) {
+      const allowedStatuses = ['draft', 'upcoming', 'ongoing', 'completed', 'cancelled'];
+      if (!allowedStatuses.includes(status)) {
+        return res.status(400).json({ success: false, message: 'Invalid trip status value.' });
+      }
+      trip.status = status;
+    }
     if (packingList !== undefined) trip.packingList = packingList;
     if (emergencyContacts !== undefined) trip.emergencyContacts = emergencyContacts;
     if (isPublic !== undefined) trip.isPublic = isPublic;

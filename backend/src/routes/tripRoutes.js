@@ -99,7 +99,7 @@ router.delete('/:id/documents/:docId', requireTripAccess(['owner', 'editor']), d
 router.get('/:id/activity-logs', requireTripAccess(['owner', 'editor', 'viewer']), getTripActivityLogs);
 
 // 9. Legacy backwards-compatibility
-router.post('/:id/segments', addSegmentToTrip);
-router.put('/:id/budget', updateTripBudget);
+router.post('/:id/segments', requireTripAccess(['owner', 'editor']), addSegmentToTrip);
+router.put('/:id/budget', requireTripAccess(['owner', 'editor']), updateTripBudget);
 
 export default router;
