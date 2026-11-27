@@ -16,9 +16,13 @@ import { SplittingView } from '../../components/journeys/workspace/SplittingView
 import { TripMapView } from '../../components/journeys/workspace/TripMapView';
 import { DocumentsView } from '../../components/journeys/workspace/DocumentsView';
 import { MembersView } from '../../components/journeys/workspace/MembersView';
+import { PackingView } from '../../components/journeys/workspace/PackingView';
+import { ApiClient } from '../../services/api';
+import { useToast } from '../../context/ToastContext';
 
 export const TripWorkspacePage = () => {
   const { user } = useAuthStore();
+  const { showToast } = useToast();
   const {
     trip,
     loading,
@@ -61,6 +65,24 @@ export const TripWorkspacePage = () => {
   const [editingExpense, setEditingExpense] = React.useState(null);
   const [settleUpModalOpen, setSettleUpModalOpen] = React.useState(false);
   const [settleUpData, setSettleUpData] = React.useState(null);
+
+  const handleUpdateTripStatus = async (newStatus) => {
+    try {
+      const res = await ApiClient.updateTrip(trip._id, { status: newStatus });
+      if (res.success) {
+        const label =
+          newStatus === 'ongoing'
+            ? 'Journey started! Live Active Mode is now on.'
+            : newStatus === 'completed'
+            ? 'Journey marked as completed!'
+            : 'Journey status updated.';
+        showToast(label, 'success');
+        fetchTripData();
+      }
+    } catch (err) {
+      showToast(err.message || 'Failed to update journey status', 'error');
+    }
+  };
 
   if (loading) {
     return (
@@ -162,7 +184,39 @@ export const TripWorkspacePage = () => {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onOpenAttachBooking={() => setAttachModalOpen(true)}
+        onUpdateStatus={handleUpdateTripStatus}
       />
+
+      {/* Live Active Journey Banner */}
+      {(trip.dynamicStatus === 'ongoing' || trip.status === 'ongoing') && (
+        <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+            <div className="text-xs">
+              <span className="font-bold text-emerald-300 block">
+                Active Journey Mode — {trip.title} is Live!
+              </span>
+              <span className="text-slate-300">
+                Quickly log live expenses, check off your itinerary, or access your boarding passes & IDs.
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => setActiveTab('expenses')}
+              className="px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-200 text-xs font-bold transition-all"
+            >
+              + Log Live Expense
+            </button>
+            <button
+              onClick={() => setActiveTab('documents')}
+              className="px-3 py-1.5 rounded-xl bg-ink-900 hover:bg-ink-800 border border-white/10 text-slate-200 text-xs font-semibold transition-all"
+            >
+              View Docs
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* TAB CONTENT VIEWS */}
       {activeTab === 'itinerary' && (
@@ -239,6 +293,14 @@ export const TripWorkspacePage = () => {
             setSettleUpData(data);
             setSettleUpModalOpen(true);
           }}
+        />
+      )}
+
+      {activeTab === 'packing' && (
+        <PackingView
+          trip={trip}
+          canEdit={canEdit}
+          onRefresh={fetchTripData}
         />
       )}
 

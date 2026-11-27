@@ -10,6 +10,11 @@ import {
   TrendingUp,
   Map,
   FileText,
+  Luggage,
+  Play,
+  CheckCircle2,
+  Clock,
+  RotateCcw,
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../../utils/formatters';
 
@@ -19,7 +24,27 @@ export const TripWorkspaceHero = ({
   activeTab,
   setActiveTab,
   onOpenAttachBooking,
+  onUpdateStatus,
 }) => {
+  const status = trip.dynamicStatus || trip.status || 'upcoming';
+
+  // Compute countdown / active day progress from dates
+  const now = new Date();
+  const start = new Date(trip.startDate);
+  const end = new Date(trip.endDate);
+  const dayMs = 1000 * 60 * 60 * 24;
+  const totalDays = Math.max(1, Math.ceil((end - start) / dayMs) + 1);
+  const daysUntilStart = Math.ceil((start - now) / dayMs);
+  const currentDay = Math.min(totalDays, Math.max(1, Math.floor((now - start) / dayMs) + 1));
+
+  const packedCount = (trip.packingList || []).reduce(
+    (sum, cat) => sum + (cat.items?.filter((i) => i.packed).length || 0),
+    0
+  );
+  const totalPackItems = (trip.packingList || []).reduce(
+    (sum, cat) => sum + (cat.items?.length || 0),
+    0
+  );
   return (
     <div className="relative rounded-3xl overflow-hidden border border-white/10 bg-ink-900 shadow-2xl">
       <div className="relative min-h-[280px] sm:min-h-[320px] md:min-h-[340px] w-full flex flex-col justify-between p-4 sm:p-6 md:p-8">
@@ -37,9 +62,31 @@ export const TripWorkspaceHero = ({
         {/* Top Badges & Actions */}
         <div className="relative z-10 flex flex-wrap items-center justify-between gap-2.5 sm:gap-3">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="px-3 py-1 rounded-full bg-ink-950/80 backdrop-blur-md border border-white/10 text-xs font-bold text-teal-400 flex items-center gap-1.5 uppercase tracking-wider">
-              <span className="w-2 h-2 rounded-full bg-teal-400" />
-              {trip.dynamicStatus?.toUpperCase() || 'UPCOMING'}
+            <span
+              className={`px-3 py-1 rounded-full bg-ink-950/80 backdrop-blur-md border text-xs font-bold flex items-center gap-1.5 uppercase tracking-wider ${
+                status === 'ongoing'
+                  ? 'border-emerald-500/40 text-emerald-400'
+                  : status === 'completed'
+                  ? 'border-blue-500/40 text-blue-400'
+                  : 'border-white/10 text-teal-400'
+              }`}
+            >
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  status === 'ongoing'
+                    ? 'bg-emerald-400 animate-pulse'
+                    : status === 'completed'
+                    ? 'bg-blue-400'
+                    : 'bg-teal-400'
+                }`}
+              />
+              {status === 'ongoing'
+                ? `LIVE • DAY ${currentDay} OF ${totalDays}`
+                : status === 'upcoming' && daysUntilStart >= 0
+                ? daysUntilStart === 0
+                  ? 'STARTS TODAY'
+                  : `STARTS IN ${daysUntilStart}D`
+                : status.toUpperCase()}
             </span>
             <span className="px-3 py-1 rounded-full bg-ink-950/80 backdrop-blur-md border border-white/10 text-xs font-semibold text-slate-200 flex items-center gap-1.5">
               <Users className="w-3.5 h-3.5 text-coral-400" />
@@ -47,9 +94,42 @@ export const TripWorkspaceHero = ({
             </span>
           </div>
 
-          {/* Quick Action Buttons */}
+          {/* Quick Action Buttons: Start / Complete Journey + Attach Booking */}
           {canEdit && (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              {status !== 'ongoing' && status !== 'completed' && onUpdateStatus && (
+                <button
+                  onClick={() => onUpdateStatus('ongoing')}
+                  className="px-3.5 py-1.5 sm:py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-glow transition-all"
+                  title="Start this journey now and enter Live Active Mode"
+                >
+                  <Play className="w-3.5 h-3.5 fill-current" />
+                  <span>Start Journey</span>
+                </button>
+              )}
+
+              {status === 'ongoing' && onUpdateStatus && (
+                <button
+                  onClick={() => onUpdateStatus('completed')}
+                  className="px-3.5 py-1.5 sm:py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-lg transition-all"
+                  title="Mark this journey as completed"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Complete Journey</span>
+                </button>
+              )}
+
+              {status === 'completed' && onUpdateStatus && (
+                <button
+                  onClick={() => onUpdateStatus('ongoing')}
+                  className="px-3.5 py-1.5 sm:py-2 rounded-xl bg-ink-900/90 hover:bg-ink-850 border border-white/15 text-slate-200 text-xs font-bold flex items-center gap-1.5 transition-all"
+                  title="Reopen this journey"
+                >
+                  <RotateCcw className="w-3.5 h-3.5 text-teal-400" />
+                  <span>Reopen Journey</span>
+                </button>
+              )}
+
               <button
                 onClick={onOpenAttachBooking}
                 className="px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-ink-900/90 backdrop-blur-md hover:bg-ink-850 border border-white/15 text-white text-xs font-bold flex items-center gap-1.5 shadow-lg transition-all"
@@ -116,6 +196,7 @@ export const TripWorkspaceHero = ({
           { id: 'calendar', label: 'Calendar View', icon: CalendarIcon },
           { id: 'expenses', label: 'Expense Tracker', icon: Wallet },
           { id: 'splitting', label: 'Expense Splitting', icon: TrendingUp },
+          { id: 'packing', label: 'Packing List', icon: Luggage, count: totalPackItems > 0 ? `${packedCount}/${totalPackItems}` : undefined },
           { id: 'map', label: 'Trip Map', icon: Map },
           { id: 'documents', label: 'Documents', icon: FileText, count: trip.documentsCount },
           { id: 'members', label: 'Collaboration', icon: Users, count: trip.participants?.length },
@@ -134,7 +215,7 @@ export const TripWorkspaceHero = ({
             >
               <Icon className="w-4 h-4 stroke-[2] shrink-0" />
               <span>{tab.label}</span>
-              {tab.count !== undefined && tab.count > 0 && (
+              {tab.count !== undefined && (typeof tab.count === 'string' || tab.count > 0) && (
                 <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-white/10 text-slate-300 font-mono">
                   {tab.count}
                 </span>

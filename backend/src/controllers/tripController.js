@@ -235,6 +235,7 @@ export const updateTrip = async (req, res) => {
       totalBudget,
       budget,
       status,
+      packingList,
       isPublic,
     } = req.body;
 
@@ -248,6 +249,7 @@ export const updateTrip = async (req, res) => {
     if (travelersCount !== undefined) trip.travelersCount = travelersCount;
     if (currency !== undefined) trip.currency = currency.toUpperCase();
     if (status !== undefined) trip.status = status;
+    if (packingList !== undefined) trip.packingList = packingList;
     if (isPublic !== undefined) trip.isPublic = isPublic;
 
     if (budget || totalBudget !== undefined) {
