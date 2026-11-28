@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Coins,
   ArrowRightLeft,
@@ -6,7 +6,9 @@ import {
   TrendingDown,
   RefreshCw,
   Wallet,
-  Clock
+  Clock,
+  Info,
+  X
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -44,6 +46,25 @@ export const CurrencyConverterPage = () => {
   const [chartRange, setChartRange] = useState('1mo');
   const [pairQuote, setPairQuote] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showDisclaimer, setShowDisclaimer] = useState(false);
+  const disclaimerRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (disclaimerRef.current && !disclaimerRef.current.contains(e.target)) {
+        setShowDisclaimer(false);
+      }
+    };
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') setShowDisclaimer(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, []);
 
   // Cash planner state (independent from top converter)
   const [tripDays, setTripDays] = useState(5);
@@ -128,7 +149,7 @@ export const CurrencyConverterPage = () => {
       </div>
 
       {/* Main Converter + Live Chart Card */}
-      <div className="max-w-5xl mx-auto glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden space-y-6">
+      <div className="max-w-5xl mx-auto glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 shadow-2xl relative space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-white/5">
           <div>
             <p className="text-xs text-slate-400 font-medium">
@@ -151,13 +172,62 @@ export const CurrencyConverterPage = () => {
               )}
             </div>
             <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-1.5">
-              <Clock className="w-3.5 h-3.5 text-teal-400" />
+              <Clock className="w-3.5 h-3.5 text-teal-400 shrink-0" />
               <span>
                 {pairQuote?.provider || 'Live Market FX'} • Updated{' '}
                 {pairQuote?.lastUpdated
                   ? new Date(pairQuote.lastUpdated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                   : 'just now'}
               </span>
+
+              <div
+                ref={disclaimerRef}
+                className="relative inline-flex items-center"
+                onMouseEnter={() => setShowDisclaimer(true)}
+                onMouseLeave={() => setShowDisclaimer(false)}
+              >
+                <button
+                  type="button"
+                  onClick={() => setShowDisclaimer((prev) => !prev)}
+                  aria-label="Currency Rate Disclaimer"
+                  aria-expanded={showDisclaimer}
+                  className="w-4 h-4 rounded-full bg-white/5 hover:bg-white/15 border border-white/15 flex items-center justify-center text-slate-300 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-teal-400/50"
+                >
+                  <Info className="w-2.5 h-2.5" />
+                </button>
+
+                {showDisclaimer && (
+                  <div
+                    role="dialog"
+                    aria-label="Currency Rate Disclaimer"
+                    className="absolute left-0 sm:left-1/2 sm:-translate-x-1/2 top-full mt-2 z-50 w-[min(86vw,26rem)] p-4 rounded-2xl bg-ink-950/95 backdrop-blur-xl border border-white/15 shadow-2xl text-left space-y-2.5"
+                  >
+                    <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-white/10">
+                      <span className="flex items-center gap-1.5 text-xs font-bold text-white">
+                        <Info className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+                        Currency Rate Disclaimer
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setShowDisclaimer(false)}
+                        aria-label="Close disclaimer"
+                        className="text-slate-400 hover:text-white p-0.5 rounded transition-colors"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    <p className="text-[11px] leading-relaxed text-slate-300">
+                      Exchange rates displayed on this website are provided for informational purposes only and are indicative market rates. Rates are sourced from third-party financial data providers and may be delayed or differ from the actual rates offered by banks, financial institutions, credit card networks, or money-transfer services.
+                    </p>
+                    <p className="text-[11px] leading-relaxed text-slate-300">
+                      While we strive to provide accurate and up-to-date information, we do not guarantee the accuracy, completeness, or real-time availability of the displayed rates. Actual transaction rates may vary due to market fluctuations, provider fees, spreads, and applicable charges.
+                    </p>
+                    <p className="text-[11px] leading-relaxed text-slate-400">
+                      This website does not provide financial or investment advice. Please verify the applicable exchange rate with your financial institution before making any currency exchange or financial transaction.
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

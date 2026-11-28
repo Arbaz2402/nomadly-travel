@@ -26,6 +26,7 @@ import {
   deleteTripExpense,
   getTripSettlement,
   settleExpenseShare,
+  notifySettlementDebtor,
 } from '../controllers/expenseController.js';
 import {
   getTripParticipants,
@@ -74,6 +75,7 @@ router.put('/:id/expenses/:expenseId', requireTripAccess(['owner', 'editor']), u
 router.delete('/:id/expenses/:expenseId', requireTripAccess(['owner', 'editor']), deleteTripExpense);
 router.get('/:id/settlement', requireTripAccess(['owner', 'editor', 'viewer']), getTripSettlement);
 router.post('/:id/settlement/settle', requireTripAccess(['owner', 'editor']), settleExpenseShare);
+router.post('/:id/settlement/notify', requireTripAccess(['owner', 'editor']), notifySettlementDebtor);
 
 // 5. Analytics & Budget
 router.get('/:id/analytics', requireTripAccess(['owner', 'editor', 'viewer']), getTripAnalytics);

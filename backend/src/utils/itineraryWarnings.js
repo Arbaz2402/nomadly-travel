@@ -61,19 +61,6 @@ export const analyzeItineraryWarnings = (trip, items = []) => {
     }
   });
 
-  // 3. Check for accommodation gaps on multi-day trips
-  const totalDays = Math.ceil((tripEnd - tripStart) / (1000 * 60 * 60 * 24));
-  if (totalDays > 1) {
-    const hotelItems = items.filter((i) => i.category === 'hotel');
-    if (hotelItems.length === 0) {
-      warnings.push({
-        type: 'MISSING_ACCOMMODATION',
-        severity: 'info',
-        message: `This is a ${totalDays}-day journey with no hotel or accommodation reservations recorded yet.`,
-      });
-    }
-  }
-
   return warnings;
 };
 

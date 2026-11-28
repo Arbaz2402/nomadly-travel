@@ -38,8 +38,6 @@ export const TripWorkspacePage = () => {
     documents,
     activityLogs,
     respondingInvite,
-    attachModalOpen,
-    setAttachModalOpen,
     addActivityOpen,
     setAddActivityOpen,
     addExpenseOpen,
@@ -66,6 +64,7 @@ export const TripWorkspacePage = () => {
   const [editingExpense, setEditingExpense] = React.useState(null);
   const [settleUpModalOpen, setSettleUpModalOpen] = React.useState(false);
   const [settleUpData, setSettleUpData] = React.useState(null);
+  const [notifyModalData, setNotifyModalData] = React.useState(null);
   const [journeyEditMode, setJourneyEditMode] = React.useState(null); // 'expired-start' | 'edit' | null
 
   const handleUpdateTripStatus = async (newStatus) => {
@@ -196,7 +195,6 @@ export const TripWorkspacePage = () => {
         canEdit={canEdit}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        onOpenAttachBooking={() => setAttachModalOpen(true)}
         onUpdateStatus={handleUpdateTripStatus}
         onOpenEditTrip={() => setJourneyEditMode('edit')}
       />
@@ -240,7 +238,6 @@ export const TripWorkspacePage = () => {
           canEdit={canEdit}
           onRefresh={() => loadTabData('itinerary')}
           onOpenAddActivity={() => setAddActivityOpen(true)}
-          onOpenAttachBooking={() => setAttachModalOpen(true)}
           onOpenAiModify={(item) => {
             setAiModifyTargetItem(item);
             setAiModifyModalOpen(true);
@@ -314,6 +311,7 @@ export const TripWorkspacePage = () => {
             setSettleUpData(data);
             setSettleUpModalOpen(true);
           }}
+          onOpenNotifySettlement={(data) => setNotifyModalData(data)}
         />
       )}
 
@@ -342,7 +340,11 @@ export const TripWorkspacePage = () => {
           trip={trip}
           participants={participants}
           isOwner={isOwner}
-          onRefresh={() => loadTabData('members')}
+          onRefresh={() => {
+            fetchTripData();
+            loadTabData('members');
+            loadTabData('splitting');
+          }}
           onOpenAddMember={() => setAddMemberOpen(true)}
           onLeaveJourney={handleLeaveJourney}
         />
@@ -353,8 +355,6 @@ export const TripWorkspacePage = () => {
         trip={trip}
         itinerary={itinerary}
         activeTab={activeTab}
-        attachModalOpen={attachModalOpen}
-        setAttachModalOpen={setAttachModalOpen}
         addActivityOpen={addActivityOpen}
         setAddActivityOpen={setAddActivityOpen}
         addExpenseOpen={addExpenseOpen}
@@ -365,6 +365,8 @@ export const TripWorkspacePage = () => {
         setSettleUpModalOpen={setSettleUpModalOpen}
         settleUpData={settleUpData}
         setSettleUpData={setSettleUpData}
+        notifyModalData={notifyModalData}
+        setNotifyModalData={setNotifyModalData}
         addMemberOpen={addMemberOpen}
         setAddMemberOpen={setAddMemberOpen}
         uploadDocOpen={uploadDocOpen}

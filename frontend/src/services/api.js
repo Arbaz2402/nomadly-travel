@@ -209,6 +209,10 @@ export class ApiClient {
     return this.request(`/trips/${tripId}/settlement/settle`, { method: 'POST', body: JSON.stringify(payload) });
   }
 
+  static notifySettlementDebtor(tripId, payload) {
+    return this.request(`/trips/${tripId}/settlement/notify`, { method: 'POST', body: JSON.stringify(payload) });
+  }
+
   // Analytics & Budget
   static getTripAnalytics(tripId) {
     return this.request(`/trips/${tripId}/analytics`);
