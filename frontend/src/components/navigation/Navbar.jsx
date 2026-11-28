@@ -8,7 +8,6 @@ import {
   LogOut,
   Menu,
   X,
-  Bookmark,
   Sparkles,
   ChevronDown,
   Calendar,
@@ -179,22 +178,6 @@ export const Navbar = () => {
                           Admin Console
                         </Link>
                       )}
-                      <Link
-                        to="/dashboard"
-                        onClick={() => setUserDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-200 hover:bg-white/5 rounded-xl transition-colors"
-                      >
-                        <User className="w-4 h-4 text-slate-400" />
-                        My Bookings & Profile
-                      </Link>
-                      <Link
-                        to="/wishlist"
-                        onClick={() => setUserDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-200 hover:bg-white/5 rounded-xl transition-colors"
-                      >
-                        <Bookmark className="w-4 h-4 text-slate-400" />
-                        Saved & Price Watchlist
-                      </Link>
                     </div>
 
                     <div className="pt-1 border-t border-white/5">
@@ -224,7 +207,7 @@ export const Navbar = () => {
               </button>
             ) : (
               <Link
-                to="/dashboard"
+                to="/journeys"
                 className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-400 to-coral-500 text-white flex items-center justify-center font-bold text-xs shrink-0"
               >
                 {user.displayName?.charAt(0) || 'U'}
@@ -299,11 +282,11 @@ export const Navbar = () => {
             ) : (
               <>
                 <Link
-                  to="/dashboard"
+                  to="/journeys"
                   onClick={() => setMobileMenuOpen(false)}
                   className="p-2 text-xs font-semibold text-slate-200"
                 >
-                  My Account ({user.displayName})
+                  My Journeys ({user.displayName})
                 </Link>
                 {user.role === 'admin' && (
                   <Link

@@ -107,36 +107,6 @@ export class ApiClient {
   }
 
   // Bookings
-  static createBooking(payload) {
-    return this.request('/bookings', { method: 'POST', body: JSON.stringify(payload) });
-  }
-
-  static getMyBookings(params = {}) {
-    const query = new URLSearchParams(params).toString();
-    return this.request(`/bookings/my-bookings?${query}`);
-  }
-
-  static getBookingById(id) {
-    return this.request(`/bookings/${id}`);
-  }
-
-  static cancelBooking(id, payload = {}) {
-    return this.request(`/bookings/${id}/cancel`, { method: 'POST', body: JSON.stringify(payload) });
-  }
-
-  static getBookingReceipt(id) {
-    return this.request(`/bookings/${id}/receipt`);
-  }
-
-  // Payments
-  static createPaymentOrder(payload) {
-    return this.request('/payments/create-order', { method: 'POST', body: JSON.stringify(payload) });
-  }
-
-  static verifyPayment(payload) {
-    return this.request('/payments/verify', { method: 'POST', body: JSON.stringify(payload) });
-  }
-
   // Trips & My Journeys
   static getMyTrips(params = {}) {
     const query = new URLSearchParams(params).toString();
@@ -157,10 +127,6 @@ export class ApiClient {
 
   static deleteTrip(id) {
     return this.request(`/trips/${id}`, { method: 'DELETE' });
-  }
-
-  static attachBookingToTrip(tripId, payload) {
-    return this.request(`/trips/${tripId}/attach-booking`, { method: 'POST', body: JSON.stringify(payload) });
   }
 
   // Itinerary
@@ -295,36 +261,6 @@ export class ApiClient {
     return this.request('/currency/convert', { method: 'POST', body: JSON.stringify(payload) });
   }
 
-  // Wishlist & Alerts
-  static getWishlist() {
-    return this.request('/wishlist');
-  }
-
-  static addToWishlist(payload) {
-    return this.request('/wishlist', { method: 'POST', body: JSON.stringify(payload) });
-  }
-
-  static removeFromWishlist(id) {
-    return this.request(`/wishlist/${id}`, { method: 'DELETE' });
-  }
-
-  static getPriceAlerts() {
-    return this.request('/wishlist/alerts');
-  }
-
-  static createPriceAlert(payload) {
-    return this.request('/wishlist/alerts', { method: 'POST', body: JSON.stringify(payload) });
-  }
-
-  // Coupons
-  static validateCoupon(payload) {
-    return this.request('/coupons/validate', { method: 'POST', body: JSON.stringify(payload) });
-  }
-
-  static getActiveCoupons() {
-    return this.request('/coupons/active');
-  }
-
   // Admin
   static getAdminOverview() {
     return this.request('/admin/overview');
@@ -343,17 +279,8 @@ export class ApiClient {
     return this.request(`/admin/users/${userId}/role`, { method: 'PUT', body: JSON.stringify({ role }) });
   }
 
-  static getAdminBookings(params = {}) {
-    const query = new URLSearchParams(params).toString();
-    return this.request(`/admin/bookings?${query}`);
-  }
-
   static getAdminAuditLogs() {
     return this.request('/admin/audit-logs');
-  }
-
-  static getAdminInventoryStats() {
-    return this.request('/admin/inventory-stats');
   }
 
   // AI Smart Trip Planner

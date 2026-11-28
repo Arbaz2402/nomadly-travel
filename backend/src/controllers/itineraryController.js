@@ -14,7 +14,6 @@ export const getTripItinerary = async (req, res) => {
     const trip = req.trip;
 
     const items = await ItineraryItem.find({ trip: trip._id })
-      .populate('bookingId')
       .sort({ date: 1, startTime: 1, orderIndex: 1 });
 
     // Run Conflict & Scheduling Analysis

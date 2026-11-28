@@ -52,14 +52,9 @@ const itineraryItemSchema = new mongoose.Schema(
     },
     sourceType: {
       type: String,
-      enum: ['nomadly_booking', 'external_booking', 'manual_entry', 'unbooked_activity'],
+      enum: ['external_booking', 'manual_entry', 'unbooked_activity'],
       default: 'manual_entry',
       index: true,
-    },
-    bookingId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Booking',
-      default: null,
     },
     bookingReference: {
       type: String,

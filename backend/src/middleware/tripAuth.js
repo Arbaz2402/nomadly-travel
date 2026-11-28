@@ -13,7 +13,7 @@ export const requireTripAccess = (allowedRoles = ['owner', 'editor', 'viewer']) 
         return res.status(400).json({ success: false, message: 'Trip ID parameter is required.' });
       }
 
-      const trip = await Trip.findById(tripId).populate('bookings');
+      const trip = await Trip.findById(tripId);
       if (!trip) {
         return res.status(404).json({ success: false, message: 'Journey not found.' });
       }

@@ -1,7 +1,5 @@
 import { Trip } from '../models/Trip.js';
 import { ItineraryItem } from '../models/ItineraryItem.js';
-import { Hotel } from '../models/Hotel.js';
-import { Experience } from '../models/Experience.js';
 import {
   cleanVenueTitle,
   buildExactVenueQuery,
@@ -33,23 +31,6 @@ export const generateItinerary = async (req, res) => {
     const cleanDest = destination.trim();
     const destKey = cleanDest.toLowerCase();
     const cleanCustomPrompt = customPrompt ? String(customPrompt).trim() : '';
-
-    // Check for matching hotel & experiences in DB
-    let matchingHotel = null;
-    let matchingExperiences = [];
-    try {
-      matchingHotel = await Hotel.findOne({
-        'location.city': new RegExp(cleanDest, 'i'),
-        isActive: true,
-      }).sort({ starRating: -1 });
-
-      matchingExperiences = await Experience.find({
-        destinationCity: new RegExp(cleanDest, 'i'),
-        isActive: true,
-      }).limit(3);
-    } catch (dbErr) {
-      console.warn('Optional hotel/experiences DB lookup skipped:', dbErr.message);
-    }
 
     // 1. Try Gemini API
     const geminiResult = await synthesizeGeminiItinerary({
@@ -98,8 +79,6 @@ export const generateItinerary = async (req, res) => {
           budgetStyle,
           customPrompt: cleanCustomPrompt || null,
           ...parsedItinerary,
-          matchedHotel: matchingHotel,
-          matchedExperiences: matchingExperiences,
           source: `google-${geminiResult.model}`,
         },
       });
@@ -117,8 +96,6 @@ export const generateItinerary = async (req, res) => {
         budgetStyle,
         customPrompt: cleanCustomPrompt || null,
         ...fallback,
-        matchedHotel: matchingHotel,
-        matchedExperiences: matchingExperiences,
       },
     });
   } catch (error) {

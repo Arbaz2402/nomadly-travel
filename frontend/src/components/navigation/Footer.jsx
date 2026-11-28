@@ -109,7 +109,7 @@ export const Footer = () => {
             <ul className="space-y-2">
               <li><Link to="/ai-planner" className="hover:text-coral-400 transition-colors">Custom Trip Planner</Link></li>
               <li><Link to="/journeys" className="hover:text-coral-400 transition-colors">My Journeys Organizer</Link></li>
-              <li><Link to="/trip-builder" className="hover:text-coral-400 transition-colors">Unified Trip Builder</Link></li>
+              <li><Link to="/journeys/new" className="hover:text-coral-400 transition-colors">Create New Journey</Link></li>
             </ul>
           </div>
 

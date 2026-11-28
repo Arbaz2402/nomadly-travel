@@ -4,10 +4,7 @@ import {
   getAdminUsers,
   toggleUserSuspension,
   updateUserRole,
-  getAdminBookings,
   getAdminAuditLogs,
-  createAdminCoupon,
-  getAdminInventoryStats,
 } from '../controllers/adminController.js';
 import { verifyAuth, requireRole } from '../middleware/auth.js';
 
@@ -20,9 +17,6 @@ router.get('/overview', getAdminOverview);
 router.get('/users', getAdminUsers);
 router.put('/users/:id/suspend', toggleUserSuspension);
 router.put('/users/:id/role', updateUserRole);
-router.get('/bookings', getAdminBookings);
 router.get('/audit-logs', getAdminAuditLogs);
-router.post('/coupons', createAdminCoupon);
-router.get('/inventory-stats', getAdminInventoryStats);
 
 export default router;

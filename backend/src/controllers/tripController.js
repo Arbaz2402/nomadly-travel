@@ -4,7 +4,6 @@ import { ItineraryItem } from '../models/ItineraryItem.js';
 import { TripExpense } from '../models/TripExpense.js';
 import { TripDocument } from '../models/TripDocument.js';
 import { TripActivityLog } from '../models/TripActivityLog.js';
-import { Booking } from '../models/Booking.js';
 import { User } from '../models/User.js';
 import { convertCurrency, getExchangeRate } from '../utils/currencyRates.js';
 import { calculateTripSettlement } from '../utils/settlementCalculator.js';
@@ -54,7 +53,6 @@ export const getMyTrips = async (req, res) => {
 
     const trips = await Trip.find(query)
       .populate('user', 'displayName email photoURL')
-      .populate('bookings', 'bookingReference travelCategory totalPayable bookingStatus')
       .sort(sortOption);
 
     const { trips: enrichedTrips, metrics } = await enrichTripsWithMetrics(
@@ -77,8 +75,7 @@ export const getMyTrips = async (req, res) => {
 export const getTripById = async (req, res) => {
   try {
     const trip = await Trip.findById(req.params.id)
-      .populate('user', 'displayName email photoURL')
-      .populate('bookings');
+      .populate('user', 'displayName email photoURL');
 
     if (!trip) {
       return res.status(404).json({ success: false, message: 'Journey not found.' });
@@ -329,185 +326,7 @@ export const deleteTrip = async (req, res) => {
 };
 
 // ==========================================
-// 2. ATTACH NOMADLY BOOKING TO TRIP
-// ==========================================
-
-export const attachBookingToTrip = async (req, res) => {
-  try {
-    const trip = req.trip;
-    const { bookingId, bookingReference } = req.body;
-
-    let booking = null;
-    if (bookingId) {
-      booking = await Booking.findById(bookingId);
-    } else if (bookingReference) {
-      booking = await Booking.findOne({ bookingReference: bookingReference.trim() });
-    }
-
-    if (!booking) {
-      return res.status(404).json({ success: false, message: 'Reservation booking not found.' });
-    }
-
-    // Verify ownership of booking
-    if (booking.user.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        message: 'You can only attach bookings that you have reserved.',
-      });
-    }
-
-    // Check if already attached to trip
-    const alreadyLinked = trip.bookings.some((b) => b.toString() === booking._id.toString());
-    if (!alreadyLinked) {
-      trip.bookings.push(booking._id);
-      await trip.save();
-    }
-
-    // Check if itinerary item already exists for this booking
-    const existingItem = await ItineraryItem.findOne({
-      trip: trip._id,
-      bookingId: booking._id,
-    });
-
-    if (existingItem) {
-      return res.status(200).json({
-        success: true,
-        message: 'Booking is already present in this journey itinerary.',
-        data: { trip, itineraryItem: existingItem },
-      });
-    }
-
-    // Map booking to ItineraryItem
-    const snap = booking.itinerarySnapshot || {};
-    let title = `${booking.travelCategory.toUpperCase()} Reservation (${booking.bookingReference})`;
-    let locationName = '';
-    let itemDate = booking.createdAt;
-    let startTime = '10:00';
-    let endTime = '12:00';
-
-    if (booking.travelCategory === 'flight') {
-      title = `${snap.airline || 'Flight'} ${snap.flightNumber || ''} (${snap.origin || ''} → ${snap.destination || ''})`;
-      locationName = `${snap.origin || ''} Airport`;
-      if (snap.departureTime) {
-        itemDate = new Date(snap.departureTime);
-        startTime = new Date(snap.departureTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-      }
-      if (snap.arrivalTime) {
-        endTime = new Date(snap.arrivalTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-      }
-    } else if (booking.travelCategory === 'hotel') {
-      title = `${snap.name || 'Hotel Stay'} — ${snap.roomType || 'Room'}`;
-      locationName = snap.location?.address || snap.location?.city || '';
-      if (snap.checkInDate) itemDate = new Date(snap.checkInDate);
-      startTime = '14:00';
-      endTime = '11:00';
-    } else if (booking.travelCategory === 'train') {
-      title = `${snap.trainName || 'Train'} (${snap.trainNumber || ''})`;
-      locationName = `${snap.originStation || ''} Railway Station`;
-      if (snap.departureTime) {
-        itemDate = new Date(snap.departureTime);
-        startTime = new Date(snap.departureTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-      }
-    } else if (booking.travelCategory === 'package') {
-      title = snap.title || `Vacation Package (${booking.bookingReference})`;
-      locationName = snap.destinationCity || 'Vacation Destination';
-    } else if (booking.travelCategory === 'experience') {
-      title = snap.title || `Tour Experience (${booking.bookingReference})`;
-      locationName = snap.meetingPoint || snap.destinationCity || 'Experience Meeting Point';
-    } else if (booking.travelCategory === 'bus') {
-      title = `${snap.operatorName || 'Intercity Bus'} (${snap.busType || ''})`;
-      locationName = snap.boardingPoint || snap.origin || '';
-      if (snap.departureTime) {
-        itemDate = new Date(snap.departureTime);
-        startTime = new Date(snap.departureTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-      }
-    } else if (booking.travelCategory === 'package') {
-      title = snap.title || `Vacation Package (${booking.bookingReference})`;
-      locationName = snap.destinationCity || 'Vacation Destination';
-    } else if (booking.travelCategory === 'experience') {
-      title = snap.title || `Tour Experience (${booking.bookingReference})`;
-      locationName = snap.meetingPoint || snap.destinationCity || 'Experience Meeting Point';
-    }
-
-    const payable = booking.totalPayable || booking.priceBreakdown?.totalPayable || 0;
-
-    const newItem = await ItineraryItem.create({
-      trip: trip._id,
-      title,
-      description: `Confirmed NOMADLY booking with PNR / Ref: ${booking.bookingReference}`,
-      category: booking.travelCategory,
-      sourceType: 'nomadly_booking',
-      bookingId: booking._id,
-      bookingReference: booking.bookingReference,
-      externalProvider: 'NOMADLY',
-      location: { name: locationName, address: locationName },
-      date: itemDate,
-      startTime,
-      endTime,
-      estimatedCost: payable,
-      actualCost: payable,
-      currency: booking.priceBreakdown?.currency || trip.currency || 'INR',
-      status: 'confirmed',
-      notes: `Seats/Guests: ${booking.travelers?.length || 1} traveler(s)`,
-    });
-
-    // Also auto-record as a trip expense if not already recorded
-    const existingExpense = await TripExpense.findOne({
-      trip: trip._id,
-      itineraryItemId: newItem._id,
-    });
-
-    if (!existingExpense && payable > 0) {
-      const conversion = convertCurrency(payable, booking.priceBreakdown?.currency || 'INR', trip.currency);
-      await TripExpense.create({
-        trip: trip._id,
-        title: `Booking: ${title}`,
-        category: mapToExpenseCategory(booking.travelCategory),
-        amount: payable,
-        currency: booking.priceBreakdown?.currency || 'INR',
-        exchangeRate: conversion.exchangeRate,
-        convertedAmount: conversion.convertedAmount,
-        date: itemDate,
-        description: `Automatic expense linked to confirmed NOMADLY booking ${booking.bookingReference}`,
-        paidBy: {
-          userId: req.user._id,
-          name: req.user.displayName || 'You',
-          email: req.user.email,
-        },
-        itineraryItemId: newItem._id,
-        splitType: 'equal',
-        splits: [
-          {
-            user: req.user._id,
-            name: req.user.displayName || 'You',
-            email: req.user.email,
-            shareAmount: conversion.convertedAmount,
-            sharePercentage: 100,
-            isSettled: true,
-          },
-        ],
-      });
-    }
-
-    await logActivity(
-      trip._id,
-      req.user,
-      'ATTACHED_BOOKING',
-      `Attached NOMADLY booking (${booking.bookingReference}) to journey`
-    );
-
-    return res.status(200).json({
-      success: true,
-      message: 'Booking successfully integrated into journey!',
-      data: { trip, itineraryItem: newItem },
-    });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-// ==========================================
-// 3. ITINERARY ITEM CRUD & REORDER
+// 2. ANALYTICS & BUDGET
 // ==========================================
 
 

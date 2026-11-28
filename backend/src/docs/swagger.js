@@ -9,20 +9,13 @@ export const swaggerSpec = {
     title: 'NOMADLY Travel Platform REST API',
     version: '1.0.0',
     description: `
-**NOMADLY** is a production-ready, full-stack travel reservation and multi-modal journey orchestrator platform.
-This interactive Swagger documentation details all available API endpoints across:
-- **Authentication & Profiles** (Firebase Cloud Identity + JWT Dual Auth, Saved Travelers, Demo Personas)
-- **Flights** (Live Airport Autocomplete, Route Schedules, Cabin Classes, Pricing)
-- **Hotels & Stays** (RapidAPI Booking.com Integration, Star Ratings, Luxury Stays, Real Photos)
-- **Experiences & Tours** (Scuba Diving, Desert Safaris, Lake Cruises, Hot Air Balloons)
-- **Vacation Packages** (Dynamically Bundled Flights + Boutique Resorts with 15–20% combo discounts)
-- **AI Smart Trip Planner** (Google Gemini 1.5 Flash multi-day synthesis & 1-click export to My Journeys)
-- **Bookings & Reservations** (Atomic 10-Minute Seat Holds, E-Tickets, PNR Generation, QR Verification)
-- **Payments & Verification** (PCI-DSS Sandbox, Automated Invoice Generation, Signatures)
-- **My Journeys Workspace** (Collaborative Itinerary Builder, Real-time Split Ledger, Document Vault, Audit Logs)
-- **Wishlist & Price Alerts** (Fares Tracking, Target Threshold Triggers)
-- **Coupons & Promotions** (Dynamic Promo Code Validation & Reductions)
-- **Admin Governance** (User Roles, Booking Audits, Inventory Statistics)
+**NOMADLY** is a collaborative travel planner, expense splitting, and journey organizer platform.
+This interactive Swagger documentation details the available API endpoints across:
+- **Authentication & Profiles** (Firebase Identity + JWT Auth)
+- **Trip Planner Engine** (Multi-day itinerary synthesis & export to My Journeys)
+- **My Journeys Workspace** (Collaborative Itinerary Builder, Split Ledger, Document Vault, Activity Logs)
+- **Currency & Cash Tools** (Live market FX rates & historical trends)
+- **Admin Governance** (User Roles, Journey Metrics, Audit Logs)
     `,
     contact: {
       name: 'NOMADLY Platform Engineering',
@@ -45,18 +38,10 @@ This interactive Swagger documentation details all available API endpoints acros
     },
   ],
   tags: [
-    { name: 'Authentication & Profile', description: 'User authentication, Firebase token exchange, saved travelers, demo personas' },
-    { name: 'Flights', description: 'Flight search, schedules, seat inventory, and airport directories' },
-    { name: 'Hotels & Stays', description: 'Live hotel discovery, room categories, and featured luxury properties' },
-    { name: 'Experiences & Tours', description: 'Authentic local adventures, scuba diving, desert safaris, and heritage cruises' },
-    { name: 'Vacation Packages', description: 'Curated Flight + Hotel combos with bundled package discounts' },
-    { name: 'Trip Planner Engine', description: 'Day-by-day itinerary synthesis & 1-click export into Journey workspaces' },
-    { name: 'Bookings & Reservations', description: 'Ticket issuance, booking references (PNR), cancellations, and PDF receipts' },
-    { name: 'Payments & Verification', description: 'Payment order initialization, cryptographic signature verification, and sandbox transactions' },
+    { name: 'Authentication & Profile', description: 'User authentication and Firebase token exchange' },
+    { name: 'Trip Planner Engine', description: 'Day-by-day itinerary synthesis & export into Journey workspaces' },
     { name: 'My Journeys (Trips)', description: 'Collaborative travel planner, itinerary items, expense splitting, and documents vault' },
-    { name: 'Wishlist & Price Alerts', description: 'Saved bucket-list items and automated target price watch alerts' },
-    { name: 'Coupons & Discounts', description: 'Promotional discount validation and active coupons directory' },
-    { name: 'Admin Governance', description: 'User management, booking audit logs, and inventory metrics' },
+    { name: 'Admin Governance', description: 'User management, journey metrics, and audit logs' },
   ],
   components: {
     securitySchemes: {
@@ -468,222 +453,6 @@ This interactive Swagger documentation details all available API endpoints acros
     },
 
     // -------------------------------------------------------------
-    // BOOKINGS & CHECKOUT
-    // -------------------------------------------------------------
-    '/bookings': {
-      post: {
-        tags: ['Bookings & Reservations'],
-        summary: 'Create a reservation',
-        description: 'Initializes a confirmed reservation with traveler details, contact information, and pricing.',
-        security: [{ BearerAuth: [] }],
-        requestBody: {
-          required: true,
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                required: ['travelCategory', 'passengers', 'pricing'],
-                properties: {
-                  travelCategory: { type: 'string', enum: ['flight', 'hotel', 'experience', 'package'], example: 'flight' },
-                  passengers: {
-                    type: 'array',
-                    items: {
-                      type: 'object',
-                      properties: {
-                        title: { type: 'string', example: 'Mr' },
-                        firstName: { type: 'string', example: 'Arbaz' },
-                        lastName: { type: 'string', example: 'Kaladiya' },
-                        gender: { type: 'string', example: 'male' },
-                      },
-                    },
-                  },
-                  contactInfo: {
-                    type: 'object',
-                    properties: {
-                      email: { type: 'string', example: 'traveler@nomadly.com' },
-                      phone: { type: 'string', example: '+919876543210' },
-                    },
-                  },
-                  pricing: {
-                    type: 'object',
-                    properties: {
-                      baseFare: { type: 'number', example: 4850 },
-                      taxesAndFees: { type: 'number', example: 873 },
-                      totalPayable: { type: 'number', example: 5723 },
-                      currency: { type: 'string', example: 'INR' },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-        responses: {
-          201: {
-            description: 'Booking created successfully with unique PNR reference',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    success: { type: 'boolean', example: true },
-                    data: { $ref: '#/components/schemas/Booking' },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-    '/bookings/my-bookings': {
-      get: {
-        tags: ['Bookings & Reservations'],
-        summary: 'List bookings for current user',
-        security: [{ BearerAuth: [] }],
-        parameters: [
-          { name: 'status', in: 'query', schema: { type: 'string', enum: ['confirmed', 'cancelled', 'completed'] } },
-        ],
-        responses: {
-          200: { description: 'List of confirmed and past travel reservations' },
-        },
-      },
-    },
-    '/bookings/{id}': {
-      get: {
-        tags: ['Bookings & Reservations'],
-        summary: 'Get reservation details by ID',
-        security: [{ BearerAuth: [] }],
-        parameters: [
-          { name: 'id', in: 'path', required: true, schema: { type: 'string' }, example: '663f10a8b92d8f0012a4b896' },
-        ],
-        responses: {
-          200: { description: 'Booking e-ticket details' },
-          404: { description: 'Reservation not found' },
-        },
-      },
-    },
-    '/bookings/{id}/cancel': {
-      post: {
-        tags: ['Bookings & Reservations'],
-        summary: 'Cancel a reservation',
-        security: [{ BearerAuth: [] }],
-        parameters: [
-          { name: 'id', in: 'path', required: true, schema: { type: 'string' } },
-        ],
-        requestBody: {
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                properties: {
-                  reason: { type: 'string', example: 'Change of travel schedule' },
-                },
-              },
-            },
-          },
-        },
-        responses: {
-          200: { description: 'Reservation cancelled and refund calculated' },
-        },
-      },
-    },
-    '/bookings/{id}/receipt': {
-      get: {
-        tags: ['Bookings & Reservations'],
-        summary: 'Get printable receipt and invoice payload',
-        security: [{ BearerAuth: [] }],
-        parameters: [
-          { name: 'id', in: 'path', required: true, schema: { type: 'string' } },
-        ],
-        responses: {
-          200: { description: 'Official tax invoice receipt with GST breakdown and validation QR' },
-        },
-      },
-    },
-
-    // -------------------------------------------------------------
-    // PAYMENTS
-    // -------------------------------------------------------------
-    '/payments/create-order': {
-      post: {
-        tags: ['Payments & Verification'],
-        summary: 'Create payment order',
-        description: 'Initializes a transaction order in the secure payment gateway.',
-        security: [{ BearerAuth: [] }],
-        requestBody: {
-          required: true,
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                required: ['bookingId', 'amount'],
-                properties: {
-                  bookingId: { type: 'string', example: '663f10a8b92d8f0012a4b896' },
-                  amount: { type: 'number', example: 5723 },
-                  currency: { type: 'string', default: 'INR', example: 'INR' },
-                },
-              },
-            },
-          },
-        },
-        responses: {
-          200: {
-            description: 'Payment order created with orderId',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    success: { type: 'boolean', example: true },
-                    data: {
-                      type: 'object',
-                      properties: {
-                        orderId: { type: 'string', example: 'order_983147820' },
-                        amount: { type: 'number', example: 5723 },
-                        currency: { type: 'string', example: 'INR' },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-    '/payments/verify': {
-      post: {
-        tags: ['Payments & Verification'],
-        summary: 'Verify payment signature & confirm booking',
-        description: 'Validates cryptographic payment token, updates booking status to confirmed, and generates audit log.',
-        security: [{ BearerAuth: [] }],
-        requestBody: {
-          required: true,
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                required: ['bookingId', 'orderId'],
-                properties: {
-                  bookingId: { type: 'string', example: '663f10a8b92d8f0012a4b896' },
-                  orderId: { type: 'string', example: 'order_983147820' },
-                  paymentId: { type: 'string', example: 'pay_sandbox_1731302849' },
-                  signature: { type: 'string', example: 'sandbox_verified_secure_signature' },
-                },
-              },
-            },
-          },
-        },
-        responses: {
-          200: {
-            description: 'Payment confirmed and e-ticket issued',
-          },
-        },
-      },
-    },
-
-    // -------------------------------------------------------------
     // MY JOURNEYS (TRIPS WORKSPACE)
     // -------------------------------------------------------------
     '/trips': {
@@ -915,140 +684,13 @@ This interactive Swagger documentation details all available API endpoints acros
     },
 
     // -------------------------------------------------------------
-    // WISHLIST & PRICE ALERTS
-    // -------------------------------------------------------------
-    '/wishlist': {
-      get: {
-        tags: ['Wishlist & Price Alerts'],
-        summary: 'Get user saved wishlist items',
-        security: [{ BearerAuth: [] }],
-        responses: {
-          200: { description: 'List of bookmarked flights, hotels, and tours' },
-        },
-      },
-      post: {
-        tags: ['Wishlist & Price Alerts'],
-        summary: 'Save item to wishlist',
-        security: [{ BearerAuth: [] }],
-        requestBody: {
-          required: true,
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                required: ['category', 'itemId'],
-                properties: {
-                  category: { type: 'string', enum: ['flight', 'hotel', 'experience'], example: 'hotel' },
-                  itemId: { type: 'string', example: '663f10a8b92d8f0012a4b894' },
-                },
-              },
-            },
-          },
-        },
-        responses: {
-          201: { description: 'Item saved to wishlist' },
-        },
-      },
-    },
-    '/wishlist/alerts': {
-      get: {
-        tags: ['Wishlist & Price Alerts'],
-        summary: 'Get active price alerts',
-        security: [{ BearerAuth: [] }],
-        responses: {
-          200: { description: 'Active price alerts list' },
-        },
-      },
-      post: {
-        tags: ['Wishlist & Price Alerts'],
-        summary: 'Create a price watch alert',
-        security: [{ BearerAuth: [] }],
-        requestBody: {
-          required: true,
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                required: ['category', 'origin', 'destination', 'targetPrice'],
-                properties: {
-                  category: { type: 'string', enum: ['flight', 'hotel'], example: 'flight' },
-                  origin: { type: 'string', example: 'BOM' },
-                  destination: { type: 'string', example: 'GOI' },
-                  targetPrice: { type: 'number', example: 3500 },
-                },
-              },
-            },
-          },
-        },
-        responses: {
-          201: { description: 'Price watch alert active' },
-        },
-      },
-    },
-
-    // -------------------------------------------------------------
-    // COUPONS
-    // -------------------------------------------------------------
-    '/coupons/validate': {
-      post: {
-        tags: ['Coupons & Discounts'],
-        summary: 'Validate promo coupon code',
-        description: 'Validates promotional discount codes (e.g. NOMAD20, FIRST10) against order amount.',
-        requestBody: {
-          required: true,
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                required: ['code', 'orderAmount'],
-                properties: {
-                  code: { type: 'string', example: 'NOMAD20' },
-                  category: { type: 'string', enum: ['flight', 'hotel', 'package', 'experience'], example: 'flight' },
-                  orderAmount: { type: 'number', example: 5723 },
-                },
-              },
-            },
-          },
-        },
-        responses: {
-          200: {
-            description: 'Coupon valid and discount calculated',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    success: { type: 'boolean', example: true },
-                    valid: { type: 'boolean', example: true },
-                    discountAmount: { type: 'number', example: 1000 },
-                    finalAmount: { type: 'number', example: 4723 },
-                  },
-                },
-              },
-            },
-          },
-          400: { description: 'Invalid or expired coupon code' },
-        },
-      },
-    },
-    '/coupons/active': {
-      get: {
-        tags: ['Coupons & Discounts'],
-        summary: 'List active public coupons',
-        responses: {
-          200: { description: 'List of currently active discount promotional codes' },
-        },
-      },
-    },
-
-    // -------------------------------------------------------------
     // ADMIN GOVERNANCE
     // -------------------------------------------------------------
     '/admin/overview': {
       get: {
         tags: ['Admin Governance'],
         summary: 'Admin dashboard metrics overview',
-        description: 'Aggregates platform total users, GMV revenue, active bookings, and conversion statistics. Requires admin role.',
+        description: 'Aggregates platform total users, journeys, tracked expenses, and vault documents. Requires admin role.',
         security: [{ BearerAuth: [] }],
         responses: {
           200: { description: 'Executive summary statistics' },
@@ -1067,26 +709,6 @@ This interactive Swagger documentation details all available API endpoints acros
         ],
         responses: {
           200: { description: 'Paginated user accounts directory' },
-        },
-      },
-    },
-    '/admin/bookings': {
-      get: {
-        tags: ['Admin Governance'],
-        summary: 'List all platform reservations with audit logs',
-        security: [{ BearerAuth: [] }],
-        responses: {
-          200: { description: 'System-wide bookings list' },
-        },
-      },
-    },
-    '/admin/inventory-stats': {
-      get: {
-        tags: ['Admin Governance'],
-        summary: 'Real-time inventory hold & seat status',
-        security: [{ BearerAuth: [] }],
-        responses: {
-          200: { description: 'Active 10-minute hold metrics and inventory counts' },
         },
       },
     },

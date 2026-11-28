@@ -86,13 +86,7 @@ const tripSchema = new mongoose.Schema(
       index: true,
     },
     participants: [tripParticipantSchema],
-    bookings: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Booking',
-      },
-    ],
-    segments: [tripSegmentSchema], // Kept for backwards compatibility
+    segments: [tripSegmentSchema],
     packingList: [
       {
         name: { type: String, required: true },
