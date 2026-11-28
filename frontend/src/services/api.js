@@ -106,66 +106,6 @@ export class ApiClient {
     return this.request('/auth/demo-login', { method: 'POST', body: JSON.stringify({ role }) });
   }
 
-  // Flights
-  static searchFlights(params = {}) {
-    const query = new URLSearchParams(params).toString();
-    return this.request(`/flights/search?${query}`);
-  }
-
-  static getFlightById(id) {
-    return this.request(`/flights/${id}`);
-  }
-
-  static getAirports() {
-    return this.request('/flights/airports');
-  }
-
-  static getPopularFlightRoutes() {
-    return this.request('/flights/popular-routes');
-  }
-
-  // Hotels
-  static searchHotels(params = {}) {
-    const query = new URLSearchParams(params).toString();
-    return this.request(`/hotels/search?${query}`);
-  }
-
-  static getHotelById(id) {
-    return this.request(`/hotels/${id}`);
-  }
-
-  static getFeaturedHotels() {
-    return this.request('/hotels/featured');
-  }
-
-  // Trains
-  static searchTrains(params = {}) {
-    const query = new URLSearchParams(params).toString();
-    return this.request(`/trains/search?${query}`);
-  }
-
-  static getTrainById(id) {
-    return this.request(`/trains/${id}`);
-  }
-
-  // Buses
-  static searchBuses(params = {}) {
-    const query = new URLSearchParams(params).toString();
-    return this.request(`/buses/search?${query}`);
-  }
-
-  static getBusById(id) {
-    return this.request(`/buses/${id}`);
-  }
-
-  static holdBusSeats(busId, payload) {
-    return this.request(`/buses/${busId}/hold`, { method: 'POST', body: JSON.stringify(payload) });
-  }
-
-  static releaseBusSeats(busId, payload) {
-    return this.request(`/buses/${busId}/release`, { method: 'POST', body: JSON.stringify(payload) });
-  }
-
   // Bookings
   static createBooking(payload) {
     return this.request('/bookings', { method: 'POST', body: JSON.stringify(payload) });
@@ -410,30 +350,6 @@ export class ApiClient {
 
   static getAdminInventoryStats() {
     return this.request('/admin/inventory-stats');
-  }
-
-  // Experiences & Tours
-  static searchExperiences(params = {}) {
-    const query = new URLSearchParams(params).toString();
-    return this.request(`/experiences?${query}`);
-  }
-
-  static getFeaturedExperiences() {
-    return this.request('/experiences/featured');
-  }
-
-  static getExperienceById(id) {
-    return this.request(`/experiences/${id}`);
-  }
-
-  // Vacation Packages & Combos
-  static getVacationPackages(params = {}) {
-    const query = new URLSearchParams(params).toString();
-    return this.request(`/packages?${query}`);
-  }
-
-  static getPackageById(id) {
-    return this.request(`/packages/${id}`);
   }
 
   // AI Smart Trip Planner

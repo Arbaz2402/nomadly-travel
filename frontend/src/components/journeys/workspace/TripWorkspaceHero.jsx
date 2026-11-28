@@ -189,14 +189,14 @@ export const TripWorkspaceHero = ({
       </div>
 
       {/* Navigation Tabs Bar */}
-      <div className="bg-ink-950/90 border-t border-white/10 px-2 sm:px-6 flex items-center gap-1 sm:gap-2 overflow-x-auto scrollbar-none snap-x">
+      <div className="bg-ink-950/90 border-t border-white/10 px-3 sm:px-5 flex items-center gap-1 lg:gap-1.5 overflow-x-auto md:overflow-visible md:flex-wrap scrollbar-none snap-x">
         {[
-          { id: 'itinerary', label: 'Itinerary Builder', icon: Layers },
-          { id: 'overview', label: 'Trip Overview', icon: Compass },
-          { id: 'calendar', label: 'Calendar View', icon: CalendarIcon },
-          { id: 'expenses', label: 'Expense Tracker', icon: Wallet },
-          { id: 'splitting', label: 'Expense Splitting', icon: TrendingUp },
-          { id: 'packing', label: 'Packing List', icon: Luggage, count: totalPackItems > 0 ? `${packedCount}/${totalPackItems}` : undefined },
+          { id: 'itinerary', label: 'Itinerary', icon: Layers },
+          { id: 'overview', label: 'Overview', icon: Compass },
+          { id: 'calendar', label: 'Calendar', icon: CalendarIcon },
+          { id: 'expenses', label: 'Expenses', icon: Wallet },
+          { id: 'splitting', label: 'Splitting', icon: TrendingUp },
+          { id: 'packing', label: 'Packing', icon: Luggage, count: totalPackItems > 0 ? `${packedCount}/${totalPackItems}` : undefined },
           { id: 'map', label: 'Trip Map', icon: Map },
           { id: 'documents', label: 'Documents', icon: FileText, count: trip.documentsCount },
           { id: 'members', label: 'Collaboration', icon: Users, count: trip.participants?.length },
@@ -207,7 +207,7 @@ export const TripWorkspaceHero = ({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`py-3 sm:py-3.5 px-2.5 sm:px-3 rounded-none border-b-2 text-xs font-bold flex items-center gap-1.5 sm:gap-2 transition-all whitespace-nowrap shrink-0 snap-start ${
+              className={`py-3 sm:py-3.5 px-2.5 sm:px-3 rounded-none border-b-2 text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap shrink-0 snap-start ${
                 isActive
                   ? 'border-coral-500 text-coral-400'
                   : 'border-transparent text-slate-400 hover:text-white'

@@ -14,7 +14,7 @@ dotenv.config({ path: envPath });
 import app from './app.js';
 import { connectDB } from './config/db.js';
 import { seedDatabase } from './utils/seed.js';
-import { FlightOffer } from './models/FlightOffer.js';
+import { User } from './models/User.js';
 
 const PORT = process.env.PORT || 5000;
 
@@ -23,27 +23,11 @@ const startServer = async () => {
     // 1. Establish Database Connection
     await connectDB();
 
-    // 2. Check if database has catalog, seed if empty
-    const flightCount = await FlightOffer.countDocuments();
-    if (flightCount === 0) {
-      console.log('📦 Empty database detected. Seeding initial travel catalog...');
+    // 2. Check if database has users/catalog, seed if empty
+    const userCount = await User.countDocuments();
+    if (userCount === 0) {
+      console.log('📦 Empty database detected. Seeding initial demo accounts & coupons...');
       await seedDatabase();
-    }
-
-    // 2b. Automatically purge any legacy fake flight numbers (e.g. QP-173, 6E-106) from database
-    try {
-      const purged = await FlightOffer.deleteMany({
-        $or: [
-          { 'legs.flightNumber': { $regex: /^QP-\d{3}$/ } },
-          { 'legs.flightNumber': { $regex: /-(106|173|129|152)$/ } },
-          { provider: 'OPEN_AIR' },
-        ],
-      });
-      if (purged.deletedCount > 0) {
-        console.log(`🧹 Purged ${purged.deletedCount} legacy synthetic flight offers from database.`);
-      }
-    } catch (purgeErr) {
-      console.warn('Startup legacy flight purge notice:', purgeErr.message);
     }
 
     // 3. Start Listening
