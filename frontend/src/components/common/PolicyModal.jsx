@@ -7,16 +7,16 @@ import {
   Lock,
   Headphones,
   CheckCircle2,
-  RotateCcw,
-  Plane,
-  Building2,
+  Compass,
+  Users,
+  Wallet,
   Mail,
   Phone,
   Clock,
   Sparkles,
 } from 'lucide-react';
 
-export const PolicyModal = ({ isOpen, onClose, initialTab = 'cancellation' }) => {
+export const PolicyModal = ({ isOpen, onClose, initialTab = 'guidelines' }) => {
   const [activeTab, setActiveTab] = React.useState(initialTab);
 
   useEffect(() => {
@@ -49,11 +49,11 @@ export const PolicyModal = ({ isOpen, onClose, initialTab = 'cancellation' }) =>
   if (!isOpen) return null;
 
   const tabs = [
-    { id: 'cancellation', label: 'Cancellation Rules', icon: RotateCcw },
+    { id: 'guidelines', label: 'Platform Guidelines', icon: Compass },
     { id: 'privacy', label: 'Privacy Policy', icon: ShieldCheck },
     { id: 'terms', label: 'Terms of Service', icon: FileText },
     { id: 'security', label: 'Security Standards', icon: Lock },
-    { id: 'concierge', label: '24/7 Concierge', icon: Headphones },
+    { id: 'concierge', label: 'Traveler Support', icon: Headphones },
   ];
 
   const modalContent = (
@@ -111,26 +111,26 @@ export const PolicyModal = ({ isOpen, onClose, initialTab = 'cancellation' }) =>
 
         {/* Tab Panels */}
         <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
-          {/* CANCELLATION RULES */}
-          {activeTab === 'cancellation' && (
+          {/* PLATFORM GUIDELINES */}
+          {activeTab === 'guidelines' && (
             <div className="space-y-4 animate-fade-in">
               <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-3">
                 <div className="flex items-center gap-2 text-white font-bold text-sm">
-                  <Plane className="w-4 h-4 text-coral-400" />
-                  <h4>Flight Cancellations & Refunds</h4>
+                  <Users className="w-4 h-4 text-coral-400" />
+                  <h4>Collaborative Trip Workspaces</h4>
                 </div>
                 <p>
-                  Flights cancelled at least 24 hours prior to scheduled departure receive refunds according to individual airline fare class rules. For refundable fares, refund credits are initiated immediately to your original payment method within 3–5 business days.
+                  Journey owners can invite companions as Editors or Viewers. Only accepted collaborators can participate in shared itinerary planning, packing lists, and group expense splits.
                 </p>
               </div>
 
               <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-3">
                 <div className="flex items-center gap-2 text-white font-bold text-sm">
-                  <Building2 className="w-4 h-4 text-teal-400" />
-                  <h4>Hotels & Boutique Stays</h4>
+                  <Wallet className="w-4 h-4 text-teal-400" />
+                  <h4>Expense Splitting & Travel Tools</h4>
                 </div>
                 <p>
-                  Most verified properties offer 100% free cancellation up to 48 hours prior to check-in (14:00 local time). Non-refundable promotional bookings are explicitly highlighted with amber badges prior to confirmation.
+                  Log trip expenses, split balances transparently across active members, send settlement reminder emails, and organize boarding passes, visas, and IDs inside your private Document Vault.
                 </p>
               </div>
             </div>
@@ -145,7 +145,7 @@ export const PolicyModal = ({ isOpen, onClose, initialTab = 'cancellation' }) =>
                   Data Minimization & Traveler Privacy
                 </h4>
                 <p>
-                  NOMADLY only collects passenger details (full name, government identity references, contact email, and phone number) required to complete airline ticket issuance, hotel registration, and railway manifest submission.
+                  NOMADLY only collects account details (display name, email, and trip workspace data) required to power collaborative itinerary planning, group expense splitting, and personal travel document storage.
                 </p>
               </div>
 
@@ -155,7 +155,7 @@ export const PolicyModal = ({ isOpen, onClose, initialTab = 'cancellation' }) =>
                   Zero Third-Party Data Monetization
                 </h4>
                 <p>
-                  We strictly never sell, license, or monetize your search behavior, itinerary routes, or passenger profiles to third-party ad brokers or marketing lead aggregators.
+                  We strictly never sell, license, or monetize your travel itineraries, expense logs, or uploaded documents to third-party ad brokers or marketing lead aggregators.
                 </p>
               </div>
 
@@ -165,7 +165,7 @@ export const PolicyModal = ({ isOpen, onClose, initialTab = 'cancellation' }) =>
                   Authentication & Session Security
                 </h4>
                 <p>
-                  All credentials and OAuth accounts are brokered by Google Firebase Cloud Authentication. Plaintext passwords never touch our application databases.
+                  All credentials and OAuth accounts are brokered by Google Firebase Authentication. Plaintext passwords never touch our application databases.
                 </p>
               </div>
             </div>
@@ -175,23 +175,23 @@ export const PolicyModal = ({ isOpen, onClose, initialTab = 'cancellation' }) =>
           {activeTab === 'terms' && (
             <div className="space-y-4 animate-fade-in">
               <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-2">
-                <h4 className="text-white font-bold text-sm">1. Inventory Holds & Pricing Integrity</h4>
+                <h4 className="text-white font-bold text-sm">1. Workspace Ownership & Collaborator Access</h4>
                 <p>
-                  When you initiate a checkout session, NOMADLY locks inventory seats or rooms for 15 minutes to prevent double-booking. If the payment session expires or is abandoned, holds are released back to live inventory automatically.
+                  Journey owners control member invitations, role assignments (Editor or Viewer), and member removal. Revoking or removing a collaborator immediately restricts their access to the journey workspace.
                 </p>
               </div>
 
               <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-2">
-                <h4 className="text-white font-bold text-sm">2. Government ID Accuracy</h4>
+                <h4 className="text-white font-bold text-sm">2. Expense Ledgers & Settlement Reminders</h4>
                 <p>
-                  Travelers are responsible for ensuring that names entered during booking precisely match government-issued photo IDs (Aadhaar, Passport, Voter ID) required at airport security, hotel front desks, and railway check-ins.
+                  Expense splitting and settlement plans are provided as an organizational ledger for group trips. Settlement reminder emails notify companions of recorded balances; NOMADLY does not process direct peer-to-peer funds.
                 </p>
               </div>
 
               <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-2">
-                <h4 className="text-white font-bold text-sm">3. Direct Airline & Hotel Synchronization</h4>
+                <h4 className="text-white font-bold text-sm">3. Third-Party FX & Weather Feeds</h4>
                 <p>
-                  NOMADLY synchronizes real-time live seat inventory from global airline reservation systems and certified hotel hospitality partners to ensure instant ticket issuance.
+                  Currency exchange rates and destination weather forecasts are fetched from third-party data providers for informational trip planning only and should be verified before transacting or departing.
                 </p>
               </div>
             </div>
@@ -203,36 +203,36 @@ export const PolicyModal = ({ isOpen, onClose, initialTab = 'cancellation' }) =>
               <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-2">
                 <h4 className="text-white font-bold text-sm flex items-center gap-2">
                   <Lock className="w-4 h-4 text-coral-400" />
-                  Bank-Grade 256-Bit SSL/TLS Encryption
+                  256-Bit SSL/TLS Transport Encryption
                 </h4>
                 <p>
-                  All HTTP transactions across NOMADLY are protected with TLS 1.3 encryption, ensuring strict data confidentiality across public Wi-Fi networks and mobile carriers.
+                  All HTTP requests across NOMADLY are protected with TLS encryption, ensuring strict confidentiality for itineraries, expense logs, and uploaded travel documents.
                 </p>
               </div>
 
               <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-2">
                 <h4 className="text-white font-bold text-sm flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-teal-400" />
-                  PCI-DSS Level 1 Compliant Architecture
+                  Firebase Token Verification & Role Enforcement
                 </h4>
                 <p>
-                  Payment transactions utilize tokenized authorization envelopes. Credit and debit card numbers are never stored on NOMADLY application servers.
+                  Every protected API endpoint verifies Firebase ID tokens server-side and enforces strict trip ownership and collaborator role checks before reading or modifying workspace data.
                 </p>
               </div>
 
               <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-2">
                 <h4 className="text-white font-bold text-sm flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-amber-400" />
-                  Cloud Database Isolation
+                  Private Document Vault Isolation
                 </h4>
                 <p>
-                  Customer records and trip workspaces are protected by multi-tenant role authorization middleware ensuring only verified trip owners and invited collaborators can view or modify records.
+                  Uploaded boarding passes, visas, and travel IDs are scoped strictly to authorized members of the journey workspace.
                 </p>
               </div>
             </div>
           )}
 
-          {/* 24/7 CONCIERGE SUPPORT */}
+          {/* TRAVELER SUPPORT */}
           {activeTab === 'concierge' && (
             <div className="space-y-4 animate-fade-in">
               <div className="p-5 rounded-2xl bg-gradient-to-r from-coral-500/15 via-teal-500/10 to-ink-950 border border-coral-500/30 space-y-3">
@@ -241,7 +241,7 @@ export const PolicyModal = ({ isOpen, onClose, initialTab = 'cancellation' }) =>
                   Dedicated 24/7 Traveler Assistance
                 </h4>
                 <p>
-                  Whether dealing with flight schedule changes, train platform queries, or emergency hotel modifications, our dedicated traveler concierge team is available around the clock.
+                  Whether organizing group itineraries, resolving expense splits, or managing your travel documents, our dedicated traveler support team is available around the clock.
                 </p>
               </div>
 
@@ -258,17 +258,17 @@ export const PolicyModal = ({ isOpen, onClose, initialTab = 'cancellation' }) =>
                 <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-1">
                   <div className="flex items-center gap-2 text-white font-bold text-xs">
                     <Phone className="w-3.5 h-3.5 text-coral-400" />
-                    <span>Emergency Booking Hotline</span>
+                    <span>Priority Journey Support</span>
                   </div>
                   <p className="text-slate-400 text-[11px]">+91 1800-666-2359 (Toll-Free)</p>
-                  <p className="text-[10px] text-coral-400 font-semibold">24/7 Priority Queue</p>
+                  <p className="text-[10px] text-coral-400 font-semibold">24/7 Assistance Line</p>
                 </div>
               </div>
 
               <div className="p-4 rounded-2xl bg-ink-950 border border-white/5 flex items-center gap-3">
                 <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
                 <p className="text-[11px] text-slate-400">
-                  For active bookings with departure within 24 hours, mention your <strong>Booking Reference / PNR</strong> for immediate priority dispatch.
+                  For faster help with an active trip, include your <strong>Journey Title</strong> or registered account email when reaching out.
                 </p>
               </div>
             </div>

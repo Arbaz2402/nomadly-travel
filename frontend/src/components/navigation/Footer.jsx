@@ -5,7 +5,7 @@ import { PolicyModal } from '../common/PolicyModal';
 
 export const Footer = () => {
   const [policyModalOpen, setPolicyModalOpen] = useState(false);
-  const [policyTab, setPolicyTab] = useState('cancellation');
+  const [policyTab, setPolicyTab] = useState('guidelines');
 
   const openPolicy = (tab) => {
     setPolicyTab(tab);
@@ -27,8 +27,8 @@ export const Footer = () => {
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div>
-                <p className="font-semibold text-slate-200 text-sm group-hover:text-coral-400 transition-colors">Verified Inventory</p>
-                <p className="text-slate-400 text-[11px]">Direct integration & holds</p>
+                <p className="font-semibold text-slate-200 text-sm group-hover:text-coral-400 transition-colors">Collaborative Trips</p>
+                <p className="text-slate-400 text-[11px]">Role-based group planning</p>
               </div>
             </button>
 
@@ -41,8 +41,8 @@ export const Footer = () => {
                 <CreditCard className="w-5 h-5" />
               </div>
               <div>
-                <p className="font-semibold text-slate-200 text-sm group-hover:text-teal-400 transition-colors">Secure Checkout</p>
-                <p className="text-slate-400 text-[11px]">PCI-DSS & 256-bit SSL encryption</p>
+                <p className="font-semibold text-slate-200 text-sm group-hover:text-teal-400 transition-colors">Bank-Grade Security</p>
+                <p className="text-slate-400 text-[11px]">Firebase Auth & TLS encryption</p>
               </div>
             </button>
 
@@ -55,8 +55,8 @@ export const Footer = () => {
                 <Headphones className="w-5 h-5" />
               </div>
               <div>
-                <p className="font-semibold text-slate-200 text-sm group-hover:text-blue-400 transition-colors">24/7 Concierge</p>
-                <p className="text-slate-400 text-[11px]">Dedicated traveler care</p>
+                <p className="font-semibold text-slate-200 text-sm group-hover:text-blue-400 transition-colors">24/7 Support</p>
+                <p className="text-slate-400 text-[11px]">Dedicated traveler assistance</p>
               </div>
             </button>
 
@@ -69,7 +69,7 @@ export const Footer = () => {
               </div>
               <div>
                 <p className="font-semibold text-slate-200 text-sm group-hover:text-amber-400 transition-colors">Unified Itinerary</p>
-                <p className="text-slate-400 text-[11px]">Multi-modal journey builder</p>
+                <p className="text-slate-400 text-[11px]">Day-by-day journey organizer</p>
               </div>
             </Link>
           </div>
@@ -110,7 +110,6 @@ export const Footer = () => {
               <li><Link to="/ai-planner" className="hover:text-coral-400 transition-colors">Custom Trip Planner</Link></li>
               <li><Link to="/journeys" className="hover:text-coral-400 transition-colors">My Journeys Organizer</Link></li>
               <li><Link to="/trip-builder" className="hover:text-coral-400 transition-colors">Unified Trip Builder</Link></li>
-              <li><Link to="/wishlist" className="hover:text-coral-400 transition-colors">Fare Price Watchlist</Link></li>
             </ul>
           </div>
 
@@ -120,10 +119,10 @@ export const Footer = () => {
               <li>
                 <button
                   type="button"
-                  onClick={() => openPolicy('cancellation')}
+                  onClick={() => openPolicy('guidelines')}
                   className="hover:text-coral-400 transition-colors text-left"
                 >
-                  Cancellation Rules
+                  Platform Guidelines
                 </button>
               </li>
               <li>
