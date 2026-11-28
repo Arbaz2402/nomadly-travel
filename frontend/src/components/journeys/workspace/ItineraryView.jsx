@@ -10,7 +10,6 @@ import {
   Calendar,
   Compass,
   AlertTriangle,
-  ShieldCheck,
   MapPin,
   Route,
 } from 'lucide-react';
@@ -30,7 +29,6 @@ export const ItineraryView = ({
   canEdit,
   onRefresh,
   onOpenAddActivity,
-  onOpenAttachBooking,
   onOpenAiModify,
   onOpenEditActivity,
 }) => {
@@ -92,13 +90,6 @@ export const ItineraryView = ({
 
         {canEdit && (
           <div className="flex items-center gap-2">
-            <button
-              onClick={onOpenAttachBooking}
-              className="px-3.5 py-2 rounded-xl bg-ink-800 hover:bg-ink-700 text-slate-200 border border-white/10 text-xs font-bold flex items-center gap-1.5 transition-all"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
-              Attach Booking
-            </button>
             <button
               onClick={onOpenAddActivity}
               className="px-4 py-2 rounded-xl bg-gradient-to-r from-coral-500 to-coral-600 hover:from-coral-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-glow transition-all"

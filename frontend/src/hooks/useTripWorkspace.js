@@ -16,7 +16,6 @@ export const useTripWorkspace = () => {
   const [activeTab, setActiveTab] = useState('itinerary');
 
   // Modal states
-  const [attachModalOpen, setAttachModalOpen] = useState(false);
   const [addActivityOpen, setAddActivityOpen] = useState(false);
   const [addExpenseOpen, setAddExpenseOpen] = useState(false);
   const [addMemberOpen, setAddMemberOpen] = useState(false);
@@ -168,8 +167,6 @@ export const useTripWorkspace = () => {
     documents,
     activityLogs,
     respondingInvite,
-    attachModalOpen,
-    setAttachModalOpen,
     addActivityOpen,
     setAddActivityOpen,
     addExpenseOpen,

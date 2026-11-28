@@ -1,5 +1,4 @@
 import React from 'react';
-import { AttachBookingModal } from '../AttachBookingModal';
 import { AddActivityModal } from '../modals/AddActivityModal';
 import { AddExpenseModal } from '../modals/AddExpenseModal';
 import { SettleUpModal } from '../modals/SettleUpModal';
@@ -13,8 +12,6 @@ export const TripModalsManager = ({
   trip,
   itinerary,
   activeTab,
-  attachModalOpen,
-  setAttachModalOpen,
   addActivityOpen,
   setAddActivityOpen,
   addExpenseOpen,
@@ -44,17 +41,6 @@ export const TripModalsManager = ({
 }) => {
   return (
     <>
-      {/* Attach Booking Modal */}
-      <AttachBookingModal
-        trip={trip}
-        isOpen={attachModalOpen}
-        onClose={() => setAttachModalOpen(false)}
-        onAttached={() => {
-          onTripDataRefresh();
-          onTabRefresh(activeTab);
-        }}
-      />
-
       {/* Add Activity Modal */}
       {addActivityOpen && (
         <AddActivityModal

@@ -3,7 +3,6 @@ import {
   Users,
   Calendar as CalendarIcon,
   MapPin,
-  ShieldCheck,
   Layers,
   Compass,
   Wallet,
@@ -24,7 +23,6 @@ export const TripWorkspaceHero = ({
   canEdit,
   activeTab,
   setActiveTab,
-  onOpenAttachBooking,
   onUpdateStatus,
   onOpenEditTrip,
 }) => {
@@ -145,15 +143,6 @@ export const TripWorkspaceHero = ({
                   <span className="hidden sm:inline">Edit Dates</span>
                 </button>
               )}
-
-              <button
-                onClick={onOpenAttachBooking}
-                className="px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-ink-900/90 backdrop-blur-md hover:bg-ink-850 border border-white/15 text-white text-xs font-bold flex items-center gap-1.5 shadow-lg transition-all"
-              >
-                <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
-                <span className="hidden sm:inline">Attach NOMADLY Booking</span>
-                <span className="sm:hidden">Attach Booking</span>
-              </button>
             </div>
           )}
         </div>

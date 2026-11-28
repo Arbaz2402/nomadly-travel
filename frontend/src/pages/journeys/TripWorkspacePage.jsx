@@ -38,8 +38,6 @@ export const TripWorkspacePage = () => {
     documents,
     activityLogs,
     respondingInvite,
-    attachModalOpen,
-    setAttachModalOpen,
     addActivityOpen,
     setAddActivityOpen,
     addExpenseOpen,
@@ -197,7 +195,6 @@ export const TripWorkspacePage = () => {
         canEdit={canEdit}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        onOpenAttachBooking={() => setAttachModalOpen(true)}
         onUpdateStatus={handleUpdateTripStatus}
         onOpenEditTrip={() => setJourneyEditMode('edit')}
       />
@@ -241,7 +238,6 @@ export const TripWorkspacePage = () => {
           canEdit={canEdit}
           onRefresh={() => loadTabData('itinerary')}
           onOpenAddActivity={() => setAddActivityOpen(true)}
-          onOpenAttachBooking={() => setAttachModalOpen(true)}
           onOpenAiModify={(item) => {
             setAiModifyTargetItem(item);
             setAiModifyModalOpen(true);
@@ -359,8 +355,6 @@ export const TripWorkspacePage = () => {
         trip={trip}
         itinerary={itinerary}
         activeTab={activeTab}
-        attachModalOpen={attachModalOpen}
-        setAttachModalOpen={setAttachModalOpen}
         addActivityOpen={addActivityOpen}
         setAddActivityOpen={setAddActivityOpen}
         addExpenseOpen={addExpenseOpen}
