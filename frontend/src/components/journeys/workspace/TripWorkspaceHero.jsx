@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   Clock,
   RotateCcw,
+  Edit2,
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../../utils/formatters';
 
@@ -25,6 +26,7 @@ export const TripWorkspaceHero = ({
   setActiveTab,
   onOpenAttachBooking,
   onUpdateStatus,
+  onOpenEditTrip,
 }) => {
   const status = trip.dynamicStatus || trip.status || 'upcoming';
 
@@ -122,11 +124,22 @@ export const TripWorkspaceHero = ({
               {status === 'completed' && onUpdateStatus && (
                 <button
                   onClick={() => onUpdateStatus('ongoing')}
-                  className="px-3.5 py-1.5 sm:py-2 rounded-xl bg-ink-900/90 hover:bg-ink-850 border border-white/15 text-slate-200 text-xs font-bold flex items-center gap-1.5 transition-all"
-                  title="Reopen this journey"
+                  className="px-3.5 py-1.5 sm:py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-glow transition-all"
+                  title="Start or reopen this journey"
                 >
-                  <RotateCcw className="w-3.5 h-3.5 text-teal-400" />
-                  <span>Reopen Journey</span>
+                  <Play className="w-3.5 h-3.5 fill-current" />
+                  <span>Start / Reopen Journey</span>
+                </button>
+              )}
+
+              {onOpenEditTrip && (
+                <button
+                  onClick={onOpenEditTrip}
+                  className="px-3 py-1.5 sm:py-2 rounded-xl bg-ink-900/90 hover:bg-ink-850 border border-white/15 text-slate-200 text-xs font-bold flex items-center gap-1.5 shadow-lg transition-all"
+                  title="Edit journey dates, title, or budget"
+                >
+                  <Edit2 className="w-3.5 h-3.5 text-coral-400" />
+                  <span className="hidden sm:inline">Edit Dates</span>
                 </button>
               )}
 

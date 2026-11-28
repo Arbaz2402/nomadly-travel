@@ -237,8 +237,11 @@ export const updateTrip = async (req, res) => {
       status,
       packingList,
       emergencyContacts,
+      shiftItineraryDates,
       isPublic,
     } = req.body;
+
+    const oldStartDate = trip.startDate ? new Date(trip.startDate) : null;
 
     if (title !== undefined) trip.title = title.trim();
     if (description !== undefined) trip.description = description;
@@ -247,6 +250,23 @@ export const updateTrip = async (req, res) => {
     if (additionalDestinations !== undefined) trip.additionalDestinations = additionalDestinations;
     if (startDate !== undefined) trip.startDate = new Date(startDate);
     if (endDate !== undefined) trip.endDate = new Date(endDate);
+
+    // Optionally shift all itinerary activity dates to match the new start date
+    if (shiftItineraryDates && startDate && oldStartDate) {
+      const newStart = new Date(startDate);
+      const oldDayUtc = Date.UTC(oldStartDate.getUTCFullYear(), oldStartDate.getUTCMonth(), oldStartDate.getUTCDate());
+      const newDayUtc = Date.UTC(newStart.getUTCFullYear(), newStart.getUTCMonth(), newStart.getUTCDate());
+      const diffMs = newDayUtc - oldDayUtc;
+      if (diffMs !== 0) {
+        const items = await ItineraryItem.find({ trip: trip._id });
+        for (const item of items) {
+          if (item.date) {
+            item.date = new Date(new Date(item.date).getTime() + diffMs);
+            await item.save();
+          }
+        }
+      }
+    }
     if (travelersCount !== undefined) trip.travelersCount = travelersCount;
     if (currency !== undefined) trip.currency = currency.toUpperCase();
     if (status !== undefined) {
