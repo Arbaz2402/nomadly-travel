@@ -13,7 +13,8 @@ import {
   UserCheck,
   Split,
   Copy,
-  Check
+  Check,
+  Mail
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../../utils/formatters';
 import { useToast } from '../../../context/ToastContext';
@@ -27,6 +28,7 @@ export const SplittingView = ({
   onOpenAddExpense,
   onOpenEditExpense,
   onOpenSettleUp,
+  onOpenNotifySettlement,
   canEdit = true,
 }) => {
   const { showToast } = useToast();
@@ -173,10 +175,29 @@ export const SplittingView = ({
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-white/5">
-                  <span className="text-base font-bold font-mono text-emerald-400">
+                <div className="flex items-center justify-between sm:justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-white/5">
+                  <span className="text-base font-bold font-mono text-emerald-400 mr-1">
                     {formatCurrency(s.amount, trip.currency)}
                   </span>
+
+                  {canEdit && s.fromEmail && (
+                    <button
+                      onClick={() =>
+                        onOpenNotifySettlement &&
+                        onOpenNotifySettlement({
+                          from: s.from,
+                          fromEmail: s.fromEmail,
+                          to: s.to,
+                          toEmail: s.toEmail,
+                          amount: s.amount,
+                        })
+                      }
+                      className="px-2.5 py-1.5 rounded-lg bg-coral-500/15 hover:bg-coral-500/25 text-coral-300 text-xs font-bold border border-coral-500/30 transition-all flex items-center gap-1"
+                      title={`Send settlement reminder email to ${s.fromEmail}`}
+                    >
+                      <Mail className="w-3 h-3" /> Notify
+                    </button>
+                  )}
 
                   {canEdit && (
                     <button

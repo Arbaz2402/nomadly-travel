@@ -3,6 +3,7 @@ import { AttachBookingModal } from '../AttachBookingModal';
 import { AddActivityModal } from '../modals/AddActivityModal';
 import { AddExpenseModal } from '../modals/AddExpenseModal';
 import { SettleUpModal } from '../modals/SettleUpModal';
+import { NotifySettlementModal } from '../modals/NotifySettlementModal';
 import { AddMemberModal } from '../modals/AddMemberModal';
 import { UploadDocModal } from '../modals/UploadDocModal';
 import { AIModifyActivityModal } from '../modals/AIModifyActivityModal';
@@ -24,6 +25,8 @@ export const TripModalsManager = ({
   setSettleUpModalOpen,
   settleUpData,
   setSettleUpData,
+  notifyModalData,
+  setNotifyModalData,
   addMemberOpen,
   setAddMemberOpen,
   uploadDocOpen,
@@ -99,6 +102,18 @@ export const TripModalsManager = ({
             onTabRefresh('expenses');
             onTabRefresh('splitting');
             onTabRefresh('overview');
+          }}
+        />
+      )}
+
+      {/* Notify Settlement Debtor Email Modal */}
+      {Boolean(notifyModalData) && (
+        <NotifySettlementModal
+          trip={trip}
+          isOpen={Boolean(notifyModalData)}
+          initialData={notifyModalData}
+          onClose={() => {
+            if (setNotifyModalData) setNotifyModalData(null);
           }}
         />
       )}

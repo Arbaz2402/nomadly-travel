@@ -3,6 +3,7 @@ import { TripExpense } from '../models/TripExpense.js';
 import { convertCurrency } from '../utils/currencyRates.js';
 import { calculateTripSettlement } from '../utils/settlementCalculator.js';
 import { logTripActivity as logActivity } from '../services/trip/tripService.js';
+import { sendSettlementReminderEmail } from '../services/emailService.js';
 
 export const getTripExpenses = async (req, res) => {
   try {
@@ -255,6 +256,48 @@ export const settleExpenseShare = async (req, res) => {
     await expense.save();
 
     return res.status(200).json({ success: true, message: 'Settlement state updated.', data: expense });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const notifySettlementDebtor = async (req, res) => {
+  try {
+    const trip = req.trip;
+    const { debtorName, debtorEmail, creditorName, amount, customMessage } = req.body;
+
+    if (!debtorEmail || !amount || Number(amount) <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Debtor email and a valid positive amount are required.',
+      });
+    }
+
+    const emailRes = await sendSettlementReminderEmail({
+      trip,
+      sender: req.user,
+      debtorName: debtorName || 'Traveler',
+      debtorEmail: debtorEmail.trim(),
+      creditorName: creditorName || req.user.displayName || 'Travel Partner',
+      amount: Number(amount),
+      currency: trip.currency || 'INR',
+      customMessage: customMessage || '',
+    });
+
+    await logActivity(
+      trip._id,
+      req.user,
+      'SENT_SETTLEMENT_REMINDER',
+      `Sent settlement reminder of ${trip.currency || 'INR'} ${amount} to ${debtorName || debtorEmail}`
+    );
+
+    return res.status(200).json({
+      success: true,
+      sent: Boolean(emailRes.sent),
+      message: emailRes.sent
+        ? `Reminder email sent to ${debtorEmail}!`
+        : `Reminder logged (Email relay notice: ${emailRes.reason || 'queued'})`,
+    });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }

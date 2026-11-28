@@ -66,6 +66,7 @@ export const TripWorkspacePage = () => {
   const [editingExpense, setEditingExpense] = React.useState(null);
   const [settleUpModalOpen, setSettleUpModalOpen] = React.useState(false);
   const [settleUpData, setSettleUpData] = React.useState(null);
+  const [notifyModalData, setNotifyModalData] = React.useState(null);
   const [journeyEditMode, setJourneyEditMode] = React.useState(null); // 'expired-start' | 'edit' | null
 
   const handleUpdateTripStatus = async (newStatus) => {
@@ -314,6 +315,7 @@ export const TripWorkspacePage = () => {
             setSettleUpData(data);
             setSettleUpModalOpen(true);
           }}
+          onOpenNotifySettlement={(data) => setNotifyModalData(data)}
         />
       )}
 
@@ -369,6 +371,8 @@ export const TripWorkspacePage = () => {
         setSettleUpModalOpen={setSettleUpModalOpen}
         settleUpData={settleUpData}
         setSettleUpData={setSettleUpData}
+        notifyModalData={notifyModalData}
+        setNotifyModalData={setNotifyModalData}
         addMemberOpen={addMemberOpen}
         setAddMemberOpen={setAddMemberOpen}
         uploadDocOpen={uploadDocOpen}
