@@ -87,8 +87,11 @@ export const createTripExpense = async (req, res) => {
         isSettled: Boolean(s.isSettled),
       }));
     } else {
-      // Auto equal split across trip participants
-      const participants = trip.participants?.length > 0 ? trip.participants : [finalPaidBy];
+      // Auto equal split across ONLY accepted/active trip participants
+      const activeParticipants = (trip.participants || []).filter(
+        (p) => p.status === 'accepted' || p.role === 'owner'
+      );
+      const participants = activeParticipants.length > 0 ? activeParticipants : [finalPaidBy];
       const perPersonShare = Number((conversion.convertedAmount / participants.length).toFixed(2));
       const percentageShare = Number((100 / participants.length).toFixed(1));
 
@@ -222,8 +225,11 @@ export const getTripSettlement = async (req, res) => {
   try {
     const trip = req.trip;
     const expenses = await TripExpense.find({ trip: trip._id });
+    const activeParticipants = (trip.participants || []).filter(
+      (p) => p.status === 'accepted' || p.role === 'owner'
+    );
 
-    const settlement = calculateTripSettlement(expenses, trip.participants || []);
+    const settlement = calculateTripSettlement(expenses, activeParticipants);
 
     return res.status(200).json({
       success: true,

@@ -13,17 +13,19 @@ export const UploadDocModal = ({ trip, isOpen, onClose, onUploaded }) => {
   const [notes, setNotes] = useState('');
   const [file, setFile] = useState(null);
 
-  // Consolidated trip participants
+  // Consolidated active/accepted trip participants (exclude pending/declined invites)
   const participants = useMemo(() => {
     const list = [];
     if (trip?.participants && trip.participants.length > 0) {
-      trip.participants.forEach((p) => {
-        list.push({
-          userId: p.user?._id || p.user || null,
-          name: p.name || 'Traveler',
-          email: p.email || '',
+      trip.participants
+        .filter((p) => !p.status || p.status === 'accepted' || p.role === 'owner')
+        .forEach((p) => {
+          list.push({
+            userId: p.user?._id || p.user || null,
+            name: p.name || 'Traveler',
+            email: p.email || '',
+          });
         });
-      });
     }
     return list;
   }, [trip]);
