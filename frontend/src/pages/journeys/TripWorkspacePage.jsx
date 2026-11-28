@@ -17,6 +17,7 @@ import { TripMapView } from '../../components/journeys/workspace/TripMapView';
 import { DocumentsView } from '../../components/journeys/workspace/DocumentsView';
 import { MembersView } from '../../components/journeys/workspace/MembersView';
 import { PackingView } from '../../components/journeys/workspace/PackingView';
+import { StartOrEditJourneyModal } from '../../components/journeys/modals/StartOrEditJourneyModal';
 import { ApiClient } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 
@@ -65,8 +66,20 @@ export const TripWorkspacePage = () => {
   const [editingExpense, setEditingExpense] = React.useState(null);
   const [settleUpModalOpen, setSettleUpModalOpen] = React.useState(false);
   const [settleUpData, setSettleUpData] = React.useState(null);
+  const [journeyEditMode, setJourneyEditMode] = React.useState(null); // 'expired-start' | 'edit' | null
 
   const handleUpdateTripStatus = async (newStatus) => {
+    // Check if dates have passed when attempting to start a journey
+    if (newStatus === 'ongoing' && trip?.endDate) {
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const tripEnd = new Date(trip.endDate);
+      if (tripEnd < todayStart) {
+        setJourneyEditMode('expired-start');
+        return;
+      }
+    }
+
     try {
       const res = await ApiClient.updateTrip(trip._id, { status: newStatus });
       if (res.success) {
@@ -185,6 +198,7 @@ export const TripWorkspacePage = () => {
         setActiveTab={setActiveTab}
         onOpenAttachBooking={() => setAttachModalOpen(true)}
         onUpdateStatus={handleUpdateTripStatus}
+        onOpenEditTrip={() => setJourneyEditMode('edit')}
       />
 
       {/* Live Active Journey Banner */}
@@ -366,6 +380,22 @@ export const TripWorkspacePage = () => {
         onTripDataRefresh={fetchTripData}
         onTabRefresh={loadTabData}
       />
+
+      {/* Start / Edit Journey Dates & Details Modal */}
+      {Boolean(journeyEditMode) && (
+        <StartOrEditJourneyModal
+          trip={trip}
+          isOpen={Boolean(journeyEditMode)}
+          mode={journeyEditMode}
+          onClose={() => setJourneyEditMode(null)}
+          onUpdated={() => {
+            fetchTripData();
+            loadTabData('itinerary');
+            loadTabData('calendar');
+            loadTabData('overview');
+          }}
+        />
+      )}
     </div>
   );
 };
