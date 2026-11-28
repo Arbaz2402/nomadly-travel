@@ -342,7 +342,11 @@ export const TripWorkspacePage = () => {
           trip={trip}
           participants={participants}
           isOwner={isOwner}
-          onRefresh={() => loadTabData('members')}
+          onRefresh={() => {
+            fetchTripData();
+            loadTabData('members');
+            loadTabData('splitting');
+          }}
           onOpenAddMember={() => setAddMemberOpen(true)}
           onLeaveJourney={handleLeaveJourney}
         />

@@ -47,6 +47,9 @@ export const TripWorkspaceHero = ({
     (sum, cat) => sum + (cat.items?.length || 0),
     0
   );
+  const activeCollabCount = (trip.participants || []).filter(
+    (p) => !p.status || p.status === 'accepted' || p.role === 'owner'
+  ).length;
   return (
     <div className="relative rounded-3xl overflow-hidden border border-white/10 bg-ink-900 shadow-2xl">
       <div className="relative min-h-[280px] sm:min-h-[320px] md:min-h-[340px] w-full flex flex-col justify-between p-4 sm:p-6 md:p-8">
@@ -212,7 +215,7 @@ export const TripWorkspaceHero = ({
           { id: 'packing', label: 'Packing', icon: Luggage, count: totalPackItems > 0 ? `${packedCount}/${totalPackItems}` : undefined },
           { id: 'map', label: 'Trip Map', icon: Map },
           { id: 'documents', label: 'Documents', icon: FileText, count: trip.documentsCount },
-          { id: 'members', label: 'Collaboration', icon: Users, count: trip.participants?.length },
+          { id: 'members', label: 'Collaboration', icon: Users, count: activeCollabCount },
         ].map((tab) => {
           const Icon = tab.icon || Layers;
           const isActive = activeTab === tab.id;

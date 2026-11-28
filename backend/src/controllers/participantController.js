@@ -1,4 +1,5 @@
 import { Trip } from '../models/Trip.js';
+import { TripExpense } from '../models/TripExpense.js';
 import { User } from '../models/User.js';
 import { sendTripInvitationEmail, isEmailConfigured } from '../services/emailService.js';
 import { logTripActivity as logActivity } from '../services/trip/tripService.js';
@@ -267,8 +268,35 @@ export const removeTripParticipant = async (req, res) => {
     }
 
     const removedName = participant.name;
+    const removedEmail = (participant.email || '').toLowerCase();
     trip.participants.pull(participantId);
     await trip.save();
+
+    // Clean removed participant from any existing expense splits and rebalance equal splits
+    const tripExpenses = await TripExpense.find({ trip: trip._id });
+    for (const exp of tripExpenses) {
+      if (!Array.isArray(exp.splits) || exp.splits.length === 0) continue;
+      const beforeLen = exp.splits.length;
+      exp.splits = exp.splits.filter((s) => {
+        const sEmail = (s.email || '').toLowerCase();
+        const sName = (s.name || '').toLowerCase();
+        if (removedEmail && sEmail) return sEmail !== removedEmail;
+        return sName !== removedName.toLowerCase();
+      });
+      if (exp.splits.length !== beforeLen) {
+        if (exp.splitType === 'equal' && exp.splits.length > 0) {
+          const total = Number(exp.convertedAmount || exp.amount || 0);
+          const perShare = Number((total / exp.splits.length).toFixed(2));
+          const perPct = Number((100 / exp.splits.length).toFixed(1));
+          exp.splits = exp.splits.map((s) => ({
+            ...s.toObject(),
+            shareAmount: perShare,
+            sharePercentage: perPct,
+          }));
+        }
+        await exp.save();
+      }
+    }
 
     await logActivity(trip._id, req.user, 'REMOVED_MEMBER', `Removed ${removedName} from journey participants`);
 

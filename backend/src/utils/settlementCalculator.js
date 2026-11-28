@@ -5,7 +5,8 @@
 export const calculateTripSettlement = (expenses = [], participants = []) => {
   const memberBalances = {};
 
-  // Initialize all known participants
+  // Initialize all known active participants
+  const hasExplicitParticipants = Array.isArray(participants) && participants.length > 0;
   participants.forEach((p) => {
     const key = (p.email || p.name).toLowerCase();
     memberBalances[key] = {
@@ -34,30 +35,40 @@ export const calculateTripSettlement = (expenses = [], participants = []) => {
     // Credit payer
     const payerKey = (expense.paidBy?.email || expense.paidBy?.name || 'Unknown').toLowerCase();
     if (!memberBalances[payerKey]) {
-      memberBalances[payerKey] = {
-        name: expense.paidBy?.name || 'Unknown',
-        email: expense.paidBy?.email || '',
-        totalPaid: 0,
-        totalOwed: 0,
-        netBalance: 0,
-        paidExpenses: [],
-        sharedExpenses: [],
-      };
+      if (hasExplicitParticipants) {
+        // Ignore removed/pending payers if we have an active participant list
+      } else {
+        memberBalances[payerKey] = {
+          name: expense.paidBy?.name || 'Unknown',
+          email: expense.paidBy?.email || '',
+          totalPaid: 0,
+          totalOwed: 0,
+          netBalance: 0,
+          paidExpenses: [],
+          sharedExpenses: [],
+        };
+      }
     }
-    memberBalances[payerKey].totalPaid += cost;
-    memberBalances[payerKey].paidExpenses.push({
-      id: expense._id,
-      title: expense.title,
-      category: expense.category,
-      amount: cost,
-      date: expense.date,
-    });
+    if (memberBalances[payerKey]) {
+      memberBalances[payerKey].totalPaid += cost;
+      memberBalances[payerKey].paidExpenses.push({
+        id: expense._id,
+        title: expense.title,
+        category: expense.category,
+        amount: cost,
+        date: expense.date,
+      });
+    }
 
     // Debit split participants
     if (expense.splits && expense.splits.length > 0) {
       expense.splits.forEach((split) => {
         const splitKey = (split.email || split.name || 'Unknown').toLowerCase();
         if (!memberBalances[splitKey]) {
+          if (hasExplicitParticipants) {
+            // Skip removed or pending invitees who are not active collaborators
+            return;
+          }
           memberBalances[splitKey] = {
             name: split.name || 'Unknown',
             email: split.email || '',
@@ -80,7 +91,7 @@ export const calculateTripSettlement = (expenses = [], participants = []) => {
           date: expense.date,
         });
       });
-    } else {
+    } else if (memberBalances[payerKey]) {
       // Default: payer paid for themselves, no splits recorded
       memberBalances[payerKey].totalOwed += cost;
       memberBalances[payerKey].sharedExpenses.push({
