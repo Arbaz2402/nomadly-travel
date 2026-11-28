@@ -289,5 +289,101 @@ describe('My Journeys — Independent Trip Planning & Expense Suite', () => {
     expect(ownerLeaveRes.body.success).toBe(false);
     expect(ownerLeaveRes.body.message).toContain('Journey owners cannot leave');
   });
+
+  it('9. Excludes pending collaborators from expense splits until invitation is accepted', async () => {
+    const inviteRes = await request(app)
+      .post(`/api/v1/trips/${createdTripId}/participants`)
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({
+        name: 'Pending Guest',
+        email: 'pending.guest@test.com',
+        role: 'editor',
+      });
+    expect(inviteRes.status).toBe(201);
+
+    const autoExpRes = await request(app)
+      .post(`/api/v1/trips/${createdTripId}/expenses`)
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({
+        title: 'Group Dinner',
+        category: 'food',
+        amount: 2000,
+        currency: 'INR',
+        splitType: 'equal',
+      });
+
+    expect(autoExpRes.status).toBe(201);
+    expect(autoExpRes.body.success).toBe(true);
+    const splitEmails = (autoExpRes.body.data.splits || []).map((s) => s.email?.toLowerCase());
+    expect(splitEmails).not.toContain('pending.guest@test.com');
+  });
+
+  it('10. Validates and processes settlement reminder notifications', async () => {
+    const badRes = await request(app)
+      .post(`/api/v1/trips/${createdTripId}/settlement/notify`)
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({ debtorName: 'Rohan', amount: 0 });
+
+    expect(badRes.status).toBe(400);
+    expect(badRes.body.success).toBe(false);
+
+    const okRes = await request(app)
+      .post(`/api/v1/trips/${createdTripId}/settlement/notify`)
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({
+        debtorName: 'Rohan Sharma',
+        debtorEmail: 'rohan@test.com',
+        creditorName: 'Aarav Traveler',
+        amount: 1500,
+        customMessage: 'Please settle ₹1,500 when you get a chance.',
+      });
+
+    expect(okRes.status).toBe(200);
+    expect(okRes.body.success).toBe(true);
+  });
+
+  it('11. Updates journey status and persists journey-synced packing list', async () => {
+    const updateRes = await request(app)
+      .put(`/api/v1/trips/${createdTripId}`)
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({
+        status: 'ongoing',
+        packingList: [
+          {
+            name: 'Essentials',
+            items: [{ text: 'Passport & IDs', packed: true }],
+          },
+        ],
+      });
+
+    expect(updateRes.status).toBe(200);
+    expect(updateRes.body.success).toBe(true);
+    expect(updateRes.body.data.status).toBe('ongoing');
+    expect(updateRes.body.data.packingList).toHaveLength(1);
+    expect(updateRes.body.data.packingList[0].items[0].packed).toBe(true);
+  });
+
+  it('12. Does not emit MISSING_ACCOMMODATION warnings on multi-day trips without hotel items', async () => {
+    const tripRes = await request(app)
+      .post('/api/v1/trips')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({
+        title: 'Weekend Road Trip',
+        destination: 'Coorg',
+        startDate: '2026-12-01',
+        endDate: '2026-12-03',
+      });
+    expect(tripRes.status).toBe(201);
+
+    const itinRes = await request(app)
+      .get(`/api/v1/trips/${tripRes.body.data._id}/itinerary`)
+      .set('Authorization', `Bearer ${authToken}`);
+
+    expect(itinRes.status).toBe(200);
+    const hasAccommodationWarn = (itinRes.body.warnings || []).some(
+      (w) => w.type === 'MISSING_ACCOMMODATION'
+    );
+    expect(hasAccommodationWarn).toBe(false);
+  });
 });
 
