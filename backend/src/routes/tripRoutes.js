@@ -5,7 +5,6 @@ import {
   createTrip,
   updateTrip,
   deleteTrip,
-  attachBookingToTrip,
   getTripAnalytics,
   getTripActivityLogs,
   addSegmentToTrip,
@@ -58,10 +57,7 @@ router.get('/:id', requireTripAccess(['owner', 'editor', 'viewer']), getTripById
 router.put('/:id', requireTripAccess(['owner', 'editor']), updateTrip);
 router.delete('/:id', requireTripAccess(['owner']), deleteTrip);
 
-// 2. Integration with NOMADLY Bookings
-router.post('/:id/attach-booking', requireTripAccess(['owner', 'editor']), attachBookingToTrip);
-
-// 3. Itinerary Builder Endpoints
+// 2. Itinerary Builder Endpoints
 router.get('/:id/itinerary', requireTripAccess(['owner', 'editor', 'viewer']), getTripItinerary);
 router.post('/:id/itinerary', requireTripAccess(['owner', 'editor']), addItineraryItem);
 router.put('/:id/itinerary/:itemId', requireTripAccess(['owner', 'editor']), updateItineraryItem);

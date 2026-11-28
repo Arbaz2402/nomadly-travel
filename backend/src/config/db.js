@@ -10,31 +10,29 @@ export const connectDB = async () => {
     // Enforce high-performance in-memory isolated database in test environment
     const isTestEnv = process.env.NODE_ENV === 'test';
     if (uri && uri.trim() !== '' && !isTestEnv) {
-      console.log('🔄 Connecting to MongoDB Cluster via MONGODB_URI...');
+      console.log('[DB] Connecting to MongoDB...');
       await mongoose.connect(uri);
-      console.log('✅ Connected to MongoDB Cluster successfully.');
+      console.log('[DB] Connected to MongoDB.');
       return;
     }
 
-    console.log('⚡ No MONGODB_URI provided. Initializing High-Performance In-Memory MongoDB Server...');
+    console.log('[DB] No MONGODB_URI provided; starting in-memory MongoDB...');
     mongod = await MongoMemoryServer.create();
     const inMemoryUri = mongod.getUri();
     await mongoose.connect(inMemoryUri);
-    console.log(`✅ In-Memory MongoDB running at: ${inMemoryUri}`);
-    console.log('💡 Note: Data is saved in-memory and seeded automatically for rapid zero-config testing.');
+    console.log(`[DB] In-memory MongoDB running at: ${inMemoryUri}`);
   } catch (error) {
-    console.error('❌ MongoDB Connection Error:', error.message);
-    // Attempt fallback to memory server if atlas network blocked (e.g. strict IP whitelist)
+    console.error('[DB] MongoDB connection error:', error.message);
     if (!mongod) {
       try {
-        console.log('⚠️ Attempting fallback to In-Memory MongoDB...');
+        console.log('[DB] Falling back to in-memory MongoDB...');
         mongod = await MongoMemoryServer.create();
         const inMemoryUri = mongod.getUri();
         await mongoose.connect(inMemoryUri);
-        console.log(`✅ Fallback In-Memory MongoDB active at: ${inMemoryUri}`);
+        console.log(`[DB] Fallback in-memory MongoDB active at: ${inMemoryUri}`);
         return;
       } catch (fallbackError) {
-        console.error('❌ In-Memory Fallback failed:', fallbackError.message);
+        console.error('[DB] In-memory fallback failed:', fallbackError.message);
       }
     }
     process.exit(1);
@@ -47,8 +45,8 @@ export const disconnectDB = async () => {
     if (mongod) {
       await mongod.stop();
     }
-    console.log('🛑 MongoDB disconnected cleanly.');
+    console.log('[DB] MongoDB disconnected.');
   } catch (error) {
-    console.error('Error during database disconnect:', error.message);
+    console.error('[DB] Error during database disconnect:', error.message);
   }
 };

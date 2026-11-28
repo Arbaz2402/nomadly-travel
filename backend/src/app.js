@@ -7,11 +7,7 @@ import rateLimit from 'express-rate-limit';
 // Route Imports
 import diagnosticRoutes from './routes/diagnosticRoutes.js';
 import authRoutes from './routes/authRoutes.js';
-import bookingRoutes from './routes/bookingRoutes.js';
-import paymentRoutes from './routes/paymentRoutes.js';
 import tripRoutes from './routes/tripRoutes.js';
-import wishlistRoutes from './routes/wishlistRoutes.js';
-import couponRoutes from './routes/couponRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 import currencyRoutes from './routes/currencyRoutes.js';
@@ -93,11 +89,7 @@ app.use('/api', diagnosticRoutes);
 
 // Mount V1 API Routes
 app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/bookings', bookingRoutes);
-app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/trips', tripRoutes);
-app.use('/api/v1/wishlist', wishlistRoutes);
-app.use('/api/v1/coupons', couponRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/ai', aiRoutes);
 app.use('/api/v1/currency', currencyRoutes);

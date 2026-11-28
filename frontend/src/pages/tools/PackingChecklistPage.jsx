@@ -405,15 +405,15 @@ export const PackingChecklistPage = () => {
 
   const handleShare = () => {
     const lines = [
-      `🎒 Nomadly Travel Packing Checklist (${activeLabel})`,
+      `Nomadly Travel Packing Checklist (${activeLabel})`,
       `Progress: ${packedItems}/${totalItems} items packed (${percentage}%)`,
       '',
     ];
 
     checklist.forEach((cat) => {
-      lines.push(`📦 ${cat.name}:`);
+      lines.push(`${cat.name}:`);
       cat.items.forEach((it) => {
-        lines.push(`${it.packed ? ' [✓] ' : ' [ ] '} ${it.text}`);
+        lines.push(`${it.packed ? ' [x] ' : ' [ ] '} ${it.text}`);
       });
       lines.push('');
     });

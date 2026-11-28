@@ -3,7 +3,6 @@ import request from 'supertest';
 import app from '../src/app.js';
 import { connectDB, disconnectDB } from '../src/config/db.js';
 import { seedDatabase } from '../src/utils/seed.js';
-import { PricingService } from '../src/services/booking/pricingService.js';
 
 let authToken = '';
 let adminToken = '';
@@ -58,33 +57,6 @@ describe('NOMADLY API Core Test Suite', () => {
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.rates.INR).toBeGreaterThan(70);
-    });
-  });
-
-  describe('Pricing Engine & Coupon Calculation', () => {
-    it('calculates server-side base fare, taxes and applies valid percentage coupon', async () => {
-      const pricing = await PricingService.calculate({
-        category: 'flight',
-        baseFare: 5000,
-        quantity: 1,
-        couponCode: 'NOMAD10',
-      });
-
-      expect(pricing.baseFare).toBe(5000);
-      expect(pricing.taxes).toBe(900); // 18% of 5000
-      expect(pricing.serviceFee).toBe(150);
-      expect(pricing.discount).toBeGreaterThan(0);
-      expect(pricing.totalPayable).toBe(5000 + 900 + 150 - pricing.discount);
-    });
-
-    it('POST /api/v1/coupons/validate returns applied discount', async () => {
-      const res = await request(app)
-        .post('/api/v1/coupons/validate')
-        .send({ code: 'NOMAD10', category: 'flight', amount: 5000 });
-
-      expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.calculatedDiscount).toBe(500); // 10% of 5000
     });
   });
 

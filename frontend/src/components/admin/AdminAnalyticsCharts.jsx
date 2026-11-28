@@ -11,58 +11,53 @@ import {
   Cell,
 } from 'recharts';
 
-export const AdminAnalyticsCharts = ({ monthlyTrends = [], categoryDistribution = [], pieColors = [] }) => {
+export const AdminAnalyticsCharts = ({ monthlyTrends = [], expenseDistribution = [], pieColors = [] }) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-      {/* Monthly Trend Area Chart */}
       <div className="lg:col-span-8 glass-panel rounded-3xl p-6 border border-white/10">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-base font-bold text-white tracking-tight font-display">
-              Gross Booking Volume Trends
+              Monthly Journey Activity
             </h3>
-            <p className="text-xs text-slate-400">Monthly booking transaction flow</p>
+            <p className="text-xs text-slate-400">New journeys created over the last 6 months</p>
           </div>
-          <span className="px-2.5 py-1 rounded-lg bg-coral-500/10 text-coral-400 border border-coral-500/20 text-xs font-bold">
-            2026 Live Telemetry
-          </span>
         </div>
 
         <div className="h-64 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={monthlyTrends}>
               <defs>
-                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id="colorTrips" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#ff5a36" stopOpacity={0.4} />
                   <stop offset="95%" stopColor="#ff5a36" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <XAxis dataKey="month" stroke="#64748b" fontSize={11} />
-              <YAxis stroke="#64748b" fontSize={11} />
+              <YAxis stroke="#64748b" fontSize={11} allowDecimals={false} />
               <Tooltip
                 contentStyle={{ backgroundColor: '#0d1322', borderColor: '#223053', borderRadius: '12px' }}
                 itemStyle={{ color: '#ff5a36' }}
               />
-              <Area type="monotone" dataKey="revenue" stroke="#ff5a36" strokeWidth={2.5} fillOpacity={1} fill="url(#colorRevenue)" />
+              <Area type="monotone" dataKey="trips" stroke="#ff5a36" strokeWidth={2.5} fillOpacity={1} fill="url(#colorTrips)" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Category Breakdown Donut Chart */}
       <div className="lg:col-span-4 glass-panel rounded-3xl p-6 border border-white/10 flex flex-col justify-between">
         <div>
           <h3 className="text-base font-bold text-white tracking-tight font-display mb-1">
-            Category Distribution
+            Expense Categories
           </h3>
-          <p className="text-xs text-slate-400 mb-4">Share of multi-modal reservations</p>
+          <p className="text-xs text-slate-400 mb-4">Distribution across tracked trip expenses</p>
         </div>
 
         <div className="h-44 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
-                data={categoryDistribution}
+                data={expenseDistribution}
                 dataKey="count"
                 nameKey="_id"
                 cx="50%"
@@ -71,7 +66,7 @@ export const AdminAnalyticsCharts = ({ monthlyTrends = [], categoryDistribution 
                 outerRadius={65}
                 paddingAngle={4}
               >
-                {categoryDistribution.map((entry, index) => (
+                {expenseDistribution.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
                 ))}
               </Pie>
@@ -83,7 +78,7 @@ export const AdminAnalyticsCharts = ({ monthlyTrends = [], categoryDistribution 
         </div>
 
         <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/5 text-[11px]">
-          {categoryDistribution.map((c, i) => (
+          {expenseDistribution.map((c, i) => (
             <div key={c._id} className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: pieColors[i % pieColors.length] }}></span>
               <span className="capitalize text-slate-300 font-medium">{c._id}</span>

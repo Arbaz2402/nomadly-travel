@@ -15,7 +15,7 @@ try {
       credential: admin.credential.cert(serviceAccount),
     });
     firebaseInitialized = true;
-    console.log('🔥 Firebase Admin SDK initialized successfully from FIREBASE_SERVICE_ACCOUNT environment variable.');
+    console.log('[Auth] Firebase Admin SDK initialized from FIREBASE_SERVICE_ACCOUNT.');
   } else {
     const serviceAccountPath = fs.existsSync('backend/serviceAccountKey.json')
       ? 'backend/serviceAccountKey.json'
@@ -29,7 +29,7 @@ try {
         credential: admin.credential.cert(serviceAccount),
       });
       firebaseInitialized = true;
-      console.log(`🔥 Firebase Admin SDK initialized successfully from ${serviceAccountPath}.`);
+      console.log(`[Auth] Firebase Admin SDK initialized from ${serviceAccountPath}.`);
     } else if (
       process.env.FIREBASE_PROJECT_ID &&
       process.env.FIREBASE_CLIENT_EMAIL &&
@@ -43,13 +43,13 @@ try {
         }),
       });
       firebaseInitialized = true;
-      console.log('🔥 Firebase Admin SDK initialized successfully from environment variables.');
+      console.log('[Auth] Firebase Admin SDK initialized from environment variables.');
     } else {
-      console.log('ℹ️ Firebase Admin credentials not detected. Utilizing Dual-Mode JWT Auth & Demo Engine.');
+      console.log('[Auth] Firebase Admin credentials not detected; using JWT fallback.');
     }
   }
 } catch (err) {
-  console.warn('⚠️ Firebase Admin initialization bypassed:', err.message);
+  console.warn('[Auth] Firebase Admin initialization bypassed:', err.message);
 }
 
 const JWT_SECRET = process.env.JWT_SECRET || 'nomadly_super_secret_jwt_key_2026_travel_platform';

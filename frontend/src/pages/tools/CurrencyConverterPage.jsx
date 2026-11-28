@@ -144,13 +144,13 @@ export const CurrencyConverterPage = () => {
       <div className="text-center max-w-3xl mx-auto">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-coral-500/10 border border-coral-500/20 text-coral-400 text-xs font-semibold uppercase tracking-wider mb-4">
           <Coins className="w-4 h-4" />
-          Real-Time Intraday Market FX Rates
+          Live Market Exchange Rates
         </div>
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight font-display mb-3">
-          Live Multi-Currency & Cash Calculator
+          Live Multi-Currency &amp; Cash Calculator
         </h1>
         <p className="text-slate-400 text-xs sm:text-sm max-w-xl mx-auto">
-          Synced with live intraday market feeds matching Google Finance, complete with interactive historical charts and travel cash planning.
+          Check live exchange rates, view historical trends, and estimate your travel cash needs.
         </p>
       </div>
 
@@ -548,7 +548,7 @@ export const CurrencyConverterPage = () => {
           </div>
         </div>
 
-        {/* Card 2: Pocket Cheat Sheet Table */}
+        {/* Card 2: Quick Conversion Cheat Sheet */}
         <div className="glass-panel p-6 sm:p-7 rounded-3xl border border-white/10 space-y-5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-coral-500/10 text-coral-400 flex items-center justify-center border border-coral-500/20">
@@ -556,39 +556,82 @@ export const CurrencyConverterPage = () => {
             </div>
             <div>
               <h3 className="text-base font-bold text-white font-display">
-                Street Price Reference Card
+                Quick Conversion Cheat Sheet
               </h3>
               <p className="text-xs text-slate-400">
-                Instantly recognize prices when shopping or ordering street food abroad.
+                Common amounts converted both ways for quick shopping reference.
               </p>
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-white/5">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-ink-950 text-slate-400 uppercase text-[10px] tracking-wider font-bold">
-                <tr>
-                  <th className="py-2.5 px-3">{fromCurrency}</th>
-                  <th className="py-2.5 px-3 text-right">{toCurrency}</th>
-                  <th className="py-2.5 px-3 text-right">{toCurrency}</th>
-                  <th className="py-2.5 px-3 text-right">{fromCurrency}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5 font-mono">
-                {[1, 5, 10, 20, 50, 100, 500].map((val) => (
-                  <tr key={val} className="hover:bg-white/[0.02]">
-                    <td className="py-2 px-3 text-white font-bold">{val}</td>
-                    <td className="py-2 px-3 text-right text-emerald-400">
-                      {(val * exchangeRate).toFixed(val > 10 ? 0 : 2)}
-                    </td>
-                    <td className="py-2 px-3 text-right text-white font-bold">{val * 10}</td>
-                    <td className="py-2 px-3 text-right text-coral-400">
-                      {(val * 10 * inverseRate).toFixed(val > 10 ? 0 : 2)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            {/* Left Card: From -> To */}
+            <div className="rounded-2xl bg-ink-950/80 border border-white/10 overflow-hidden">
+              <div className="px-3.5 py-2.5 bg-ink-950 border-b border-white/5 flex items-center justify-between">
+                <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                  <span>{POPULAR_CURRENCIES.find((c) => c.code === fromCurrency)?.flag}</span>
+                  <span>{fromCurrency}</span>
+                  <span className="text-slate-500">→</span>
+                  <span>{POPULAR_CURRENCIES.find((c) => c.code === toCurrency)?.flag}</span>
+                  <span className="text-emerald-400">{toCurrency}</span>
+                </span>
+                <span className="text-[10px] font-semibold text-slate-400">Foreign to Home</span>
+              </div>
+              <div className="divide-y divide-white/5 font-mono text-xs">
+                {[1, 5, 10, 20, 50, 100, 500].map((val) => {
+                  const converted = val * exchangeRate;
+                  const formatted =
+                    converted >= 100
+                      ? Math.round(converted).toLocaleString()
+                      : converted.toFixed(2);
+                  return (
+                    <div key={val} className="px-3.5 py-2 flex items-center justify-between hover:bg-white/[0.02]">
+                      <span className="text-slate-200 font-semibold">
+                        {val.toLocaleString()} {fromCurrency}
+                      </span>
+                      <span className="text-slate-500 text-[10px]">=</span>
+                      <span className="text-emerald-400 font-bold">
+                        {formatted} {toCurrency}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Right Card: To -> From */}
+            <div className="rounded-2xl bg-ink-950/80 border border-white/10 overflow-hidden">
+              <div className="px-3.5 py-2.5 bg-ink-950 border-b border-white/5 flex items-center justify-between">
+                <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                  <span>{POPULAR_CURRENCIES.find((c) => c.code === toCurrency)?.flag}</span>
+                  <span>{toCurrency}</span>
+                  <span className="text-slate-500">→</span>
+                  <span>{POPULAR_CURRENCIES.find((c) => c.code === fromCurrency)?.flag}</span>
+                  <span className="text-coral-400">{fromCurrency}</span>
+                </span>
+                <span className="text-[10px] font-semibold text-slate-400">Home to Foreign</span>
+              </div>
+              <div className="divide-y divide-white/5 font-mono text-xs">
+                {[10, 50, 100, 200, 500, 1000, 5000].map((val) => {
+                  const converted = val * inverseRate;
+                  const formatted =
+                    converted >= 100
+                      ? Math.round(converted).toLocaleString()
+                      : converted.toFixed(2);
+                  return (
+                    <div key={val} className="px-3.5 py-2 flex items-center justify-between hover:bg-white/[0.02]">
+                      <span className="text-slate-200 font-semibold">
+                        {val.toLocaleString()} {toCurrency}
+                      </span>
+                      <span className="text-slate-500 text-[10px]">=</span>
+                      <span className="text-coral-400 font-bold">
+                        {formatted} {fromCurrency}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
       </div>
