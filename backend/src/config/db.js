@@ -32,7 +32,7 @@ export const connectDB = async () => {
         console.log(`[DB] Fallback in-memory MongoDB active at: ${inMemoryUri}`);
         return;
       } catch (fallbackError) {
-        console.error('❌ In-Memory Fallback failed:', fallbackError.message);
+        console.error('[DB] In-memory fallback failed:', fallbackError.message);
       }
     }
     process.exit(1);
@@ -45,8 +45,8 @@ export const disconnectDB = async () => {
     if (mongod) {
       await mongod.stop();
     }
-    console.log('🛑 MongoDB disconnected cleanly.');
+    console.log('[DB] MongoDB disconnected.');
   } catch (error) {
-    console.error('Error during database disconnect:', error.message);
+    console.error('[DB] Error during database disconnect:', error.message);
   }
 };

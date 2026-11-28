@@ -98,7 +98,7 @@ export const Footer = () => {
             <h4 className="text-white font-semibold mb-3">Travel Tools</h4>
             <ul className="space-y-2">
               <li><Link to="/currency-converter" className="hover:text-coral-400 transition-colors">Live Currency Converter</Link></li>
-              <li><Link to="/packing-checklist" className="hover:text-coral-400 transition-colors">Smart Packing Checklist</Link></li>
+              <li><Link to="/packing-checklist" className="hover:text-coral-400 transition-colors">Packing Checklist</Link></li>
               <li><Link to="/ai-planner" className="hover:text-coral-400 transition-colors">Custom Trip Planner</Link></li>
               <li><Link to="/journeys" className="hover:text-coral-400 transition-colors">My Journeys Organizer</Link></li>
             </ul>

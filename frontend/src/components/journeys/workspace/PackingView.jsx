@@ -228,13 +228,13 @@ export const PackingView = ({ trip, canEdit, onRefresh }) => {
 
   const handleShare = () => {
     const lines = [
-      `🎒 ${trip.title} (${trip.destination}) - Packing Checklist`,
+      `${trip.title} (${trip.destination}) - Packing Checklist`,
       `Progress: ${packedItems}/${totalItems} packed (${percentage}%)`,
       '',
     ];
     list.forEach((c) => {
-      lines.push(`📦 ${c.name}:`);
-      c.items.forEach((it) => lines.push(`${it.packed ? ' [✓] ' : ' [ ] '} ${it.text}`));
+      lines.push(`${c.name}:`);
+      c.items.forEach((it) => lines.push(`${it.packed ? ' [x] ' : ' [ ] '} ${it.text}`));
       lines.push('');
     });
     navigator.clipboard.writeText(lines.join('\n'));
