@@ -1,47 +1,47 @@
-# NOMADLY — Travel Reservation & Trip Management Platform
+# NOMADLY — Collaborative Trip Planner & Travel Utilities
 
 [![Production App](https://img.shields.io/badge/Production-Live%20on%20Netlify-00C7B7?style=for-the-badge&logo=netlify)](https://nomadly-travel.netlify.app)
 [![API Server](https://img.shields.io/badge/Backend%20API-Live%20on%20Render-success?style=for-the-badge&logo=render)](https://nomadly-travel.onrender.com)
-[![CI Quality Pipeline](https://img.shields.io/badge/CI%2FCD-100%25%20Passing-brightgreen?style=for-the-badge&logo=githubactions)](https://github.com/Arbaz2402/nomadly-travel/actions)
-[![Automated Tests](https://img.shields.io/badge/Tests-68%20Passing-blue?style=for-the-badge&logo=vitest)](https://github.com/Arbaz2402/nomadly-travel)
+[![CI Quality Pipeline](https://img.shields.io/badge/CI%2FCD-Passing-brightgreen?style=for-the-badge&logo=githubactions)](https://github.com/Arbaz2402/nomadly-travel/actions)
+[![Automated Tests](https://img.shields.io/badge/Tests-40%20Passing-blue?style=for-the-badge&logo=vitest)](https://github.com/Arbaz2402/nomadly-travel)
 [![Interactive Docs](https://img.shields.io/badge/Swagger-OpenAPI%203.0-85EA2D?style=for-the-badge&logo=swagger)](https://nomadly-travel.onrender.com/api-docs)
 
-NOMADLY is a full-stack travel reservation and collaborative trip planning platform built with **React 18, Redux Toolkit, Node.js, Express, and MongoDB**. It enables travelers to search and book flights, hotels, trains, and buses, manage collaborative group itineraries, track shared expenses, and generate customized trip plans.
+NOMADLY is a full-stack collaborative travel planner, group expense splitter, and travel utilities platform built with **React 18, Redux Toolkit, Node.js, Express, and MongoDB**.
 
 ---
 
-## 🌐 Live Deployments
+## Live Deployments
 
-| Component | URL | Status | Description |
-| :--- | :--- | :--- | :--- |
-| **Frontend Web App** | [nomadly-travel.netlify.app](https://nomadly-travel.netlify.app) | 🟢 Live | React SPA with responsive layout, instant checkout, and trip workspace. |
-| **Backend REST API** | [nomadly-travel.onrender.com](https://nomadly-travel.onrender.com) | 🟢 Live | Express API with rate limiting, JWT/Firebase authentication, and MongoDB Atlas. |
-| **API Documentation** | [nomadly-travel.onrender.com/api-docs](https://nomadly-travel.onrender.com/api-docs) | 🟢 Live | Interactive Swagger OpenAPI 3.0 documentation. |
-| **Health Check** | [nomadly-travel.onrender.com/api/health](https://nomadly-travel.onrender.com/api/health) | 🟢 Live | Uptime and service status monitoring endpoint. |
-
----
-
-## 🚀 Key Features
-
-* **Flight Booking:** Search flights, compare fares, select seats, and lock inventory during checkout.
-* **Hotels & Accommodations:** Search accommodations with photo galleries, amenities, and room selection.
-* **Trains & Buses:** Authentic IRCTC train schedules and intercity bus seat reservation.
-* **Vacation Packages:** Bundled flight and hotel itineraries with scheduled activities.
-* **AI Trip Planner:** Generate personalized multi-day itineraries with daily schedules, locations, and Google Maps queries via Google Gemini.
-* **Collaborative Trips:** Invite group members with Editor or Viewer roles to collaborate on itineraries and packing lists.
-* **Split Expenses:** Multi-currency shared expense tracker with automatic balance settlement.
-* **Digital Passes & Receipts:** Boarding passes, QR-validated receipts, and printable PDF invoices.
-* **Admin Dashboard:** Booking metrics, revenue analytics, inventory locks, and user governance.
+| Component | URL | Description |
+| :--- | :--- | :--- |
+| **Frontend Web App** | [nomadly-travel.netlify.app](https://nomadly-travel.netlify.app) | React SPA with Journey Workspace, Currency Converter, Packing Checklists, and Trip Planner. |
+| **Backend REST API** | [nomadly-travel.onrender.com](https://nomadly-travel.onrender.com) | Express API with rate limiting, Firebase/JWT authentication, and MongoDB Atlas. |
+| **API Documentation** | [nomadly-travel.onrender.com/api-docs](https://nomadly-travel.onrender.com/api-docs) | Interactive Swagger OpenAPI 3.0 documentation. |
+| **Health Check** | [nomadly-travel.onrender.com/api/health](https://nomadly-travel.onrender.com/api/health) | Service status monitoring endpoint. |
 
 ---
 
-## 🏛️ System Architecture
+## Key Features
+
+* **Collaborative Journey Workspace:** Build day-by-day itineraries with conflict detection, interactive trip maps, calendar view, activity logs, pre-trip readiness score, today's agenda spotlight, and printable PDF trip reports.
+* **Group Collaboration & Roles:** Invite companions by email with Owner, Editor, or Viewer roles; pending invitees are excluded from expense splits until they accept.
+* **Expense Splitting & Settlements:** Track multi-currency group expenses with equal, exact, percentage, or share-based splits, debt minimization, settlement tracking, and custom settlement reminder emails.
+* **Travel Documents Vault:** Upload and preview PDFs and images (passports, boarding passes, confirmations) inline with zoom and rotation.
+* **Packing Checklists:** Standalone and journey-synced checklists with customizable templates and clipboard export.
+* **Live Currency Converter & Cash Planner:** Live market FX rates with 1D/5D/1M/1Y historical trend charts, a two-way quick conversion cheat sheet, and a daily pocket-cash estimator.
+* **Weather & Emergency SOS:** 7-day destination weather forecast with rain alerts via Open-Meteo and quick emergency contacts.
+* **Custom Itinerary Planner:** Multi-day itinerary generation via Google Gemini with one-click export into My Journeys.
+* **Admin Console:** User governance, journey metrics, tracked expense distribution, and security audit logs.
+
+---
+
+## System Architecture
 
 ```mermaid
 flowchart LR
     subgraph Client["Frontend Client (Netlify)"]
         UI["React 18 + Vite SPA"]
-        Store["Redux Toolkit Store (RTK)"]
+        Store["Redux Toolkit Store"]
         Hooks["Custom Hooks Layer"]
         UI --> Hooks --> Store
     end
@@ -54,16 +54,20 @@ flowchart LR
     end
 
     subgraph Database["Data Layer"]
-        Atlas[("MongoDB Atlas Cloud")]
+        Atlas[("MongoDB Atlas")]
         Services --> Atlas
     end
 
-    subgraph External["Third-Party Integrations"]
+    subgraph External["External Integrations"]
         Gemini["Google Gemini AI"]
         Firebase["Firebase Auth"]
+        FX["Yahoo Finance & ExchangeRate-API"]
+        Weather["Open-Meteo Forecast API"]
         Resend["Resend & Netlify Email Relay"]
         Services --> Gemini
         Services --> Firebase
+        Services --> FX
+        Services --> Weather
         Services --> Resend
     end
 
@@ -72,9 +76,7 @@ flowchart LR
 
 ---
 
-## 🚀 Quickstart & Local Development
-
-You can run the entire platform locally in **under 2 minutes** with zero cloud setup required!
+## Quickstart & Local Development
 
 ### 1. Clone the repository
 ```bash
@@ -96,76 +98,73 @@ npm run dev
 * **API Documentation:** [http://localhost:5000/api-docs](http://localhost:5000/api-docs)
 
 > [!NOTE]
-> **In-Memory Database:** If no `MONGODB_URI` is provided in `.env`, the backend automatically runs an in-memory database pre-seeded with catalog items for zero-config local testing.
+> **In-Memory Database:** If no `MONGODB_URI` is provided in `.env`, the backend automatically starts an in-memory MongoDB instance seeded with demo accounts and a sample journey for local development and testing.
 
 ---
 
-## 🧪 Automated Testing & CI/CD Pipeline
-
-NOMADLY uses a **100% automated CI/CD pipeline** powered by GitHub Actions. Every Pull Request and commit is tested on clean Ubuntu cloud runners before it can ever be merged.
+## Automated Testing & CI/CD
 
 ### Run tests locally:
 ```bash
-# Run all 68 automated tests (Backend + Frontend)
+# Run all 40 automated tests (Backend + Frontend)
 npm test
 
-# Run only backend tests (50 tests with in-memory Mongo)
+# Run only backend tests (21 tests across 4 suites with in-memory MongoDB)
 npm run test:backend
 
-# Run only frontend tests (18 tests with Vitest)
+# Run only frontend tests (19 tests across 3 suites with Vitest)
 npm run test:frontend
 ```
 
-### What CI/CD verifies automatically:
-1. **50 Backend Tests**: Verifies authentication, booking creation, payment verification, itinerary scheduling, expense settlements, and member invitations.
-2. **18 Frontend Tests**: Verifies UI formatting, saved travelers autofill, booking lists, and KPI calculations.
-3. **Vite Production Bundle Build**: Compiles 2,750+ modules to guarantee zero syntax errors, missing imports, or bundling regressions.
-4. **Branch Protection**: GitHub automatically locks the `main` branch — only code with a 100% green CI test pass can be merged.
+### What CI verifies:
+1. **21 Backend Tests:** Authentication, journey CRUD, itinerary scheduling, multi-currency expense splitting, debt settlement, collaborator invites, document vault, live currency rates, and admin role authorization.
+2. **19 Frontend Tests:** Formatter utilities, admin KPI cards, and core page render smoke tests.
+3. **Vite Production Build:** Compiles the production bundle cleanly with zero missing imports or build errors.
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
-| Layer | Technologies Used |
+| Layer | Technologies |
 | :--- | :--- |
-| **Frontend UI** | React 18, Vite 5, Tailwind CSS, Lucide Icons, Recharts, Canvas Confetti |
-| **Frontend State & Router** | Redux Toolkit (RTK), React-Redux, React Router DOM 6, Custom React Hooks (SRP architecture) |
-| **Backend Framework** | Node.js (ESM), Express 4.19, Zod Request Validation, Helmet Security, Rate Limiting |
-| **Database & ORM** | MongoDB Atlas, Mongoose 8, In-Memory Mongo Server (Local/CI) |
-| **Authentication** | Firebase Cloud Identity, Google OAuth 2.0, JWT Fallback |
-| **Generative AI** | Google Gemini 1.5 & Flash-Lite API with structured schema synthesis |
-| **Testing Engine** | Vitest 1.6, Supertest, Testing Library (React & DOM), JSDOM |
-| **DevOps & CI/CD** | GitHub Actions, Netlify Automated Deploys, Render Cloud Webhooks |
+| **Frontend UI** | React 18, Vite 5, Tailwind CSS, Lucide Icons, Recharts |
+| **Frontend State & Router** | Redux Toolkit, React-Redux, React Router DOM 6, Custom React Hooks |
+| **Backend Framework** | Node.js (ESM), Express 4.19, Helmet, CORS, Rate Limiting |
+| **Database & ODM** | MongoDB Atlas, Mongoose 8, MongoDB Memory Server (Local/CI) |
+| **Authentication** | Firebase Auth, Google OAuth 2.0, JWT Fallback |
+| **AI & Data APIs** | Google Gemini API, Yahoo Finance Chart API, ExchangeRate-API, Open-Meteo |
+| **Testing** | Vitest, Supertest, Testing Library (React & DOM), JSDOM |
+| **Deployment & CI** | GitHub Actions, Netlify, Render |
 
 ---
 
-## 📁 Clean Architecture Directory Structure
+## Directory Structure
 
 ```text
 reservation_app/
 ├── .github/
-│   ├── workflows/ci.yml           # Automated CI/CD test & build pipeline
-│   └── pull_request_template.md   # Standardized QA checklist for PRs
+│   ├── workflows/ci.yml           # Automated CI test & build pipeline
+│   └── pull_request_template.md   # Standardized PR checklist
 ├── backend/
 │   ├── src/
-│   │   ├── controllers/           # Modular domain controllers (SRP)
-│   │   ├── models/                # Mongoose database schemas
-│   │   ├── routes/                # Express API endpoints
-│   │   ├── services/              # Pure business logic & AI generators
-│   │   ├── utils/                 # Currency rates, settlements, seeders
+│   │   ├── controllers/           # Domain controllers (auth, trips, itinerary, expenses, docs, ai, currency, admin)
+│   │   ├── models/                # Mongoose schemas (User, Trip, ItineraryItem, TripExpense, TripDocument, etc.)
+│   │   ├── routes/                # Express API routes
+│   │   ├── services/              # Email relay, AI prompt service, trip helpers
+│   │   ├── utils/                 # Currency rates, settlements, itinerary warnings, seeders
 │   │   └── server.js              # Server entry point
-│   └── tests/                     # 50 Automated Vitest test suites
+│   └── tests/                     # 4 Vitest backend test suites (21 tests)
 └── frontend/
     ├── src/
-    │   ├── components/            # Reusable domain UI components
-    │   ├── hooks/                 # Custom React hooks (checkout, trips, AI)
-    │   ├── pages/                 # Clean page orchestrators (<250 lines)
-    │   ├── services/              # Centralized singleton ApiClient
-    │   └── store/                 # Redux Toolkit store (slices, thunks, hooks)
-    └── tests/                     # 18 Frontend unit test suites
+    │   ├── components/            # UI components (journeys, admin, ai, navigation, common)
+    │   ├── hooks/                 # Custom React hooks (trips, AI planner)
+    │   ├── pages/                 # Route pages (home, journeys, tools, ai, admin)
+    │   ├── services/              # Centralized ApiClient & Firebase setup
+    │   ├── store/                 # Redux Toolkit store & auth slice
+    │   └── tests/                 # 3 Vitest frontend test suites (19 tests)
 ```
 
 ---
 
-## 📄 License
+## License
 This project is licensed under the [MIT License](LICENSE).
