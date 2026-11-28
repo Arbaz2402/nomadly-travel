@@ -26,15 +26,14 @@ const startServer = async () => {
     // 2. Check if database has users/catalog, seed if empty
     const userCount = await User.countDocuments();
     if (userCount === 0) {
-      console.log('📦 Empty database detected. Seeding initial demo accounts & coupons...');
+      console.log('[Server] Empty database detected; running initial seed...');
       await seedDatabase();
     }
 
-    // 3. Start Listening
     app.listen(PORT, () => {
-      console.log(`🚀 NOMADLY API Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-      console.log(`🌐 Base URL: http://localhost:${PORT}/api/v1`);
-      console.log(`🩺 Health check: http://localhost:${PORT}/api/health`);
+      console.log(`[Server] NOMADLY API running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+      console.log(`[Server] Base URL: http://localhost:${PORT}/api/v1`);
+      console.log(`[Server] Health check: http://localhost:${PORT}/api/health`);
     });
   } catch (error) {
     console.error('Fatal Server Startup Error:', error);

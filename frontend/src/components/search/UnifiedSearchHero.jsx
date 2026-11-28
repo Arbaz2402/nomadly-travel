@@ -39,16 +39,16 @@ export const UnifiedSearchHero = () => {
         <div className="text-center max-w-3xl mx-auto mb-10 md:mb-12">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-coral-500/10 border border-coral-500/20 text-coral-400 text-xs font-semibold uppercase tracking-wider mb-5 backdrop-blur-md">
             <Sparkles className="w-3.5 h-3.5" />
-            Collaborative Journey Organizer & Real-Time Travel Utilities
+            Group &amp; Solo Trip Planner
           </div>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight leading-[1.1] mb-5 font-display">
             Your entire journey, <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-coral-400 via-coral-500 to-amber-300">
-              intelligently organized.
+              organized in one place.
             </span>
           </h1>
           <p className="text-base sm:text-lg text-slate-300 font-normal leading-relaxed">
-            Plan group itineraries, split expenses like Splitwise, store & preview travel documents, track live market FX rates, and pack with confidence.
+            Plan group itineraries, split shared expenses, store &amp; preview travel documents, track live currency rates, and pack with confidence.
           </p>
         </div>
 

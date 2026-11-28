@@ -26,7 +26,7 @@ const CORE_FEATURES = [
     cta: 'Open My Journeys',
   },
   {
-    title: 'Splitwise-Grade Expense Splitting',
+    title: 'Group Expense Splitting',
     description:
       'Split bills equally, by exact amounts, percentages, or shares. Exclude anyone from an expense, record settlements, and minimize group debt.',
     icon: Split,
@@ -56,7 +56,7 @@ const CORE_FEATURES = [
     cta: 'Open Currency Converter',
   },
   {
-    title: 'Smart & Custom Packing Checklists',
+    title: 'Packing Checklists',
     description:
       'Use tailored templates for Beach, Mountains, City, or Trekking—or create your own custom checklists and categories saved automatically.',
     icon: Luggage,
@@ -87,13 +87,13 @@ export const HomePage = () => {
         <div className="text-center max-w-2xl mx-auto space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-semibold text-slate-300">
             <Sparkles className="w-3.5 h-3.5 text-coral-400" />
-            100% Real, Functional Travel Tools
+            Built for Every Trip
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-white font-display">
-            Everything You Need for Group & Solo Travel
+            Everything You Need for Group &amp; Solo Travel
           </h2>
           <p className="text-sm text-slate-400">
-            Zero dummy listings. Every workspace tool is backed by real calculations, live FX feeds, and collaborative storage.
+            Plan itineraries, manage shared budgets, track exchange rates, and keep every travel document within reach.
           </p>
         </div>
 

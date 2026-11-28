@@ -135,7 +135,7 @@ Return ONLY a valid JSON object without Markdown backticks or prose, adhering to
         if (rawText) {
           rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
           const parsed = JSON.parse(rawText);
-          console.log(`✨ Successfully generated AI itinerary via ${model} in ${Date.now() - modelStartTime}ms`);
+          console.log(`[Gemini API] Generated itinerary via ${model} in ${Date.now() - modelStartTime}ms`);
           return { itinerary: parsed, model };
         }
       }

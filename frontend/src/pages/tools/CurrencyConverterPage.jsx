@@ -144,13 +144,13 @@ export const CurrencyConverterPage = () => {
       <div className="text-center max-w-3xl mx-auto">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-coral-500/10 border border-coral-500/20 text-coral-400 text-xs font-semibold uppercase tracking-wider mb-4">
           <Coins className="w-4 h-4" />
-          Real-Time Intraday Market FX Rates
+          Live Market Exchange Rates
         </div>
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight font-display mb-3">
-          Live Multi-Currency & Cash Calculator
+          Live Multi-Currency &amp; Cash Calculator
         </h1>
         <p className="text-slate-400 text-xs sm:text-sm max-w-xl mx-auto">
-          Synced with live intraday market feeds matching Google Finance, complete with interactive historical charts and travel cash planning.
+          Check live exchange rates, view historical trends, and estimate your travel cash needs.
         </p>
       </div>
 

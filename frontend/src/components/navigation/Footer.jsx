@@ -85,12 +85,12 @@ export const Footer = () => {
               <span className="text-lg font-bold text-white tracking-tight font-display">NOMADLY</span>
             </div>
             <p className="text-slate-400 max-w-sm mb-4 leading-relaxed">
-              Your entire journey, intelligently organized. Collaborate on itineraries, split group expenses like Splitwise, preview travel documents, and track live currency exchange rates.
+              Plan day-by-day itineraries, split group expenses, store travel documents, and track live currency exchange rates in one place.
             </p>
             <div className="flex items-center gap-2 text-[11px] text-slate-500">
-              <span>Production-Grade Architecture</span>
+              <span>Collaborative Trip Planning</span>
               <span>•</span>
-              <span>Unified Journey Organizer</span>
+              <span>Group Expense Splitting</span>
             </div>
           </div>
 
@@ -158,9 +158,9 @@ export const Footer = () => {
 
         <div className="border-t border-white/5 py-6">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-slate-500 text-[11px]">
-            <p>© {new Date().getFullYear()} NOMADLY Inc. Built with React, Node, Express, MongoDB & Tailwind.</p>
+            <p>© {new Date().getFullYear()} NOMADLY. All rights reserved.</p>
             <p className="flex items-center gap-1">
-              Engineered with Clean Architecture & Redux Toolkit.
+              Group Trip Planning &amp; Expense Splitting
             </p>
           </div>
         </div>

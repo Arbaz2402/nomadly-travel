@@ -119,8 +119,8 @@ export const AuthModal = ({ isOpen, onClose }) => {
           </h2>
           <p className="text-xs text-slate-400">
             {mode === 'login'
-              ? 'Access your trips, saved bookings, and journey workspaces'
-              : 'Join to plan seamless multi-modal trips worldwide'}
+              ? 'Access your trips, expense splits, and journey workspaces'
+              : 'Create an account to plan trips, split expenses, and collaborate'}
           </p>
         </div>
 

@@ -19,10 +19,10 @@ export const seedDatabase = async () => {
   try {
     const existingCount = await User.countDocuments();
     if (existingCount > 0) {
-      console.log('🌱 Database already populated. Skipping re-seed.');
+      console.log('[Seed] Database already populated; skipping.');
       return;
     }
-    console.log('🌱 Seeding NOMADLY Travel Catalog & Demo Data...');
+    console.log('[Seed] Seeding initial database records...');
 
     // 1. Seed Users
     await User.deleteMany({});
